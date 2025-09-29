@@ -34,9 +34,9 @@ COURSE_DETAILS_MAP = {
     "SCM('C)": {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SCM(A)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'},
     'SCM(B)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SMKT(A)': {'Faculty': 'Himanshu Chauhan', 'Venue': 'T6'},
     'SMKT(B)': {'Faculty': 'Kavita Saxena', 'Venue': 'T5'}, 'TEOM(A)': {'Faculty': 'P Ganesh', 'Venue': 'T3'},
-    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
-    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
-    'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
+    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T5'},
+    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T6'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T6'},
+    'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T5'}
 }
 
 # 3. FUNCTIONS
@@ -121,68 +121,71 @@ master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
 
 if not master_schedule_df.empty and student_data_map:
-    roll_number = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
+    # --- NEW: Use a form for the input and button ---
+    with st.form("roll_number_form"):
+        roll_number = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
+        submitted = st.form_submit_button("Generate Timetable")
 
-    if roll_number in student_data_map:
-        student_info = student_data_map[roll_number]
-        student_name, student_sections = student_info['name'], student_info['sections']
-        
-        with st.spinner(f'Finding classes for {student_name}...'):
-            NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
-            normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
-            time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM", 6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM", 10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
-            found_classes = []
-            for index, row in master_schedule_df.iterrows():
-                date, day = row[0], row[1]
-                for col_index, time in time_slots.items():
-                    cell_value = row[col_index]
-                    if isinstance(cell_value, str):
-                        normalized_cell = normalize_string(cell_value)
-                        for norm_sec, orig_sec in normalized_student_section_map.items():
-                            if norm_sec in normalized_cell:
-                                details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'})
-                                found_classes.append({"Date": date, "Day": day, "Time": time, "Subject": orig_sec, "Faculty": details['Faculty'], "Venue": details['Venue']})
-            found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
+    if submitted and roll_number:
+        if roll_number in student_data_map:
+            student_info = student_data_map[roll_number]
+            student_name, student_sections = student_info['name'], student_info['sections']
+            
+            with st.spinner(f'Finding classes for {student_name}...'):
+                NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
+                normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
+                time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM", 6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM", 10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
+                found_classes = []
+                for index, row in master_schedule_df.iterrows():
+                    date, day = row[0], row[1]
+                    for col_index, time in time_slots.items():
+                        cell_value = row[col_index]
+                        if isinstance(cell_value, str):
+                            normalized_cell = normalize_string(cell_value)
+                            for norm_sec, orig_sec in normalized_student_section_map.items():
+                                if norm_sec in normalized_cell:
+                                    details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'})
+                                    found_classes.append({"Date": date, "Day": day, "Time": time, "Subject": orig_sec, "Faculty": details['Faculty'], "Venue": details['Venue']})
+                found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
 
-        st.success(f"Found {len(found_classes)} classes for **{student_name}**.")
-        
-        if found_classes:
-            ics_content = generate_ics_content(found_classes)
-            sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', student_name.replace(" ", "_")).upper()
+            st.success(f"Found {len(found_classes)} classes for **{student_name}**.")
             
-            st.download_button(
-                label="📅 Download Calendar (.ics) File",
-                data=ics_content,
-                file_name=f"{sanitized_name}_Timetable.ics",
-                mime='text/calendar'
-            )
-            
-            # --- UPDATED: Instructions are now always visible ---
-            st.subheader("How to Import to Google Calendar")
-            st.markdown(f"""
-            1.  Click the **'Download Calendar (.ics) File'** button above to save the schedule.
-            2.  Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).
-            3.  Under 'Import from computer', click **'Select file from your computer'**.
-            4.  Choose the `.ics` file you just downloaded.
-            5.  Finally, click the blue **'Import'** button to add all your classes at once.
-            """)
-            
-            st.markdown("---")
-            st.subheader("Timetable Preview")
-            
-            timetable_df = pd.DataFrame(found_classes)
-            timetable_df['Class Info'] = timetable_df['Subject']
-            timetable_df['Day/Date'] = timetable_df['Date'].dt.strftime('%A, %d-%b')
-            sorted_times = [time_slots[key] for key in sorted(time_slots.keys())]
-            final_schedule = timetable_df.pivot_table(index='Day/Date', columns='Time', values='Class Info', aggfunc='first')
-            times_with_classes = [time for time in sorted_times if time in final_schedule.columns]
-            final_schedule = final_schedule[times_with_classes]
-            final_schedule.fillna('', inplace=True)
-            final_schedule = final_schedule.reindex(sorted(final_schedule.index, key=lambda x: pd.to_datetime(x.split(', ')[1] + " 2025")))
-            
-            st.dataframe(final_schedule)
-            
-    elif roll_number:
-        st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
+            if found_classes:
+                ics_content = generate_ics_content(found_classes)
+                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', student_name.replace(" ", "_")).upper()
+                
+                st.download_button(
+                    label="📅 Download Calendar (.ics) File",
+                    data=ics_content,
+                    file_name=f"{sanitized_name}_Timetable.ics",
+                    mime='text/calendar'
+                )
+                
+                st.subheader("How to Import to Google Calendar")
+                st.markdown(f"""
+                1.  Click the **'Download Calendar (.ics) File'** button above to save the schedule.
+                2.  Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).
+                3.  Under 'Import from computer', click **'Select file from your computer'**.
+                4.  Choose the `.ics` file you just downloaded.
+                5.  Finally, click the blue **'Import'** button to add all your classes at once.
+                """)
+                
+                st.markdown("---")
+                st.subheader("Timetable Preview")
+                
+                timetable_df = pd.DataFrame(found_classes)
+                timetable_df['Class Info'] = timetable_df['Subject']
+                timetable_df['Day/Date'] = timetable_df['Date'].dt.strftime('%A, %d-%b')
+                sorted_times = [time_slots[key] for key in sorted(time_slots.keys())]
+                final_schedule = timetable_df.pivot_table(index='Day/Date', columns='Time', values='Class Info', aggfunc='first')
+                times_with_classes = [time for time in sorted_times if time in final_schedule.columns]
+                final_schedule = final_schedule[times_with_classes]
+                final_schedule.fillna('', inplace=True)
+                final_schedule = final_schedule.reindex(sorted(final_schedule.index, key=lambda x: pd.to_datetime(x.split(', ')[1] + " 2025")))
+                
+                st.dataframe(final_schedule)
+                
+        elif submitted: # Show error only if the button was pressed with a roll number
+            st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
