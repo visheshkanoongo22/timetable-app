@@ -13,7 +13,6 @@ import hashlib
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
 TIMEZONE = 'Asia/Kolkata'
 
-# This hardcoded map is the definitive source of truth for course details.
 COURSE_DETAILS_MAP = {
     'AN(A)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'}, 'AN(B)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'},
     'B2B(A)': {'Faculty': 'Sandip Trada', 'Venue': 'T5'}, 'B2B(B)': {'Faculty': 'Rupam Deb', 'Venue': '208-B'},
@@ -45,7 +44,6 @@ def normalize_string(text):
         return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").upper()
     return ""
 
-# Cache the data loading to speed up the app on subsequent runs
 @st.cache_data
 def load_and_clean_schedule(file_path):
     try:
@@ -104,10 +102,8 @@ def generate_ics_content(found_classes):
             if end_am_pm == "PM" and start_hour < 12 and (start_hour > end_hour or start_hour == 11):
                 start_am_pm = "AM"
             full_start_str, full_end_str = f"{start_str_part}{start_am_pm}", end_str_part
-            
             start_dt = local_tz.localize(pd.to_datetime(f"{class_info['Date'].strftime('%Y-%m-%d')} {full_start_str}"))
             end_dt = local_tz.localize(pd.to_datetime(f"{class_info['Date'].strftime('%Y-%m-%d')} {full_end_str}"))
-            
             e.name, e.begin, e.end = f"{class_info['Subject']}", start_dt.astimezone(pytz.utc), end_dt.astimezone(pytz.utc)
             e.location, e.description = class_info['Venue'], f"Faculty: {class_info['Faculty']}"
             e.uid = hashlib.md5(f"{start_dt.isoformat()}-{e.name}".encode('utf-8')).hexdigest() + "@timetable.app"
@@ -147,7 +143,7 @@ if not master_schedule_df.empty and student_data_map:
                                 found_classes.append({"Date": date, "Day": day, "Time": time, "Subject": orig_sec, "Faculty": details['Faculty'], "Venue": details['Venue']})
             found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
 
-        st.success(f"Found {len(found_classes)} classes for {student_name}.")
+        st.success(f"Found {len(found_classes)} classes for **{student_name}**.")
         
         if found_classes:
             ics_content = generate_ics_content(found_classes)
@@ -159,6 +155,33 @@ if not master_schedule_df.empty and student_data_map:
                 file_name=f"{sanitized_name}_Timetable.ics",
                 mime='text/calendar'
             )
+            
+            # --- NEW: Add import link and instructions ---
+            st.markdown("""
+            **How to Import to Google Calendar:**
+            1.  Download the `.ics` file using the button above.
+            2.  Open [**Google Calendar Import Settings**](https://calendar.google.com/calendar/u/0/r/settings/export).
+            3.  Under "Import from computer," upload the downloaded file.
+            """)
+            
+            # --- NEW: Display the timetable on the page ---
+            st.markdown("---")
+            st.subheader("Timetable Preview")
+            
+            timetable_df = pd.DataFrame(found_classes)
+            timetable_df['Class Info'] = (timetable_df['Subject'] + ' (' + 
+                                          timetable_df['Faculty'].astype(str) + ')\n' + 
+                                          'Venue: ' + timetable_df['Venue'].astype(str))
+            timetable_df['Day/Date'] = timetable_df['Date'].dt.strftime('%A, %d-%b')
+            sorted_times = [time_slots[key] for key in sorted(time_slots.keys())]
+            final_schedule = timetable_df.pivot_table(index='Day/Date', columns='Time', values='Class Info', aggfunc='first')
+            times_with_classes = [time for time in sorted_times if time in final_schedule.columns]
+            final_schedule = final_schedule[times_with_classes]
+            final_schedule.fillna('', inplace=True)
+            final_schedule = final_schedule.reindex(sorted(final_schedule.index, key=lambda x: pd.to_datetime(x.split(', ')[1] + " 2025")))
+            
+            st.dataframe(final_schedule)
+            
     elif roll_number:
         st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
