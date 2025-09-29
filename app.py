@@ -113,7 +113,9 @@ def generate_ics_content(found_classes):
     return c.serialize()
 
 # 4. STREAMLIT WEB APP INTERFACE
-st.set_page_config(page_title="Student Timetable Generator", layout="centered")
+# --- CHANGE 1: Use the full width of the screen ---
+st.set_page_config(page_title="Student Timetable Generator", layout="wide")
+
 st.title("🎓 Student Timetable Generator")
 
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
@@ -156,22 +158,18 @@ if not master_schedule_df.empty and student_data_map:
                 mime='text/calendar'
             )
             
-            # --- NEW: Add import link and instructions ---
             st.markdown("""
-            **How to Import to Google Calendar:**
-            1.  Download the `.ics` file using the button above.
-            2.  Open [**Google Calendar Import Settings**](https://calendar.google.com/calendar/u/0/r/settings/export).
-            3.  Under "Import from computer," upload the downloaded file.
+            **How to Import:** Download the `.ics` file, then go to [**Google Calendar Import Settings**](https://calendar.google.com/calendar/u/0/r/settings/export) and upload it.
             """)
             
-            # --- NEW: Display the timetable on the page ---
             st.markdown("---")
             st.subheader("Timetable Preview")
             
             timetable_df = pd.DataFrame(found_classes)
-            timetable_df['Class Info'] = (timetable_df['Subject'] + ' (' + 
-                                          timetable_df['Faculty'].astype(str) + ')\n' + 
-                                          'Venue: ' + timetable_df['Venue'].astype(str))
+            
+            # --- CHANGE 2: Simplify the cell content to only show the subject name ---
+            timetable_df['Class Info'] = timetable_df['Subject']
+            
             timetable_df['Day/Date'] = timetable_df['Date'].dt.strftime('%A, %d-%b')
             sorted_times = [time_slots[key] for key in sorted(time_slots.keys())]
             final_schedule = timetable_df.pivot_table(index='Day/Date', columns='Time', values='Class Info', aggfunc='first')
