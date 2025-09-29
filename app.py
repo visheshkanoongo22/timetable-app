@@ -34,9 +34,9 @@ COURSE_DETAILS_MAP = {
     "SCM('C)": {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SCM(A)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'},
     'SCM(B)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SMKT(A)': {'Faculty': 'Himanshu Chauhan', 'Venue': 'T6'},
     'SMKT(B)': {'Faculty': 'Kavita Saxena', 'Venue': 'T5'}, 'TEOM(A)': {'Faculty': 'P Ganesh', 'Venue': 'T3'},
-    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T5'},
-    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T6'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T6'},
-    'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T5'}
+    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
+    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
+    'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
 
 # 3. FUNCTIONS
@@ -157,16 +157,15 @@ if not master_schedule_df.empty and student_data_map:
                 mime='text/calendar'
             )
             
-            # --- UPDATED: Clearer, more direct instructions ---
-            with st.expander("**How to Import to Google Calendar**"):
-                st.markdown(f"""
-                1.  Click the **'Download Calendar (.ics) File'** button above to save the schedule.
-                2.  Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).
-                3.  Under 'Import from computer', click **'Select file from your computer'**.
-                4.  Choose the `.ics` file you just downloaded from your computer.
-                5.  Finally, click the blue **'Import'** button to add all your classes at once.
-                """)
-                st.success("That's it! All your classes will be added to your calendar.")
+            # --- UPDATED: Instructions are now always visible ---
+            st.subheader("How to Import to Google Calendar")
+            st.markdown(f"""
+            1.  Click the **'Download Calendar (.ics) File'** button above to save the schedule.
+            2.  Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).
+            3.  Under 'Import from computer', click **'Select file from your computer'**.
+            4.  Choose the `.ics` file you just downloaded.
+            5.  Finally, click the blue **'Import'** button to add all your classes at once.
+            """)
             
             st.markdown("---")
             st.subheader("Timetable Preview")
