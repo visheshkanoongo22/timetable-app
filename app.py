@@ -33,9 +33,9 @@ COURSE_DETAILS_MAP = {
     "SCM('C)": {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SCM(A)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'},
     'SCM(B)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SMKT(A)': {'Faculty': 'Himanshu Chauhan', 'Venue': 'T6'},
     'SMKT(B)': {'Faculty': 'Kavita Saxena', 'Venue': 'T5'}, 'TEOM(A)': {'Faculty': 'P Ganesh', 'Venue': 'T3'},
-    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
-    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
-    'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
+    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T5'},
+    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T6'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T6'},
+    'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T5'}
 }
 
 # 3. FUNCTIONS
@@ -156,9 +156,9 @@ if not master_schedule_df.empty and student_data_map:
                 mime='text/calendar'
             )
             
-            # --- NEW: Clearer, expanded instructions ---
-            with st.expander("
-            **How to Import to Google Calendar**"):
+            # --- THE FIX IS HERE: Use triple quotes for the multi-line string ---
+            with st.expander("""
+            **How to Add this Timetable to Your Google Calendar**"""):
                 st.markdown("**Step 1: Open Google Calendar Settings**")
                 st.write("Go to your [Google Calendar](https://calendar.google.com/) and click the **Settings** gear icon (⚙️) in the top-right corner, then select 'Settings'.")
                 
