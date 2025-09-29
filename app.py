@@ -113,9 +113,7 @@ def generate_ics_content(found_classes):
     return c.serialize()
 
 # 4. STREAMLIT WEB APP INTERFACE
-# --- CHANGE 1: Use the full width of the screen ---
 st.set_page_config(page_title="Student Timetable Generator", layout="wide")
-
 st.title("🎓 Student Timetable Generator")
 
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
@@ -158,18 +156,27 @@ if not master_schedule_df.empty and student_data_map:
                 mime='text/calendar'
             )
             
-            st.markdown("""
-            **How to Import:** Download the `.ics` file, then go to [**Google Calendar Import Settings**](https://calendar.google.com/calendar/u/0/r/settings/export) and upload it.
-            """)
+            # --- NEW: Clearer, expanded instructions ---
+            with st.expander("
+            **How to Import to Google Calendar**"):
+                st.markdown("**Step 1: Open Google Calendar Settings**")
+                st.write("Go to your [Google Calendar](https://calendar.google.com/) and click the **Settings** gear icon (⚙️) in the top-right corner, then select 'Settings'.")
+                
+                st.markdown("**Step 2: Go to the Import Section**")
+                st.write("In the left-hand menu of the settings page, click on **'Import & export'**.")
+                st.image("https://i.imgur.com/2s2a23i.png", caption="Navigate to 'Import & export' in settings.")
+
+                st.markdown("**Step 3: Upload and Import the File**")
+                st.write("Click **'Select file from your computer'**, choose the `.ics` file you just downloaded, and click the **'Import'** button. The events will be added to your chosen calendar.")
+                st.image("https://i.imgur.com/tLhV5G8.png", caption="Upload the file and click Import.")
+
+                st.success("That's it! All your classes will be added to your calendar.")
             
             st.markdown("---")
             st.subheader("Timetable Preview")
             
             timetable_df = pd.DataFrame(found_classes)
-            
-            # --- CHANGE 2: Simplify the cell content to only show the subject name ---
             timetable_df['Class Info'] = timetable_df['Subject']
-            
             timetable_df['Day/Date'] = timetable_df['Date'].dt.strftime('%A, %d-%b')
             sorted_times = [time_slots[key] for key in sorted(time_slots.keys())]
             final_schedule = timetable_df.pivot_table(index='Day/Date', columns='Time', values='Class Info', aggfunc='first')
@@ -184,4 +191,3 @@ if not master_schedule_df.empty and student_data_map:
         st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
-
