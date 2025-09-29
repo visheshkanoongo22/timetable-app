@@ -12,6 +12,7 @@ import hashlib
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
 TIMEZONE = 'Asia/Kolkata'
+GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
 
 COURSE_DETAILS_MAP = {
     'AN(A)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'}, 'AN(B)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'},
@@ -156,20 +157,15 @@ if not master_schedule_df.empty and student_data_map:
                 mime='text/calendar'
             )
             
-            # --- THE FIX IS HERE: Use triple quotes for the multi-line string ---
-            with st.expander("""
-            **How to Add this Timetable to Your Google Calendar**"""):
-                st.markdown("**Step 1: Open Google Calendar Settings**")
-                st.write("Go to your [Google Calendar](https://calendar.google.com/) and click the **Settings** gear icon (⚙️) in the top-right corner, then select 'Settings'.")
-                
-                st.markdown("**Step 2: Go to the Import Section**")
-                st.write("In the left-hand menu of the settings page, click on **'Import & export'**.")
-                st.image("https://i.imgur.com/2s2a23i.png", caption="Navigate to 'Import & export' in settings.")
-
-                st.markdown("**Step 3: Upload and Import the File**")
-                st.write("Click **'Select file from your computer'**, choose the `.ics` file you just downloaded, and click the **'Import'** button. The events will be added to your chosen calendar.")
-                st.image("https://i.imgur.com/tLhV5G8.png", caption="Upload the file and click Import.")
-
+            # --- UPDATED: Clearer, more direct instructions ---
+            with st.expander("**How to Import to Google Calendar**"):
+                st.markdown(f"""
+                1.  Click the **'Download Calendar (.ics) File'** button above to save the schedule.
+                2.  Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).
+                3.  Under 'Import from computer', click **'Select file from your computer'**.
+                4.  Choose the `.ics` file you just downloaded from your computer.
+                5.  Finally, click the blue **'Import'** button to add all your classes at once.
+                """)
                 st.success("That's it! All your classes will be added to your calendar.")
             
             st.markdown("---")
