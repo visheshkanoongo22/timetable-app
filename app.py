@@ -217,23 +217,30 @@ st.markdown("""
   margin-top:1rem;
 }
 
-/* Day card */
+/* Day card styling with subtle divider line */
 .day-card {
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border-radius:12px;
-  padding:1.25rem;
-  border:1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06); /* slim subtle top divider */
+  border-left: 1px solid rgba(255,255,255,0.03);
+  border-right: 1px solid rgba(255,255,255,0.03);
+  border-bottom: none; /* remove bottom border for clean stacking */
   transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
-.day-card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(2,6,23,0.65); }
+.day-card + .day-card {
+  margin-top: 1.2rem; /* spacing between day cards */
+}
 
-/* Day header */
+/* Day header positioning and spacing */
 .day-header {
   display:flex;
   align-items:center;
   justify-content:space-between;
-  margin-top: 0.5rem;
-  margin-bottom:0.8rem;
+  margin-top: 0.6rem; /* small breathing room from divider */
+  margin-bottom: 0.9rem;
+}
+
 }
 .date-badge {
   background: linear-gradient(90deg, rgba(110,231,183,0.08), rgba(96,165,250,0.06));
@@ -421,4 +428,5 @@ if not master_schedule_df.empty and student_data_map:
     # if not submitted, do nothing (hero and form visible)
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
 
