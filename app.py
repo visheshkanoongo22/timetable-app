@@ -49,13 +49,14 @@ def normalize_string(text):
 @st.cache_data
 def load_and_clean_schedule(file_path):
     try:
+        # sheet_name=1 as in original script (second sheet)
         df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3)
         schedule_df = df.iloc[:, 0:14].copy()
         schedule_df[0] = pd.to_datetime(schedule_df[0], errors='coerce').dt.date
         schedule_df.dropna(subset=[0], inplace=True)
         return schedule_df
     except FileNotFoundError:
-        st.error("FATAL ERROR: The main schedule file 'schedule.xlsx' was not found.")
+        st.error(f"FATAL ERROR: The main schedule file '{file_path}' was not found. Please make sure it's in the same folder as the app.")
         return pd.DataFrame()
     except Exception as e:
         st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
@@ -63,6 +64,7 @@ def load_and_clean_schedule(file_path):
 
 @st.cache_data
 def get_all_student_data(folder_path='.'):
+    """Scans all student files once and caches the result for performance."""
     student_data_map = {}
     subject_files = [f for f in glob.glob(os.path.join(folder_path, '*.xlsx')) if os.path.basename(f) != SCHEDULE_FILE_NAME]
     for file in subject_files:
@@ -89,6 +91,7 @@ def get_all_student_data(folder_path='.'):
     return student_data_map
 
 def generate_ics_content(found_classes):
+    """Generates the content for an iCalendar (.ics) file."""
     c = Calendar(creator="-//Student Timetable Script//EN")
     local_tz = pytz.timezone(TIMEZONE)
     for class_info in found_classes:
@@ -99,6 +102,7 @@ def generate_ics_content(found_classes):
             end_am_pm = end_str_part[-2:]
             start_am_pm = end_am_pm
             start_hour = int(re.search(r'^\d+', start_str_part).group(0))
+            # heuristic: if end is PM and start hour < 12 and start hour > end hour OR start hour == 11, adjust
             if end_am_pm == "PM" and start_hour < 12 and (start_hour > int(re.search(r'^\d+', end_str_part).group(0)) or start_hour == 11):
                 start_am_pm = "AM"
             full_start_str, full_end_str = f"{start_str_part}{start_am_pm}", end_str_part
@@ -115,61 +119,76 @@ def generate_ics_content(found_classes):
 # 4. STREAMLIT WEB APP INTERFACE
 st.set_page_config(page_title="Student Timetable Generator", layout="centered", initial_sidebar_state="collapsed")
 
-# --- NEW: Custom CSS for Pure Black & White Theme ---
+# --- UPDATED: Dark theme CSS (black background / white text) ---
 st.markdown("""
 <style>
-    /* Main app background */
+    /* App background + base text */
     .stApp {
         background-color: #000000;
         color: #FFFFFF;
     }
-    /* Main header style */
+
+    /* Main header */
     .main-header {
+        font-size: 2.5rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 2rem;
         color: #FFFFFF;
     }
-    /* Style for each day's container */
+
+    /* Day cards (slightly off-black to contrast) */
     .day-card {
-        background-color: #000000;
-        border: 1px solid #FFFFFF;
+        background-color: #0f0f10;
         border-radius: 10px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
+        box-shadow: 0 4px 12px rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.04);
     }
-    /* Style for the date header */
+
     .day-header {
-        color: #FFFFFF;
-        border-bottom: 2px solid #FFFFFF;
-        padding-bottom: 0.75rem;
-        margin-bottom: 1rem;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #e6f0ff;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        padding-bottom: 0.6rem;
+        margin-bottom: 0.9rem;
     }
-    /* Container for each class entry */
+
     .class-entry {
-        padding-top: 0.75rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 1px solid #FFFFFF;
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
     }
-    .day-card .class-entry:last-child {
-        border-bottom: none;
+    .day-card .class-entry:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .subject-name {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #7ec6ff; /* subtle blue for subject */
     }
-    /* Text styles */
-    .subject-name, .class-details {
+
+    .class-details {
+        font-size: 0.98rem;
+        color: #d0d6dc;
+        padding-top: 0.25rem;
+    }
+
+    /* Links, buttons, code blocks in the app */
+    a, .stDownloadButton button, .stButton>button {
+        color: #ffffff;
+    }
+
+    /* Make Streamlit default containers use white text as well */
+    .css-1d391kg, .css-1v3fvcr, .css-18ni7ap {
         color: #FFFFFF;
     }
-    /* Make buttons and inputs fit the theme */
-    .stTextInput > div > div > input {
-        background-color: #000000;
-        color: #FFFFFF;
-        border: 1px solid #FFFFFF;
-    }
-    .stButton > button, .stDownloadButton > button {
-        background-color: #000000;
-        color: #FFFFFF;
-        border: 1px solid #FFFFFF;
-    }
-    .stButton > button:hover, .stDownloadButton > button:hover {
-        background-color: #FFFFFF;
-        color: #000000;
-        border: 1px solid #FFFFFF;
+
+    /* Reduce some Streamlit-provided large paddings (optional) */
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -190,20 +209,39 @@ if not master_schedule_df.empty and student_data_map:
             student_name, student_sections = student_info['name'], student_info['sections']
             
             with st.spinner(f'Finding classes for {student_name}...'):
+                # map normalized course names to details (normalized keys)
                 NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
+
+                # map normalized student-section -> original section (to keep original for display)
                 normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
-                time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM", 6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM", 10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
+
+                time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
+                              6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
+                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
                 found_classes = []
+
                 for index, row in master_schedule_df.iterrows():
                     date, day = row[0], row[1]
                     for col_index, time in time_slots.items():
                         cell_value = str(row[col_index])
                         if cell_value and cell_value != 'nan':
                             normalized_cell = normalize_string(cell_value)
+                            # iterate over normalized student sections and their original form
                             for norm_sec, orig_sec in normalized_student_section_map.items():
+                                # if student's normalized section appears in the cell -> it's a match
                                 if norm_sec in normalized_cell:
-                                    details = NORMALIZED_COURSE_DETAILS_MAP.get(orig_sec, {'Faculty': 'N/A', 'Venue': '-'})
-                                    found_classes.append({"Date": date, "Day": day, "Time": time, "Subject": orig_sec, "Faculty": details['Faculty'], "Venue": details['Venue']})
+                                    # LOOKUP corrected: use normalized key (norm_sec) to fetch details
+                                    details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'})
+                                    found_classes.append({
+                                        "Date": date,
+                                        "Day": day,
+                                        "Time": time,
+                                        "Subject": orig_sec,        # display original section name
+                                        "Faculty": details.get('Faculty', 'N/A'),
+                                        "Venue": details.get('Venue', '-')
+                                    })
+
+                # deduplicate entries
                 found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
 
             st.success(f"Found {len(found_classes)} classes for **{student_name}**.")
@@ -219,12 +257,14 @@ if not master_schedule_df.empty and student_data_map:
                     mime='text/calendar'
                 )
                 
+                # --- Instructions always visible ---
                 st.subheader("How to Import to Google Calendar")
                 st.markdown(f"""
-                1.  Click the **'Download Calendar (.ics) File'** button above.
+                1.  Click the **'Download Calendar (.ics) File'** button above to save the schedule.
                 2.  Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).
-                3.  Click **'Select file from your computer'** and choose the downloaded `.ics` file.
-                4.  Click the **'Import'** button.
+                3.  Under 'Import from computer', click **'Select file from your computer'**.
+                4.  Choose the `.ics` file you just downloaded.
+                5.  Finally, click the blue **'Import'** button to add all your classes at once.
                 """)
                 
                 st.markdown("---")
@@ -248,6 +288,7 @@ if not master_schedule_df.empty and student_data_map:
                     for class_info in classes_today:
                         st.markdown(f'<div class="class-entry">', unsafe_allow_html=True)
                         st.markdown(f'<p class="subject-name">{class_info["Subject"]}</p>', unsafe_allow_html=True)
+                        # Display faculty and venue
                         st.markdown(f'<p class="class-details">🕒 {class_info["Time"]} &nbsp;&nbsp;·&nbsp;&nbsp; 📍 {class_info["Venue"]} &nbsp;&nbsp;·&nbsp;&nbsp; 🧑‍🏫 {class_info["Faculty"]}</p>', unsafe_allow_html=True)
                         st.markdown(f'</div>', unsafe_allow_html=True)
                     
@@ -256,4 +297,4 @@ if not master_schedule_df.empty and student_data_map:
         elif submitted:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
-    st.warning("Application is initializing or required data files are missing.")
+    st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
