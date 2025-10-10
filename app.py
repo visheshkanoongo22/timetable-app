@@ -15,7 +15,6 @@ SCHEDULE_FILE_NAME = 'schedule.xlsx'
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
 
-# This is the final, fully corrected data map
 COURSE_DETAILS_MAP = {
     'AN(A)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'}, 'AN(B)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'},
     'B2B(A)': {'Faculty': 'Sandip Trada', 'Venue': 'T5'}, 'B2B(B)': {'Faculty': 'Rupam Deb', 'Venue': '208-B'},
@@ -56,7 +55,7 @@ def load_and_clean_schedule(file_path):
         schedule_df.dropna(subset=[0], inplace=True)
         return schedule_df
     except FileNotFoundError:
-        st.error(f"FATAL ERROR: The main schedule file '{file_path}' was not found. Please make sure it's in the same folder as the app.")
+        st.error(f"FATAL ERROR: The main schedule file '{file_path}' was not found.")
         return pd.DataFrame()
     except Exception as e:
         st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
@@ -118,51 +117,67 @@ def generate_ics_content(found_classes):
 # 4. STREAMLIT WEB APP INTERFACE
 st.set_page_config(page_title="Student Timetable Generator", layout="centered", initial_sidebar_state="collapsed")
 
-# --- CORRECTED AND SIMPLIFIED CSS ---
+# --- NEW: Custom CSS for Dark Mode Theme ---
 st.markdown("""
 <style>
+    /* Main app background */
     .stApp {
-        background-color: #36454F; /* Light grey background */
+        background-color: #0E1117;
+        color: #FAFAFA;
     }
+    /* Main header style */
     .main-header {
         font-size: 2.5rem;
         font-weight: bold;
         text-align: center;
         margin-bottom: 2rem;
-        color: #1a1a1a;
+        color: #FFFFFF;
     }
+    /* Style for each day's container */
     .day-card {
-        background-color: white;
+        background-color: #161A21;
+        border: 1px solid #262730;
         border-radius: 10px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
+    /* Style for the date header */
     .day-header {
         font-size: 1.5rem;
         font-weight: bold;
-        color: #34495e;
-        border-bottom: 2px solid #ecf0f1;
+        color: #FFFFFF;
+        border-bottom: 2px solid #262730;
         padding-bottom: 0.75rem;
         margin-bottom: 1rem;
     }
+    /* Container for each class entry */
     .class-entry {
         padding-top: 1rem;
         padding-bottom: 1rem;
-        border-bottom: 1px solid #ecf0f1;
+        border-bottom: 1px solid #262730;
     }
     .day-card .class-entry:last-child {
         border-bottom: none;
-        padding-bottom: 0;
     }
+    /* Subject name style */
     .subject-name {
-        font-size: 1.2rem;
+        font-size: 1.25rem;
         font-weight: bold;
-        color: #2980b9;
+        color: #72C4FF; /* Light blue for contrast */
     }
+    /* Details line (time, venue, faculty) */
     .class-details {
         font-size: 1rem;
-        color: #555;
+        color: #A0A0A0; /* Lighter grey for secondary details */
+    }
+    /* Make buttons and inputs fit the dark theme */
+    .stTextInput > div > div > input, .stButton > button, .stDownloadButton > button {
+        background-color: #262730;
+        color: #FAFAFA;
+        border: 1px solid #333;
+    }
+    .stButton > button, .stDownloadButton > button {
+        border: 1px solid #007bff;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -243,4 +258,3 @@ if not master_schedule_df.empty and student_data_map:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
-
