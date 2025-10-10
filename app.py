@@ -118,61 +118,51 @@ def generate_ics_content(found_classes):
 # 4. STREAMLIT WEB APP INTERFACE
 st.set_page_config(page_title="Student Timetable Generator", layout="centered", initial_sidebar_state="collapsed")
 
-# Custom CSS for styling
+# --- CORRECTED AND SIMPLIFIED CSS ---
 st.markdown("""
 <style>
-    /* Main app background */
     .stApp {
-        background-color: #f0f2f6;
+        background-color: #f0f2f6; /* Light grey background */
     }
-    /* Main header style */
     .main-header {
         font-size: 2.5rem;
         font-weight: bold;
         text-align: center;
         margin-bottom: 2rem;
-        color: #2c3e50;
+        color: #1a1a1a;
     }
-    /* Style for each day's container */
     .day-card {
         background-color: white;
-        border-radius: 8px;
+        border-radius: 10px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.04);
-        border: 1px solid #e0e0e0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
-    /* Style for the date header */
     .day-header {
         font-size: 1.5rem;
         font-weight: bold;
         color: #34495e;
         border-bottom: 2px solid #ecf0f1;
         padding-bottom: 0.75rem;
-        margin-bottom: 1.5rem;
-    }
-    /* Container for each class entry */
-    .class-entry {
-        padding-bottom: 1rem;
         margin-bottom: 1rem;
     }
-    /* Last class in a day has no bottom border */
+    .class-entry {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #ecf0f1;
+    }
     .day-card .class-entry:last-child {
         border-bottom: none;
         padding-bottom: 0;
-        margin-bottom: 0;
     }
-    /* Subject name style */
     .subject-name {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
         font-weight: bold;
         color: #2980b9;
     }
-    /* Details line (time, venue, faculty) */
     .class-details {
         font-size: 1rem;
         color: #555;
-        padding-top: 0.25rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -241,14 +231,12 @@ if not master_schedule_df.empty and student_data_map:
                     st.markdown(f'<p class="day-header">{date.strftime("%A, %d %B %Y")}</p>', unsafe_allow_html=True)
                     
                     classes_today = schedule_by_date[date]
-                    for i, class_info in enumerate(classes_today):
+                    for class_info in classes_today:
                         st.markdown(f'<div class="class-entry">', unsafe_allow_html=True)
                         st.markdown(f'<p class="subject-name">{class_info["Subject"]}</p>', unsafe_allow_html=True)
                         st.markdown(f'<p class="class-details">🕒 {class_info["Time"]} &nbsp;&nbsp;·&nbsp;&nbsp; 📍 {class_info["Venue"]} &nbsp;&nbsp;·&nbsp;&nbsp; 🧑‍🏫 {class_info["Faculty"]}</p>', unsafe_allow_html=True)
                         st.markdown(f'</div>', unsafe_allow_html=True)
-                        if i < len(classes_today) - 1:
-                            st.markdown('<hr style="height:1px;border:none;color:#f0f0f0;background-color:#f0f0f0;" />', unsafe_allow_html=True)
-
+                    
                     st.markdown(f'</div>', unsafe_allow_html=True)
                 
         elif submitted:
