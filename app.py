@@ -221,7 +221,7 @@ st.markdown("""
 .day-card {
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
   border-radius:12px;
-  padding:1rem;
+  padding:1.25rem;
   border:1px solid var(--glass-border);
   transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
@@ -232,6 +232,7 @@ st.markdown("""
   display:flex;
   align-items:center;
   justify-content:space-between;
+  margin-top: 0.5rem;
   margin-bottom:0.8rem;
 }
 .date-badge {
@@ -420,3 +421,4 @@ if not master_schedule_df.empty and student_data_map:
     # if not submitted, do nothing (hero and form visible)
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
