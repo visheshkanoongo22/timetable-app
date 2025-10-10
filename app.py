@@ -122,7 +122,7 @@ st.set_page_config(page_title="Student Timetable Generator", layout="centered", 
 st.markdown("""
 <style>
     .stApp {
-        background-color: #f0f2f6; /* Light grey background */
+        background-color: #36454F; /* Light grey background */
     }
     .main-header {
         font-size: 2.5rem;
@@ -243,3 +243,4 @@ if not master_schedule_df.empty and student_data_map:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
