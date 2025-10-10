@@ -116,194 +116,147 @@ def generate_ics_content(found_classes):
             continue
     return c.serialize()
 
-# 4. STREAMLIT WEB APP INTERFACE — PREMIUM LAYOUT
-st.set_page_config(page_title="Import Timetable", layout="wide", initial_sidebar_state="auto")
+# ---------- UI: DROP-IN REPLACEMENT ----------
+st.set_page_config(page_title="Import Timetable", layout="centered", initial_sidebar_state="collapsed")
 
-# ---------- STYLES ----------
 st.markdown("""
 <style>
 :root{
-  --bg: #f7fafc;
-  --panel: #ffffff;
-  --muted: #6b7280;
-  --accent1: #0ea5a4; /* teal */
-  --accent2: #2563eb; /* blue */
-  --glass: rgba(15,23,42,0.04);
-  --rounded: 14px;
+  --page-bg: #eef3f5;        /* slightly darker-than-white page */
+  --card-bg: #f7fafb;        /* content card */
+  --muted: #57606a;
+  --accent: #2ea6a1;         /* teal-ish accent */
+  --card-border: rgba(10,20,30,0.04);
+  --rounded: 12px;
 }
 
-/* page background */
+/* page */
 .stApp {
-  background: linear-gradient(180deg,#fbfdff 0%, #f3f7fb 100%);
-  color:#0f172a;
+  background: linear-gradient(180deg, var(--page-bg), #e9eef0 120%);
+  color: #0b1720;
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
-/* top nav */
-.navbar {
-  background: linear-gradient(90deg,var(--accent1),var(--accent2));
-  padding: 12px 22px;
-  border-radius: 10px;
-  color: white;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom: 18px;
-  box-shadow: 0 8px 28px rgba(30,41,59,0.06);
-}
-.brand { display:flex; gap:12px; align-items:center; font-weight:800; font-size:1.05rem; }
-.brand .logo {
-  width:40px; height:40px; background:rgba(255,255,255,0.14); border-radius:8px; display:flex; align-items:center; justify-content:center;
-  font-weight:900;
+/* simple header */
+.header-wrap { display:flex; align-items:center; justify-content:center; margin-top:18px; margin-bottom:8px; }
+.main-header {
+  font-size: 1.8rem;
+  font-weight:800;
+  margin:0;
+  color:#07363a;
 }
 
-/* main layout: sidebar + content */
-.layout {
-  display:grid;
-  grid-template-columns: 320px 1fr;
-  gap:24px;
-  align-items:start;
+/* small subtitle */
+.header-sub { text-align:center; color:var(--muted); margin-bottom:18px; }
+
+/* container card */
+.container {
+  width:760px;
+  margin: 0 auto 36px auto;
 }
 
-/* left panel controls */
+/* controls card */
 .controls {
-  background: var(--panel);
-  padding:18px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 14px;
   border-radius: var(--rounded);
-  border:1px solid rgba(15,23,42,0.04);
-  box-shadow: 0 8px 24px rgba(15,23,42,0.04);
-  height:fit-content;
-}
-.controls h4 { margin:0 0 8px 0; font-size:1.05rem; }
-.small-muted { color:var(--muted); font-size:0.9rem; margin-top:10px; }
-
-/* right content area */
-.content {
-  display:flex; flex-direction:column; gap:14px;
+  box-shadow: 0 8px 20px rgba(10,20,30,0.03);
+  display:flex;
+  gap:12px;
+  align-items:center;
 }
 
-/* quick stats / download card */
-.quick {
-  display:flex; gap:12px; align-items:center; justify-content:space-between;
-  background: linear-gradient(180deg, rgba(14,165,164,0.02), rgba(37,99,235,0.01));
-  padding:14px; border-radius:12px; border:1px solid rgba(15,23,42,0.03);
-}
-.quick .left { display:flex; flex-direction:column; gap:4px; }
-.quick .big { font-weight:800; font-size:1.05rem; }
-.quick .muted { color:var(--muted); font-size:0.9rem; }
-
-/* day card list */
-.day-list { display:flex; flex-direction:column; gap:12px; }
-.day-card {
-  background: var(--panel);
-  border-radius: 10px;
-  padding:0;
-  border:1px solid rgba(15,23,42,0.04);
-  overflow:hidden;
-  box-shadow: 0 8px 20px rgba(15,23,42,0.03);
+/* form input in controls */
+.controls .left { flex:1; display:flex; gap:12px; align-items:center; }
+.stTextInput>div>div>input {
+  background: rgba(0,0,0,0.02) !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  border: 1px solid rgba(10,20,30,0.04) !important;
+  color: #0b1720 !important;
 }
 
-/* header bar on each day card */
-.day-card .card-header {
-  background: linear-gradient(90deg,var(--accent2),var(--accent1));
+/* generate button styling */
+.stButton>button, .stForm button {
+  background: linear-gradient(180deg, var(--accent), #1f8f8a);
   color: white;
+  font-weight:700;
+  border-radius: 8px;
+  padding: 8px 14px;
+  border: none;
+  box-shadow: 0 8px 22px rgba(46,166,161,0.08);
+}
+.stButton>button:hover { transform: translateY(-3px); }
+
+/* quick download + expander area */
+.action-row { display:flex; gap:12px; align-items:center; margin-top:12px; }
+
+/* cards list */
+.day-card {
+  background: var(--card-bg);
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  margin-top:16px;
+  overflow:hidden;
+  box-shadow: 0 10px 30px rgba(10,20,30,0.03);
+}
+.day-card .card-header {
+  background: linear-gradient(90deg, rgba(46,166,161,0.12), rgba(20,110,110,0.06));
   padding:10px 14px;
   font-weight:700;
+  color:#0b3e3d;
   display:flex; justify-content:space-between; align-items:center;
 }
-.card-header .date { font-size:0.97rem; }
-.card-header .count { font-size:0.9rem; opacity:0.95; }
-
-/* list of classes inside card */
 .card-body { padding:12px 14px; }
 .class-entry {
   display:flex; justify-content:space-between; gap:12px; align-items:center;
   padding:12px 0;
-  border-top: 1px solid rgba(15,23,42,0.03);
+  border-top: 1px solid rgba(10,20,30,0.02);
 }
 .class-entry:first-child { border-top:none; padding-top:6px; }
-.left {
-  display:flex; flex-direction:column; gap:6px;
-}
-.subject { font-weight:700; color:#062a4a; }
-.details { font-size:0.9rem; color:var(--muted); }
-.badge {
-  display:inline-block; padding:6px 10px; border-radius:8px; background:var(--glass);
-  font-size:0.9rem; color:#073045; font-weight:700;
-  border:1px solid rgba(2,6,23,0.04);
-  text-align:right;
-  min-width:120px;
-}
+.subject { font-weight:700; color:#0b3e3d; }
+.details { color:var(--muted); font-size:0.92rem; }
+
+/* subtle thin divider above each day-card when stacked */
+.day-card + .day-card { margin-top:18px; }
+
+/* smaller text */
+.small-muted { color:var(--muted); font-size:0.92rem; margin-top:6px; }
 
 /* responsive */
-@media (max-width:1000px){
-  .layout { grid-template-columns: 1fr; }
-  .controls { order:2; }
-  .content { order:1; }
+@media (max-width:820px){
+  .container { width:92%; padding:0 8px; }
+  .controls { flex-direction:column; align-items:stretch; }
+  .action-row { flex-direction:column; align-items:stretch; gap:8px; }
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- TOP NAV ----------
-st.markdown(f"""
-<div class="navbar">
-  <div class="brand">
-    <div class="logo">📘</div>
-    Class Schedule
-  </div>
-  <div style="display:flex;gap:18px;align-items:center;">
-    <div style="color:rgba(255,255,255,0.95);font-weight:600">My Schedule</div>
-    <div style="color:rgba(255,255,255,0.95);font-weight:600">Faculty</div>
-    <div style="color:rgba(255,255,255,0.95);font-weight:600">Support</div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
+# header
+st.markdown('<div class="header-wrap"><p class="main-header">📅 Import Timetable to Your Google Calendar</p></div>', unsafe_allow_html=True)
+st.markdown('<div class="header-sub">Generate an .ics file from your schedule and import it into Google Calendar.</div>', unsafe_allow_html=True)
 
-# ---------- LAYOUT (controls + content) ----------
-st.markdown('<div class="layout">', unsafe_allow_html=True)
+# container
+st.markdown('<div class="container">', unsafe_allow_html=True)
 
-# ---- LEFT: Controls ----
-st.markdown('<div class="controls">', unsafe_allow_html=True)
-st.markdown('<h4>Search & Export</h4>', unsafe_allow_html=True)
-
-# keep the existing text_input and button but inside controls
-roll_col1, roll_col2 = st.columns([3,1])
-with roll_col1:
+# Controls: use a form so the Generate button aligns with the input
+with st.form("roll_form"):
+    st.markdown('<div class="controls">', unsafe_allow_html=True)
+    # left: input
+    st.markdown('<div class="left">', unsafe_allow_html=True)
     roll_number = st.text_input("Roll number", placeholder="e.g., 24MBA463").strip().upper()
-with roll_col2:
-    submitted = st.button("Generate", key="generate_btn")
+    st.markdown('</div>', unsafe_allow_html=True)
+    # right: generate button (aligned inside form)
+    generate_clicked = st.form_submit_button("Generate")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown('<div class="small-muted">Enter your campus roll to generate an .ics file for Google Calendar.</div>', unsafe_allow_html=True)
-
-# accent choice (simple)
-accent = st.selectbox("Accent color", ["Teal (default)", "Sapphire", "Coral"], index=0)
-
-# quick stats: once attempted generation, show counts
-if 'preview_count' not in st.session_state:
-    st.session_state.preview_count = 0
-
-st.markdown('<hr style="opacity:0.06">', unsafe_allow_html=True)
-st.markdown('<h4>Quick Actions</h4>', unsafe_allow_html=True)
-
-if st.button("Preview timetable (count)"):
-    st.session_state.preview_count += 1
-
-st.markdown(f'<div style="margin-top:8px"><b>Previews:</b> {st.session_state.preview_count}</div>', unsafe_allow_html=True)
-
-st.markdown('</div>', unsafe_allow_html=True)  # close controls
-
-# ---- RIGHT: Content ----
-st.markdown('<div class="content">', unsafe_allow_html=True)
-
-# Quick top card with download placeholder
-st.markdown('<div class="quick"><div class="left"><div class="big">Import Timetable</div><div class="muted">Generate a calendar file and import into Google Calendar</div></div><div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end"><div style="font-weight:700">Export</div></div></div>', unsafe_allow_html=True)
-
-# Now plug your existing data-loading logic
+# After form: show download + instructions if generated
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
 
 if not master_schedule_df.empty and student_data_map:
-    if submitted and roll_number:
+    if generate_clicked and roll_number:
         if roll_number in student_data_map:
             student_info = student_data_map[roll_number]
             student_name, student_sections = student_info['name'], student_info['sections']
@@ -337,57 +290,48 @@ if not master_schedule_df.empty and student_data_map:
                 sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
 
                 # download + instructions
-                c1, c2 = st.columns([3,1])
-                with c1:
-                    st.download_button("📅 Download .ics (Google Calendar)", data=ics_content, file_name=f"{sanitized_name}_Timetable.ics", mime='text/calendar')
-                with c2:
-                    with st.expander("How to import to Google Calendar", expanded=False):
-                        st.markdown(f"""
-                        1. Click the **'Download .ics'** button above to save the schedule.  
-                        2. Go to the **Google Calendar Import** page.  
-                        3. Under 'Import from computer', click **'Select file from your computer'**.  
-                        4. Choose the `.ics` file you downloaded.  
-                        5. Click **'Import'** to add the events.
-                        """)
+                st.markdown('<div class="action-row">', unsafe_allow_html=True)
+                st.download_button("📅 Download .ics (Google Calendar)", data=ics_content, file_name=f"{sanitized_name}_Timetable.ics", mime='text/calendar')
+                with st.expander("How to import to Google Calendar", expanded=False):
+                    st.markdown(f"""
+                    1. Click the **'Download .ics'** button above to save the schedule.  
+                    2. Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
+                    3. Under 'Import from computer', click **'Select file from your computer'**.  
+                    4. Choose the `.ics` file you downloaded.  
+                    5. Click **'Import'** to add the events.
+                    """)
+                st.markdown('</div>', unsafe_allow_html=True)
 
-                # build schedule grouped by date
+                # render timetable
                 schedule_by_date = defaultdict(list)
                 for class_info in found_classes:
                     schedule_by_date[class_info['Date']].append(class_info)
                 sorted_dates = sorted(schedule_by_date.keys())
                 time_sorter = {time: i for i, time in enumerate(time_slots.values())}
 
-                # render day cards (modern look)
-                st.markdown('<div class="day-list">', unsafe_allow_html=True)
                 for date in sorted_dates:
                     schedule_by_date[date].sort(key=lambda x: time_sorter.get(x['Time'], 99))
-                    # day card header
                     st.markdown('<div class="day-card">', unsafe_allow_html=True)
                     st.markdown(f'<div class="card-header"><div class="date">{date.strftime("%A, %d %B %Y")}</div><div class="count">Total: {len(schedule_by_date[date])}</div></div>', unsafe_allow_html=True)
                     st.markdown('<div class="card-body">', unsafe_allow_html=True)
 
                     for class_info in schedule_by_date[date]:
-                        meta_html = f'<div class="badge">🕒 {class_info["Time"]}<br><span style="font-weight:600;color:var(--muted);font-size:0.8rem">📍 {class_info["Venue"]}</span></div>'
                         st.markdown(f'''
                             <div class="class-entry">
-                                <div class="left">
-                                    <div class="subject">{class_info["Subject"]}</div>
-                                    <div class="details">Faculty: {class_info["Faculty"]}</div>
-                                </div>
-                                {meta_html}
+                              <div class="left">
+                                <div class="subject">{class_info["Subject"]}</div>
+                                <div class="details">Faculty: {class_info["Faculty"]} · {class_info["Time"]} · {class_info["Venue"]}</div>
+                              </div>
+                              <div class="badge">{class_info["Time"]}</div>
                             </div>
                         ''', unsafe_allow_html=True)
 
                     st.markdown('</div>', unsafe_allow_html=True)  # close card-body
                     st.markdown('</div>', unsafe_allow_html=True)  # close day-card
 
-                st.markdown('</div>', unsafe_allow_html=True)  # close day-list
-
         else:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
-
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
 
-st.markdown('</div>', unsafe_allow_html=True)  # close content
-st.markdown('</div>', unsafe_allow_html=True)  # close layout
+st.markdown('</div>', unsafe_allow_html=True)  # close container
