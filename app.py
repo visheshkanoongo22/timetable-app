@@ -388,20 +388,18 @@ if not master_schedule_df.empty and student_data_map:
                     st.markdown(f'<div class="day-header"><div class="date-badge">{date.strftime("%d %b")}</div><div>{date.strftime("%A, %d %B %Y")}</div></div>', unsafe_allow_html=True)
                     
                     classes_today = schedule_by_date[date]
-                    for class_info in classes_today:
-                        # structured layout for each class
-                        meta_html = f'<div class="meta"><span class="time">🕒 {class_info["Time"]}</span><span class="venue">📍 {class_info["Venue"]}</span><span class="faculty">🧑‍🏫 {class_info["Faculty"]}</span></div>'
-                        for class_info in classes_today:
-                        # structured layout for each class
-                        meta_html = f'<div class="meta"><span class="time">🕒 {class_info["Time"]}</span><span class="venue">📍 {class_info["Venue"]}</span><span class="faculty">🧑‍🏫 {class_info["Faculty"]}</span></div>'
-                        st.markdown(f'''
-                            <div class="class-entry">
-                                <div class="left">
-                                    <div class="subject-name">{class_info["Subject"]}</div>
-                                </div>
-                                {meta_html}
-                            </div>
-                        ''', unsafe_allow_html=True)
+for class_info in classes_today:
+    # structured layout for each class
+    meta_html = f'<div class="meta"><span class="time">🕒 {class_info["Time"]}</span><span class="venue">📍 {class_info["Venue"]}</span><span class="faculty">🧑‍🏫 {class_info["Faculty"]}</span></div>'
+    st.markdown(f'''
+        <div class="class-entry">
+            <div class="left">
+                <div class="subject-name">{class_info["Subject"]}</div>
+            </div>
+            {meta_html}
+        </div>
+    ''', unsafe_allow_html=True)
+
 
 
 
@@ -412,6 +410,7 @@ if not master_schedule_df.empty and student_data_map:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
 
 
 
