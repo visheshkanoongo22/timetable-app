@@ -1,3 +1,4 @@
+# 1. IMPORTS
 import pandas as pd
 import os
 import glob
@@ -17,7 +18,7 @@ GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settin
 COURSE_DETAILS_MAP = {
     'AN(A)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'}, 'AN(B)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'},
     'B2B(A)': {'Faculty': 'Sandip Trada', 'Venue': 'T5'}, 'B2B(B)': {'Faculty': 'Rupam Deb', 'Venue': '208-B'},
-    "B2B('C)": {'Faculty': 'Rupam Deb', 'Venue': '208-B'}, 'BS': {'Faculty': 'Satish Nair', 'Venue': 'T6'},
+    "B2B('C)": {'Faculty': 'Nityesh Bhatt', 'Venue': '208-B'}, 'BS': {'Faculty': 'Satish Nair', 'Venue': 'T6'},
     'CC&AU(A)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'}, 'CC&AU(B)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'},
     'CSE': {'Faculty': 'Shahir Bhatt', 'Venue': 'T6'}, 'DADM': {'Faculty': 'Mahesh K C', 'Venue': 'T3'},
     'DC': {'Faculty': 'Sapan Oza', 'Venue': 'T6'}, 'DM(A)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'},
@@ -34,9 +35,9 @@ COURSE_DETAILS_MAP = {
     "SCM('C)": {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SCM(A)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'},
     'SCM(B)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SMKT(A)': {'Faculty': 'Himanshu Chauhan', 'Venue': 'T6'},
     'SMKT(B)': {'Faculty': 'Kavita Saxena', 'Venue': 'T5'}, 'TEOM(A)': {'Faculty': 'P Ganesh', 'Venue': 'T3'},
-    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
-    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
-    'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
+    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T5'},
+    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T6'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T6'},
+    'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T5'}
 }
 
 # 3. FUNCTIONS
@@ -388,21 +389,18 @@ if not master_schedule_df.empty and student_data_map:
                     st.markdown(f'<div class="day-header"><div class="date-badge">{date.strftime("%d %b")}</div><div>{date.strftime("%A, %d %B %Y")}</div></div>', unsafe_allow_html=True)
                     
                     classes_today = schedule_by_date[date]
-for class_info in classes_today:
-    # structured layout for each class
-    meta_html = f'<div class="meta"><span class="time">🕒 {class_info["Time"]}</span><span class="venue">📍 {class_info["Venue"]}</span><span class="faculty">🧑‍🏫 {class_info["Faculty"]}</span></div>'
-    st.markdown(f'''
-        <div class="class-entry">
-            <div class="left">
-                <div class="subject-name">{class_info["Subject"]}</div>
-            </div>
-            {meta_html}
-        </div>
-    ''', unsafe_allow_html=True)
-
-
-
-
+                    for class_info in classes_today:
+                        # structured layout for each class
+                        meta_html = f'<div class="meta"><span class="time">🕒 {class_info["Time"]}</span><span class="venue">📍 {class_info["Venue"]}</span><span class="faculty">🧑‍🏫 {class_info["Faculty"]}</span></div>'
+                        st.markdown(f'''
+                            <div class="class-entry">
+                                <div class="left">
+                                    <div class="subject-name">{class_info["Subject"]}</div>
+                                    <div class="class-details">Brief • organised • on time</div>
+                                </div>
+                                {meta_html}
+                            </div>
+                        ''', unsafe_allow_html=True)
                     
                     st.markdown(f'</div>', unsafe_allow_html=True)
                 
@@ -410,8 +408,3 @@ for class_info in classes_today:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
-
-
-
-
-
