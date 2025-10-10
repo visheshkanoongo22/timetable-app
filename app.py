@@ -1,4 +1,3 @@
-# 1. IMPORTS
 import pandas as pd
 import os
 import glob
@@ -392,7 +391,7 @@ if not master_schedule_df.empty and student_data_map:
                     for class_info in classes_today:
                         # structured layout for each class
                         meta_html = f'<div class="meta"><span class="time">🕒 {class_info["Time"]}</span><span class="venue">📍 {class_info["Venue"]}</span><span class="faculty">🧑‍🏫 {class_info["Faculty"]}</span></div>'
-                for class_info in classes_today:
+      for class_info in classes_today:
     # structured layout for each class
     meta_html = f'...'
     st.markdown(f'''
@@ -404,6 +403,7 @@ if not master_schedule_df.empty and student_data_map:
             {meta_html}
         </div>
     ''', unsafe_allow_html=True)
+
 
                     
                     st.markdown(f'</div>', unsafe_allow_html=True)
