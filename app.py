@@ -55,7 +55,7 @@ def load_and_clean_schedule(file_path):
         schedule_df.dropna(subset=[0], inplace=True)
         return schedule_df
     except FileNotFoundError:
-        st.error(f"FATAL ERROR: The main schedule file '{file_path}' was not found. Please make sure it's in the same folder as the app.")
+        st.error(f"FATAL ERROR: The main schedule file '{file_path}' was not found.")
         return pd.DataFrame()
     except Exception as e:
         st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
@@ -117,17 +117,64 @@ def generate_ics_content(found_classes):
 # 4. STREAMLIT WEB APP INTERFACE
 st.set_page_config(page_title="Student Timetable Generator", layout="centered", initial_sidebar_state="collapsed")
 
-# --- UPDATED: CSS with less spacing ---
+# --- NEW: Pure Black and White Theme ---
 st.markdown("""
 <style>
-    .stApp { background-color: #f0f2f6; }
-    .main-header { font-size: 2.5rem; font-weight: bold; text-align: center; margin-bottom: 2rem; color: #1a1a1a; }
-    .day-card { background-color: white; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-    .day-header { font-size: 1.5rem; font-weight: bold; color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 0.75rem; margin-bottom: 1rem; }
-    .class-entry { padding-top: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid #ecf0f1; } /* Reduced padding */
-    .day-card .class-entry:last-child { border-bottom: none; padding-bottom: 0; }
-    .subject-name { font-size: 1.2rem; font-weight: bold; color: #2980b9; }
-    .class-details { font-size: 1rem; color: #555; padding-top: 0.25rem; }
+    /* Main app background */
+    .stApp {
+        background-color: #000000; /* Pure Black */
+        color: #FFFFFF; /* Pure White */
+    }
+    /* Main header style */
+    .main-header {
+        color: #FFFFFF;
+    }
+    /* Style for each day's container */
+    .day-card {
+        background-color: #111111; /* Very dark grey for cards */
+        border: 1px solid #333333;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    /* Style for the date header */
+    .day-header {
+        color: #FFFFFF;
+        border-bottom: 2px solid #333333;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    /* Container for each class entry */
+    .class-entry {
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #333333;
+    }
+    .day-card .class-entry:last-child {
+        border-bottom: none;
+    }
+    /* All text inside cards is white */
+    .subject-name, .class-details {
+        color: #FFFFFF;
+    }
+    .subject-name {
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+    .class-details {
+        font-size: 1rem;
+    }
+    /* Make buttons and inputs fit the dark theme */
+    .stTextInput > div > div > input {
+        background-color: #222222;
+        color: #FFFFFF;
+        border: 1px solid #444444;
+    }
+    .stButton > button, .stDownloadButton > button {
+        background-color: #333333;
+        color: #FFFFFF;
+        border: 1px solid #555555;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -161,6 +208,7 @@ if not master_schedule_df.empty and student_data_map:
                                 if norm_sec in normalized_cell:
                                     details = NORMALIZED_COURSE_DETAILS_MAP.get(orig_sec, {'Faculty': 'N/A', 'Venue': '-'})
                                     found_classes.append({"Date": date, "Day": day, "Time": time, "Subject": orig_sec, "Faculty": details['Faculty'], "Venue": details['Venue']})
+                
                 found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
 
             st.success(f"Found {len(found_classes)} classes for **{student_name}**.")
@@ -176,7 +224,6 @@ if not master_schedule_df.empty and student_data_map:
                     mime='text/calendar'
                 )
                 
-                # --- ADDED BACK: Instructions are now always visible ---
                 st.subheader("How to Import to Google Calendar")
                 st.markdown(f"""
                 1.  Click the **'Download Calendar (.ics) File'** button above to save the schedule.
@@ -207,7 +254,6 @@ if not master_schedule_df.empty and student_data_map:
                     for class_info in classes_today:
                         st.markdown(f'<div class="class-entry">', unsafe_allow_html=True)
                         st.markdown(f'<p class="subject-name">{class_info["Subject"]}</p>', unsafe_allow_html=True)
-                        # --- RESTORED: Display faculty and venue ---
                         st.markdown(f'<p class="class-details">🕒 {class_info["Time"]} &nbsp;&nbsp;·&nbsp;&nbsp; 📍 {class_info["Venue"]} &nbsp;&nbsp;·&nbsp;&nbsp; 🧑‍🏫 {class_info["Faculty"]}</p>', unsafe_allow_html=True)
                         st.markdown(f'</div>', unsafe_allow_html=True)
                     
