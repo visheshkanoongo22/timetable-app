@@ -15,6 +15,7 @@ SCHEDULE_FILE_NAME = 'schedule.xlsx'
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
 
+# This is the final, fully corrected data map
 COURSE_DETAILS_MAP = {
     'AN(A)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'}, 'AN(B)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'},
     'B2B(A)': {'Faculty': 'Sandip Trada', 'Venue': 'T5'}, 'B2B(B)': {'Faculty': 'Rupam Deb', 'Venue': '208-B'},
@@ -35,9 +36,9 @@ COURSE_DETAILS_MAP = {
     "SCM('C)": {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SCM(A)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'},
     'SCM(B)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SMKT(A)': {'Faculty': 'Himanshu Chauhan', 'Venue': 'T6'},
     'SMKT(B)': {'Faculty': 'Kavita Saxena', 'Venue': 'T5'}, 'TEOM(A)': {'Faculty': 'P Ganesh', 'Venue': 'T3'},
-    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
-    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
-    'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
+    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T5'},
+    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T6'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T6'},
+    'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T5'}
 }
 
 # 3. FUNCTIONS
@@ -120,48 +121,58 @@ st.set_page_config(page_title="Student Timetable Generator", layout="centered", 
 # Custom CSS for styling
 st.markdown("""
 <style>
+    /* Main app background */
     .stApp {
-        background-color: #F0F2F6;
+        background-color: #f0f2f6;
     }
+    /* Main header style */
     .main-header {
         font-size: 2.5rem;
         font-weight: bold;
         text-align: center;
         margin-bottom: 2rem;
+        color: #2c3e50;
     }
+    /* Style for each day's container */
     .day-card {
         background-color: white;
-        border-radius: 10px;
+        border-radius: 8px;
         padding: 1.5rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.04);
+        border: 1px solid #e0e0e0;
     }
+    /* Style for the date header */
     .day-header {
         font-size: 1.5rem;
         font-weight: bold;
-        color: #1a1a1a;
-        border-bottom: 2px solid #e0e0e0;
-        padding-bottom: 0.5rem;
-        margin-bottom: 1rem;
+        color: #34495e;
+        border-bottom: 2px solid #ecf0f1;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
     }
+    /* Container for each class entry */
     .class-entry {
-        border-bottom: 1px solid #f0f0f0;
         padding-bottom: 1rem;
         margin-bottom: 1rem;
     }
-    .class-entry:last-child {
+    /* Last class in a day has no bottom border */
+    .day-card .class-entry:last-child {
         border-bottom: none;
         padding-bottom: 0;
         margin-bottom: 0;
     }
+    /* Subject name style */
     .subject-name {
-        font-size: 1.2rem;
+        font-size: 1.25rem;
         font-weight: bold;
-        color: #007bff;
+        color: #2980b9;
     }
+    /* Details line (time, venue, faculty) */
     .class-details {
         font-size: 1rem;
         color: #555;
+        padding-top: 0.25rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -197,14 +208,13 @@ if not master_schedule_df.empty and student_data_map:
                                     details = NORMALIZED_COURSE_DETAILS_MAP.get(orig_sec, {'Faculty': 'N/A', 'Venue': '-'})
                                     found_classes.append({"Date": date, "Day": day, "Time": time, "Subject": orig_sec, "Faculty": details['Faculty'], "Venue": details['Venue']})
                 
-                # Remove duplicates
                 found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
 
             st.success(f"Found {len(found_classes)} classes for **{student_name}**.")
             
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
-                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', student_name.replace(" ", "_")).upper()
+                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                 
                 st.download_button(
                     label="📅 Download Calendar (.ics) File",
@@ -216,15 +226,12 @@ if not master_schedule_df.empty and student_data_map:
                 st.markdown("---")
                 st.subheader("Timetable Preview")
 
-                # --- NEW DISPLAY LOGIC: Group classes by date and display as a list ---
                 schedule_by_date = defaultdict(list)
                 for class_info in found_classes:
                     schedule_by_date[class_info['Date']].append(class_info)
                 
-                # Sort the dates
                 sorted_dates = sorted(schedule_by_date.keys())
                 
-                # Sort classes within each day by time
                 time_sorter = {time: i for i, time in enumerate(time_slots.values())}
                 for date in sorted_dates:
                     schedule_by_date[date].sort(key=lambda x: time_sorter.get(x['Time'], 99))
@@ -234,12 +241,14 @@ if not master_schedule_df.empty and student_data_map:
                     st.markdown(f'<p class="day-header">{date.strftime("%A, %d %B %Y")}</p>', unsafe_allow_html=True)
                     
                     classes_today = schedule_by_date[date]
-                    for class_info in classes_today:
+                    for i, class_info in enumerate(classes_today):
                         st.markdown(f'<div class="class-entry">', unsafe_allow_html=True)
                         st.markdown(f'<p class="subject-name">{class_info["Subject"]}</p>', unsafe_allow_html=True)
                         st.markdown(f'<p class="class-details">🕒 {class_info["Time"]} &nbsp;&nbsp;·&nbsp;&nbsp; 📍 {class_info["Venue"]} &nbsp;&nbsp;·&nbsp;&nbsp; 🧑‍🏫 {class_info["Faculty"]}</p>', unsafe_allow_html=True)
                         st.markdown(f'</div>', unsafe_allow_html=True)
-                    
+                        if i < len(classes_today) - 1:
+                            st.markdown('<hr style="height:1px;border:none;color:#f0f0f0;background-color:#f0f0f0;" />', unsafe_allow_html=True)
+
                     st.markdown(f'</div>', unsafe_allow_html=True)
                 
         elif submitted:
