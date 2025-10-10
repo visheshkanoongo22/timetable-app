@@ -360,16 +360,15 @@ if not master_schedule_df.empty and student_data_map:
                     mime='text/calendar'
                 )
                 
-                # --- Instructions always visible ---
                 # --- Collapsible instructions (click to expand) ---
-with st.expander("How to Import to Google Calendar", expanded=False):
-    st.markdown(f"""
-    1. Click the **'Download Calendar (.ics) File'** button above to save the schedule.  
-    2. Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
-    3. Under 'Import from computer', click **'Select file from your computer'**.  
-    4. Choose the `.ics` file you just downloaded.  
-    5. Click **'Import'** to add the events.
-    """)
+                with st.expander("How to Import to Google Calendar", expanded=False):
+                    st.markdown(f"""
+                    1. Click the **'Download Calendar (.ics) File'** button above to save the schedule.  
+                    2. Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
+                    3. Under 'Import from computer', click **'Select file from your computer'**.  
+                    4. Choose the `.ics` file you just downloaded.  
+                    5. Click **'Import'** to add the events.
+                    """)
 
                 
                 st.markdown("---")
@@ -410,6 +409,7 @@ with st.expander("How to Import to Google Calendar", expanded=False):
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
 
 
 
