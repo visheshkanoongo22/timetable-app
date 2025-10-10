@@ -392,14 +392,18 @@ if not master_schedule_df.empty and student_data_map:
                     for class_info in classes_today:
                         # structured layout for each class
                         meta_html = f'<div class="meta"><span class="time">🕒 {class_info["Time"]}</span><span class="venue">📍 {class_info["Venue"]}</span><span class="faculty">🧑‍🏫 {class_info["Faculty"]}</span></div>'
-                    st.markdown(f'''
-    <div class="class-entry">
-        <div class="left">
-            <div class="subject-name">{class_info["Subject"]}</div>
+                for class_info in classes_today:
+    # structured layout for each class
+    meta_html = f'...'
+    st.markdown(f'''
+        <div class="class-entry">
+            <div class="left">
+                <div class="subject-name">{class_info["Subject"]}</div>
+                <div class="class-details">Brief • organised • on time</div>   <-- remove this line
+            </div>
+            {meta_html}
         </div>
-        {meta_html}
-    </div>
-''', unsafe_allow_html=True)
+    ''', unsafe_allow_html=True)
 
                     
                     st.markdown(f'</div>', unsafe_allow_html=True)
@@ -408,4 +412,5 @@ if not master_schedule_df.empty and student_data_map:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
 
