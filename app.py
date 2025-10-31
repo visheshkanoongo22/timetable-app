@@ -9,6 +9,8 @@ from ics import Calendar, Event
 import pytz
 import hashlib
 from collections import defaultdict
+from datetime import date as dt_date
+TODAY = dt_date.today()
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -292,6 +294,27 @@ st.markdown("""
         .meta { min-width: 120px; font-size:0.9rem; }
         .main-header { font-size: 1.8rem; }
     }
+
+    /* Highlight today's schedule card */
+.today-card {
+    border: 2px solid #00ffaa !important;
+    box-shadow: 0 0 20px rgba(0,255,170,0.3);
+    position: relative;
+}
+
+.today-card::before {
+    content: "Today";
+    position: absolute;
+    top: -10px;
+    right: 15px;
+    background: linear-gradient(90deg, #00ffaa, #00ffcc);
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -385,8 +408,10 @@ if not master_schedule_df.empty and student_data_map:
                     schedule_by_date[date].sort(key=lambda x: time_sorter.get(x['Time'], 99))
 
                 for date in sorted_dates:
-                    # date badge (small) is added inside the header markup
-                    st.markdown(f'<div class="day-card">', unsafe_allow_html=True)
+                # Add 'today-card' class if it’s today
+                    card_class = "day-card today-card" if date == TODAY else "day-card"
+                    card_id = f"day-{date.strftime('%Y%m%d')}"
+                    st.markdown(f'<div id="{card_id}" class="{card_class}">', unsafe_allow_html=True)
                     st.markdown(f'<div class="day-header"><div class="date-badge">{date.strftime("%d %b")}</div><div>{date.strftime("%A, %d %B %Y")}</div></div>', unsafe_allow_html=True)
                     
                     classes_today = schedule_by_date[date]
@@ -404,11 +429,24 @@ if not master_schedule_df.empty and student_data_map:
                         ''', unsafe_allow_html=True)
                     
                     st.markdown(f'</div>', unsafe_allow_html=True)
+                    # --- Auto-scroll to today's card on load ---
+                    st.markdown("""
+                    <script>
+                    window.addEventListener('load', function() {
+                        const todayCard = document.querySelector('.today-card');
+                        if (todayCard) {
+                            todayCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    });
+                    </script>
+                    """, unsafe_allow_html=True)
+
                 
         elif submitted:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
 
 
 
