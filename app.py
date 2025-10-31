@@ -1,4 +1,4 @@
-```python
+
 # 1. IMPORTS
 import pandas as pd
 import os
@@ -478,3 +478,4 @@ if not master_schedule_df.empty and student_data_map:
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
 ```
+
