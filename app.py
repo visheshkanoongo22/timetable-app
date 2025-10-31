@@ -477,5 +477,4 @@ if not master_schedule_df.empty and student_data_map:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
-```
 
