@@ -2,7 +2,7 @@
 import pandas as pd
 import os
 import glob
-from datetime import datetime, date
+from datetime import datetime
 import re
 import streamlit as st
 from ics import Calendar, Event
@@ -49,6 +49,7 @@ def normalize_string(text):
 @st.cache_data
 def load_and_clean_schedule(file_path):
     try:
+        # sheet_name=1 as in original script (second sheet)
         df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3)
         schedule_df = df.iloc[:, 0:14].copy()
         schedule_df[0] = pd.to_datetime(schedule_df[0], errors='coerce').dt.date
@@ -63,6 +64,7 @@ def load_and_clean_schedule(file_path):
 
 @st.cache_data
 def get_all_student_data(folder_path='.'):
+    """Scans all student files once and caches the result for performance."""
     student_data_map = {}
     subject_files = [f for f in glob.glob(os.path.join(folder_path, '*.xlsx')) if os.path.basename(f) != SCHEDULE_FILE_NAME]
     for file in subject_files:
@@ -89,6 +91,7 @@ def get_all_student_data(folder_path='.'):
     return student_data_map
 
 def generate_ics_content(found_classes):
+    """Generates the content for an iCalendar (.ics) file."""
     c = Calendar(creator="-//Student Timetable Script//EN")
     local_tz = pytz.timezone(TIMEZONE)
     for class_info in found_classes:
@@ -99,6 +102,7 @@ def generate_ics_content(found_classes):
             end_am_pm = end_str_part[-2:]
             start_am_pm = end_am_pm
             start_hour = int(re.search(r'^\d+', start_str_part).group(0))
+            # heuristic: if end is PM and start hour < 12 and start_hour > end_hour OR start_hour == 11, adjust
             if end_am_pm == "PM" and start_hour < 12 and (start_hour > int(re.search(r'^\d+', end_str_part).group(0)) or start_hour == 11):
                 start_am_pm = "AM"
             full_start_str, full_end_str = f"{start_str_part}{start_am_pm}", end_str_part
@@ -115,191 +119,201 @@ def generate_ics_content(found_classes):
 # 4. STREAMLIT WEB APP INTERFACE
 st.set_page_config(page_title="Import Timetable to Google Calendar", layout="centered", initial_sidebar_state="collapsed")
 
+# --- UPDATED: Vibrant, professional dark theme CSS & New Highlighting/Scrolling CSS ---
 st.markdown("""
 <style>
-    :root{
-        --bg:#070812;
-        --card:#0e1220;
-        --muted:#bfc8d6;
-        --accent-start:#47c6b7;
-        --accent-end:#ff7a66;
-        --accent-text: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-        --glass-border: rgba(255,255,255,0.04);
-        --today-glow: #00ffcc;
+    :root{
+        --bg:#070812;               /* very dark navy */
+        --card:#0e1220;             /* card background (slightly lighter) */
+        --muted:#bfc8d6;            /* muted readable text */
+        --accent-start:#47c6b7;     /* teal */
+        --accent-end:#ff7a66;       /* coral */
+        --accent-text: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        --glass-border: rgba(255,255,255,0.04);
+        --today-highlight: #00ffaa; /* Fluorescent Green/Cyan */
+    }
+
+    /* App base */
+    .stApp {
+        background: radial-gradient(1200px 600px at 10% 10%, rgba(71,198,183,0.06), transparent 10%),
+                    radial-gradient(1000px 500px at 90% 90%, rgba(255,122,102,0.04), transparent 10%),
+                    var(--bg);
+        color: #ffffff;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    /* **NEW: SCROLL BAR HIDE** */
+    /* For WebKit browsers (Chrome, Safari) */
+    .stApp ::-webkit-scrollbar {
+        display: none;
+    }
+    /* For IE and Edge */
+    .stApp {
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+    /* For Firefox */
+    .stApp {
+        scrollbar-width: none; /* Firefox */
+    }
+    /* **NEW: OUTLINE REMOVAL** (Standard Streamlit containers) */
+    .stApp > header, .main > div, .stDownloadButton {
+        outline: none !important;
+        border: none !important;
     }
 
-    .stApp {
-        background: radial-gradient(1200px 600px at 10% 10%, rgba(71,198,183,0.06), transparent 10%),
-                    radial-gradient(1000px 500px at 90% 90%, rgba(255,122,102,0.04), transparent 10%),
-                    var(--bg);
-        color: #ffffff;
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    }
 
-    .main-header {
-        font-size: 2.4rem;
-        font-weight: 800;
-        text-align: center;
-        margin-bottom: 1.5rem;
-        background: -webkit-linear-gradient(90deg, var(--accent-start), var(--accent-end));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: 0.2px;
-    }
+    /* Header style */
+    .main-header {
+        font-size: 2.4rem;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        background: -webkit-linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 0.2px;
+    }
 
-    .header-sub {
-        text-align:center;
-        color:var(--muted);
-        margin-top:-0.25rem;
-        margin-bottom:1.5rem;
-        font-size:0.95rem;
-    }
+    /* Subtitle / small accent line under header */
+    .header-sub {
+        text-align:center;
+        color:var(--muted);
+        margin-top:-0.25rem;
+        margin-bottom:1.5rem;
+        font-size:0.95rem;
+    }
 
-    .day-card {
-        background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-        border-radius: 14px;
-        padding: 1.25rem;
-        margin-bottom: 1.25rem;
-        box-shadow: 0 8px 30px rgba(2,6,23,0.6);
-        border: 1px solid var(--glass-border);
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
-        scroll-margin-top: 20px;
-    }
+    /* Cards (glass feel) */
+    .day-card {
+        background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+        border-radius: 14px;
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+        border: 1px solid var(--glass-border);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
 
-    .day-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 18px 40px rgba(2,6,23,0.75);
-    }
-
-    /* TODAY'S HIGHLIGHT */
+    .day-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 40px rgba(2,6,23,0.75);
+    }
+    
+    /* **NEW: TODAY'S HIGHLIGHT** */
     .day-card.today {
-        border: 2px solid var(--today-glow);
-        box-shadow: 0 0 30px rgba(0, 255, 204, 0.3), 
-                    0 8px 30px rgba(2,6,23,0.6);
-        animation: pulse-glow 2s ease-in-out infinite;
+        border: 2px solid var(--today-highlight); /* Fluorescent Border */
+        box-shadow: 0 0 25px 4px rgba(0, 255, 170, 0.25), 0 8px 30px rgba(2,6,23,0.9); /* Glow Effect */
     }
 
-    @keyframes pulse-glow {
-        0%, 100% {
-            box-shadow: 0 0 30px rgba(0, 255, 204, 0.3), 
-                        0 8px 30px rgba(2,6,23,0.6);
-        }
-        50% {
-            box-shadow: 0 0 40px rgba(0, 255, 204, 0.5), 
-                        0 8px 30px rgba(2,6,23,0.6);
-        }
-    }
+    .day-header {
+        display:flex;
+        align-items:center;
+        gap:0.6rem;
+        font-size:1.25rem;
+        font-weight:700;
+        color:#eaf6f1; /* light mint */
+        margin-bottom:0.6rem;
+    }
 
-    .day-header {
-        display:flex;
-        align-items:center;
-        gap:0.6rem;
-        font-size:1.25rem;
-        font-weight:700;
-        color:#eaf6f1;
-        margin-bottom:0.6rem;
-    }
+    .day-header .date-badge {
+        font-size:0.85rem;
+        padding:0.28rem 0.55rem;
+        border-radius:8px;
+        background: linear-gradient(90deg, rgba(71,198,183,0.06), rgba(255,122,102,0.04));
+        color:var(--muted);
+        border:1px solid rgba(255,255,255,0.02);
+    }
 
-    .day-header .date-badge {
-        font-size:0.85rem;
-        padding:0.28rem 0.55rem;
-        border-radius:8px;
-        background: linear-gradient(90deg, rgba(71,198,183,0.06), rgba(255,122,102,0.04));
-        color:var(--muted);
-        border:1px solid rgba(255,255,255,0.02);
-    }
+    .class-entry {
+        display:flex;
+        flex-direction:row;
+        align-items:center;
+        justify-content:space-between;
+        padding-top:0.65rem;
+        padding-bottom:0.65rem;
+        border-bottom:1px solid rgba(255,255,255,0.02);
+    }
+    .day-card .class-entry:last-child { border-bottom: none; padding-bottom: 0; }
 
-    .day-card.today .date-badge {
-        background: var(--today-glow);
-        color: #070812;
-        font-weight: 700;
-    }
+    .left {
+        display:flex;
+        flex-direction:column;
+        gap:0.2rem;
+    }
 
-    .class-entry {
-        display:flex;
-        flex-direction:row;
-        align-items:center;
-        justify-content:space-between;
-        padding-top:0.65rem;
-        padding-bottom:0.65rem;
-        border-bottom:1px solid rgba(255,255,255,0.02);
-    }
-    .day-card .class-entry:last-child { border-bottom: none; padding-bottom: 0; }
+    .subject-name {
+        font-size:1.05rem;
+        font-weight:700;
+        margin:0;
+        color: transparent;
+        background: var(--accent-text);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 
-    .left {
-        display:flex;
-        flex-direction:column;
-        gap:0.2rem;
-    }
+    .class-details {
+        font-size:0.94rem;
+        color:var(--muted);
+    }
 
-    .subject-name {
-        font-size:1.05rem;
-        font-weight:700;
-        margin:0;
-        color: transparent;
-        background: var(--accent-text);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
+    .meta {
+        text-align:right;
+        min-width:170px;
+    }
 
-    .class-details {
-        font-size:0.94rem;
-        color:var(--muted);
-    }
+    .meta .time {
+        display:block;
+        font-weight:600;
+        color:#fff;
+        font-size:0.97rem;
+    }
 
-    .meta {
-        text-align:right;
-        min-width:170px;
-    }
+    .meta .venue, .meta .faculty {
+        display:block;
+        font-size:0.85rem;
+        color:var(--muted);
+    }
 
-    .meta .time {
-        display:block;
-        font-weight:600;
-        color:#fff;
-        font-size:0.97rem;
-    }
+    /* Styled download button */
+    .stDownloadButton>button {
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        color: #0b0b0b;
+        font-weight:700;
+        padding: 0.5rem 0.9rem;
+        border-radius:10px;
+        border:none;
+        box-shadow: 0 8px 20px rgba(71,198,183,0.08);
+    }
+    .stDownloadButton>button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 30px rgba(71,198,183,0.12);
+    }
 
-    .meta .venue, .meta .faculty {
-        display:block;
-        font-size:0.85rem;
-        color:var(--muted);
-    }
+    /* Links and small controls */
+    a {
+        color: #9fe6d8;
+        font-weight:600;
+    }
 
-    .stDownloadButton>button {
-        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-        color: #0b0b0b;
-        font-weight:700;
-        padding: 0.5rem 0.9rem;
-        border-radius:10px;
-        border:none;
-        box-shadow: 0 8px 20px rgba(71,198,183,0.08);
-    }
-    .stDownloadButton>button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 14px 30px rgba(71,198,183,0.12);
-    }
+    /* Make sure default streamlit containers use readable text */
+    .css-1d391kg, .css-1v3fvcr, .css-18ni7ap {
+        color: #ffffff;
+    }
 
-    a {
-        color: #9fe6d8;
-        font-weight:600;
-    }
+    /* Form input styles (improve contrast) */
+    .stTextInput>div>div>input, .stTextInput>div>div>textarea {
+        background: rgba(255,255,255,0.02) !important;
+        color: #e6eef2 !important;
+        border: 1px solid rgba(255,255,255,0.04) !important;
+        padding: 0.6rem !important;
+        border-radius: 8px !important;
+    }
 
-    .css-1d391kg, .css-1v3fvcr, .css-18ni7ap {
-        color: #ffffff;
-    }
-
-    .stTextInput>div>div>input, .stTextInput>div>div>textarea {
-        background: rgba(255,255,255,0.02) !important;
-        color: #e6eef2 !important;
-        border: 1px solid rgba(255,255,255,0.04) !important;
-        padding: 0.6rem !important;
-        border-radius: 8px !important;
-    }
-
-    @media (max-width: 600px) {
-        .meta { min-width: 120px; font-size:0.9rem; }
-        .main-header { font-size: 1.8rem; }
-    }
+    /* Small responsive tweaks */
+    @media (max-width: 600px) {
+        .meta { min-width: 120px; font-size:0.9rem; }
+        .main-header { font-size: 1.8rem; }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -309,120 +323,144 @@ st.markdown('<div class="header-sub">Elegant • Clean • Vibrant — your week
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
 
+# Get today's date in the configured timezone for comparison
+local_tz = pytz.timezone(TIMEZONE)
+today_date = datetime.now(local_tz).date()
+
 if not master_schedule_df.empty and student_data_map:
-    with st.form("roll_number_form"):
-        roll_number = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
-        submitted = st.form_submit_button("Generate Timetable")
+    with st.form("roll_number_form"):
+        roll_number = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
+        submitted = st.form_submit_button("Generate Timetable")
 
-    if submitted and roll_number:
-        if roll_number in student_data_map:
-            student_info = student_data_map[roll_number]
-            student_name, student_sections = student_info['name'], student_info['sections']
-            
-            with st.spinner(f'Finding classes for {student_name}...'):
-                NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
-                normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
+    if submitted and roll_number:
+        if roll_number in student_data_map:
+            student_info = student_data_map[roll_number]
+            student_name, student_sections = student_info['name'], student_info['sections']
+            
+            with st.spinner(f'Finding classes for {student_name}...'):
+                # map normalized course names to details (normalized keys)
+                NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
 
-                time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
-                              6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
-                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
-                found_classes = []
+                # map normalized student-section -> original section (to keep original for display)
+                normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
 
-                for index, row in master_schedule_df.iterrows():
-                    date, day = row[0], row[1]
-                    for col_index, time in time_slots.items():
-                        cell_value = str(row[col_index])
-                        if cell_value and cell_value != 'nan':
-                            normalized_cell = normalize_string(cell_value)
-                            for norm_sec, orig_sec in normalized_student_section_map.items():
-                                if norm_sec in normalized_cell:
-                                    details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'})
-                                    found_classes.append({
-                                        "Date": date,
-                                        "Day": day,
-                                        "Time": time,
-                                        "Subject": orig_sec,
-                                        "Faculty": details.get('Faculty', 'N/A'),
-                                        "Venue": details.get('Venue', '-')
-                                    })
+                time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
+                              6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
+                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
+                found_classes = []
 
-                found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
+                for index, row in master_schedule_df.iterrows():
+                    date, day = row[0], row[1]
+                    for col_index, time in time_slots.items():
+                        cell_value = str(row[col_index])
+                        if cell_value and cell_value != 'nan':
+                            normalized_cell = normalize_string(cell_value)
+                            # iterate over normalized student sections and their original form
+                            for norm_sec, orig_sec in normalized_student_section_map.items():
+                                # if student's normalized section appears in the cell -> it's a match
+                                if norm_sec in normalized_cell:
+                                    # LOOKUP corrected: use normalized key (norm_sec) to fetch details
+                                    details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'})
+                                    found_classes.append({
+                                        "Date": date,
+                                        "Day": day,
+                                        "Time": time,
+                                        "Subject": orig_sec,        # display original section name
+                                        "Faculty": details.get('Faculty', 'N/A'),
+                                        "Venue": details.get('Venue', '-')
+                                    })
 
-            st.success(f"Found {len(found_classes)} classes for **{student_name}**.")
-            
-            if found_classes:
-                ics_content = generate_ics_content(found_classes)
-                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
+                # deduplicate entries
+                found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
+
+            st.success(f"Found {len(found_classes)} classes for **{student_name}**.")
+            
+            if found_classes:
+                ics_content = generate_ics_content(found_classes)
+                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
+                
+                st.download_button(
+                    label="📅 Download Calendar (.ics) File",
+                    data=ics_content,
+                    file_name=f"{sanitized_name}_Timetable.ics",
+                    mime='text/calendar'
+                )
+                
+                # --- Collapsible instructions (click to expand) ---
+                with st.expander("How to Import to Google Calendar", expanded=False):
+                    st.markdown(f"""
+                    1. Click the **'Download Calendar (.ics) File'** button above to save the schedule.  
+                    2. Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
+                    3. Under 'Import from computer', click **'Select file from your computer'**.  
+                    4. Choose the `.ics` file you just downloaded.  
+                    5. Click **'Import'** to add the events.
+                    """)
+
+                
+                st.markdown("---")
+                st.subheader("Timetable Preview")
+
+                schedule_by_date = defaultdict(list)
+                for class_info in found_classes:
+                    schedule_by_date[class_info['Date']].append(class_info)
+                
+                sorted_dates = sorted(schedule_by_date.keys())
+                
+                time_sorter = {time: i for i, time in enumerate(time_slots.values())}
+                for date in sorted_dates:
+                    schedule_by_date[date].sort(key=lambda x: time_sorter.get(x['Time'], 99))
+
+                # Flag to trigger the scroll action later
+                scroll_target_id = None
                 
-                st.download_button(
-                    label="📅 Download Calendar (.ics) File",
-                    data=ics_content,
-                    file_name=f"{sanitized_name}_Timetable.ics",
-                    mime='text/calendar'
-                )
-                
-                with st.expander("How to Import to Google Calendar", expanded=False):
-                    st.markdown(f"""
-                    1. Click the **'Download Calendar (.ics) File'** button above to save the schedule.  
-                    2. Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
-                    3. Under 'Import from computer', click **'Select file from your computer'**.  
-                    4. Choose the `.ics` file you just downloaded.  
-                    5. Click **'Import'** to add the events.
-                    """)
-
-                st.markdown("---")
-                st.subheader("Timetable Preview")
-
-                schedule_by_date = defaultdict(list)
-                for class_info in found_classes:
-                    schedule_by_date[class_info['Date']].append(class_info)
-                
-                sorted_dates = sorted(schedule_by_date.keys())
-                time_sorter = {time: i for i, time in enumerate(time_slots.values())}
-                for date in sorted_dates:
-                    schedule_by_date[date].sort(key=lambda x: time_sorter.get(x['Time'], 99))
-
-                # Get today's date
-                today = date.today()
-                
-                for idx, date_obj in enumerate(sorted_dates):
-                    is_today = (date_obj == today)
-                    today_class = "today" if is_today else ""
-                    card_id = f"date-card-{idx}"
+                for i, date in enumerate(sorted_dates):
+                    # 1. Check if today's date
+                    is_today = (date == today_date)
+                    card_class = "day-card today" if is_today else "day-card"
+                    card_id = f"day-card-{date.strftime('%Y%m%d')}"
                     
-                    st.markdown(f'<div class="day-card {today_class}" id="{card_id}">', unsafe_allow_html=True)
-                    st.markdown(f'<div class="day-header"><div class="date-badge">{date_obj.strftime("%d %b")}</div><div>{date_obj.strftime("%A, %d %B %Y")}</div></div>', unsafe_allow_html=True)
-                    
-                    classes_today = schedule_by_date[date_obj]
-                    for class_info in classes_today:
-                        meta_html = f'<div class="meta"><span class="time">🕒 {class_info["Time"]}</span><span class="venue">📍 {class_info["Venue"]}</span><span class="faculty">🧑‍🏫 {class_info["Faculty"]}</span></div>'
-                        st.markdown(f'''
-                            <div class="class-entry">
-                                <div class="left">
-                                    <div class="subject-name">{class_info["Subject"]}</div>
-                                    <div class="class-details"></div>
-                                </div>
-                                {meta_html}
-                            </div>
-                        ''', unsafe_allow_html=True)
-                    
-                    st.markdown(f'</div>', unsafe_allow_html=True)
-                
-                # Auto-scroll to today's card
-                if today in sorted_dates:
-                    today_idx = sorted_dates.index(today)
-                    st.markdown(f"""
-                    <script>
-                        setTimeout(function() {{
-                            var todayCard = document.getElementById('date-card-{today_idx}');
-                            if (todayCard) {{
-                                todayCard.scrollIntoView({{behavior: 'smooth', block: 'center'}});
+                    if is_today:
+                        scroll_target_id = card_id
+
+                    # Set the card class and ID
+                    st.markdown(f'<div class="{card_class}" id="{card_id}">', unsafe_allow_html=True)
+                    st.markdown(f'<div class="day-header"><div class="date-badge">{date.strftime("%d %b")}</div><div>{date.strftime("%A, %d %B %Y")}</div></div>', unsafe_allow_html=True)
+                    
+                    classes_today = schedule_by_date[date]
+                    for class_info in classes_today:
+                        # structured layout for each class
+                        meta_html = f'<div class="meta"><span class="time">🕒 {class_info["Time"]}</span><span class="venue">📍 {class_info["Venue"]}</span><span class="faculty">🧑‍🏫 {class_info["Faculty"]}</span></div>'
+                        st.markdown(f'''
+                            <div class="class-entry">
+                                <div class="left">
+                                    <div class="subject-name">{class_info["Subject"]}</div>
+                                    <div class="class-details"></div>
+                                </div>
+                                {meta_html}
+                            </div>
+                        ''', unsafe_allow_html=True)
+                    
+                    st.markdown(f'</div>', unsafe_allow_html=True)
+
+                # 2. Inject JavaScript for auto-scroll only if a target was found (today's date)
+                if scroll_target_id and i == len(sorted_dates) - 1:
+                    scroll_script = f"""
+                        <script>
+                            function scroll_to_today() {{
+                                var today_card = document.getElementById('{scroll_target_id}');
+                                if (today_card) {{
+                                    // Use 'start' to align the card to the top, and 'smooth' for animation
+                                    today_card.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+                                }}
                             }}
-                        }}, 500);
-                    </script>
-                    """, unsafe_allow_html=True)
-                
-        elif submitted:
-            st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
+                            // Wait for Streamlit to render completely before trying to scroll
+                            window.addEventListener('load', scroll_to_today);
+                        </script>
+                    """
+                    st.markdown(scroll_script, unsafe_allow_html=True)
+
+
+        elif submitted:
+            st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
-    st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+    st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
