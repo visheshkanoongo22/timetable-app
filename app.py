@@ -165,6 +165,7 @@ st.markdown("""
         border: 1px solid var(--glass-border);
         transition: transform 0.18s ease, box-shadow 0.18s ease;
         scroll-margin-top: 20px;
+        position: relative;
     }
 
     .day-card:hover {
@@ -174,19 +175,38 @@ st.markdown("""
 
     /* TODAY'S HIGHLIGHT */
     .day-card.today {
-        border: 2px solid var(--today-glow);
-        box-shadow: 0 0 30px rgba(0, 255, 204, 0.3), 
+        border: 3px solid var(--today-glow);
+        box-shadow: 0 0 35px rgba(0, 255, 204, 0.4), 
+                    0 0 60px rgba(0, 255, 204, 0.2),
                     0 8px 30px rgba(2,6,23,0.6);
         animation: pulse-glow 2s ease-in-out infinite;
     }
 
+    .today-badge {
+        position: absolute;
+        top: -12px;
+        right: 20px;
+        background: var(--today-glow);
+        color: #070812;
+        font-size: 0.75rem;
+        font-weight: 800;
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        box-shadow: 0 4px 15px rgba(0, 255, 204, 0.4);
+        z-index: 10;
+    }
+
     @keyframes pulse-glow {
         0%, 100% {
-            box-shadow: 0 0 30px rgba(0, 255, 204, 0.3), 
+            box-shadow: 0 0 35px rgba(0, 255, 204, 0.4), 
+                        0 0 60px rgba(0, 255, 204, 0.2),
                         0 8px 30px rgba(2,6,23,0.6);
         }
         50% {
-            box-shadow: 0 0 40px rgba(0, 255, 204, 0.5), 
+            box-shadow: 0 0 45px rgba(0, 255, 204, 0.6), 
+                        0 0 80px rgba(0, 255, 204, 0.3),
                         0 8px 30px rgba(2,6,23,0.6);
         }
     }
