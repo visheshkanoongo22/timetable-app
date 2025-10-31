@@ -415,25 +415,37 @@ if not master_schedule_df.empty and student_data_map:
                     if is_today:
                         today_anchor_id = card_id
                     
-                    st.markdown(f'<div class="day-card {today_class}" id="{card_id}">', unsafe_allow_html=True)
-                    st.markdown(f'<div class="day-header"><div class="date-badge">{date_obj.strftime("%d %b")}</div><div>{date_obj.strftime("%A, %d %B %Y")}</div></div>', unsafe_allow_html=True)
+                    # Add today badge inside the card
+                    st.markdown(f'''
+                        <div class="day-card {today_class}" id="{card_id}">
+                            {'<div class="today-badge">TODAY</div>' if is_today else ''}
+                            <div class="day-header">
+                                <div class="date-badge">{date_obj.strftime("%d %b")}</div>
+                                <div>{date_obj.strftime("%A, %d %B %Y")}</div>
+                            </div>
+                    ''', unsafe_allow_html=True)
                     
                     classes_today = schedule_by_date[date_obj]
                     for class_info in classes_today:
-                        meta_html = f'<div class="meta"><span class="time">🕒 {class_info["Time"]}</span><span class="venue">📍 {class_info["Venue"]}</span><span class="faculty">🧑‍🏫 {class_info["Faculty"]}</span></div>'
+                        meta_html = f'''
+                            <div class="meta">
+                                <span class="time">🕒 {class_info["Time"]}</span>
+                                <span class="venue">📍 {class_info["Venue"]}</span>
+                                <span class="faculty">🧑‍🏫 {class_info["Faculty"]}</span>
+                            </div>
+                        '''
                         st.markdown(f'''
                             <div class="class-entry">
                                 <div class="left">
                                     <div class="subject-name">{class_info["Subject"]}</div>
-                                    <div class="class-details"></div>
                                 </div>
                                 {meta_html}
                             </div>
                         ''', unsafe_allow_html=True)
                     
-                    st.markdown(f'</div>', unsafe_allow_html=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
                 
-                # Auto-scroll to today's card using components for reliable execution
+                # Auto-scroll to today’s card
                 if today_anchor_id:
                     components.html(f"""
                     <script>
@@ -445,19 +457,14 @@ if not master_schedule_df.empty and student_data_map:
                             }}
                             return false;
                         }}
-                        
-                        // Try immediately
-                        if (!scrollToToday()) {{
-                            // Retry after short delay
-                            setTimeout(scrollToToday, 500);
-                        }}
-                        
-                        // Final retry
+                        if (!scrollToToday()) setTimeout(scrollToToday, 600);
                         setTimeout(scrollToToday, 1500);
                     </script>
                     """, height=0)
-                
+
+             
         elif submitted:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
