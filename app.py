@@ -56,7 +56,7 @@ def load_and_clean_schedule(file_path):
         schedule_df.dropna(subset=[0], inplace=True)
         return schedule_df
     except FileNotFoundError:
-        st.error(f"FATAL ERROR: The main schedule file '{file_path}' was not found.")
+        st.error(f"FATAL ERROR: The main schedule file '{file_path}' was not found. Please make sure it's in the same folder as the app.")
         return pd.DataFrame()
     except Exception as e:
         st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
@@ -72,19 +72,15 @@ def get_all_student_data(folder_path='.'):
             header_row_index = -1
             for i in range(min(5, len(df))):
                 if df.iloc[i].astype(str).str.upper().str.contains('ROLL').any():
-                    header_row_index = i
-                    break
-            if header_row_index == -1:
-                continue
-            subject_row = df.iloc[0]
-            roll_no_columns = df.iloc[header_row_index][df.iloc[header_row_index].astype(str).str.upper().str.contains('ROLL')].index
+                    header_row_index = i; break
+            if header_row_index == -1: continue
+            subject_row, roll_no_columns = df.iloc[0], df.iloc[header_row_index][df.iloc[header_row_index].astype(str).str.upper().str.contains('ROLL')].index
             for col_idx in roll_no_columns:
                 section_name = subject_row[col_idx]
                 name_column_index = col_idx + 1
                 for _, row in df.iloc[header_row_index + 1:].iterrows():
                     roll_no = str(row[col_idx]).upper()
-                    if 'NAN' in roll_no:
-                        continue
+                    if 'NAN' in roll_no: continue
                     student_name = row[name_column_index]
                     if roll_no not in student_data_map:
                         student_data_map[roll_no] = {'name': student_name, 'sections': set()}
@@ -104,18 +100,13 @@ def generate_ics_content(found_classes):
             end_am_pm = end_str_part[-2:]
             start_am_pm = end_am_pm
             start_hour = int(re.search(r'^\d+', start_str_part).group(0))
-            if end_am_pm == "PM" and start_hour < 12 and (
-                start_hour > int(re.search(r'^\d+', end_str_part).group(0)) or start_hour == 11):
+            if end_am_pm == "PM" and start_hour < 12 and (start_hour > int(re.search(r'^\d+', end_str_part).group(0)) or start_hour == 11):
                 start_am_pm = "AM"
-            full_start_str = f"{start_str_part}{start_am_pm}"
-            full_end_str = end_str_part
-            start_dt = local_tz.localize(pd.to_datetime(f"{class_info['Date']} {full_start_str}"))
-            end_dt = local_tz.localize(pd.to_datetime(f"{class_info['Date']} {full_end_str}"))
-            e.name = f"{class_info['Subject']}"
-            e.begin = start_dt.astimezone(pytz.utc)
-            e.end = end_dt.astimezone(pytz.utc)
-            e.location = class_info['Venue']
-            e.description = f"Faculty: {class_info['Faculty']}"
+            full_start_str, full_end_str = f"{start_str_part}{start_am_pm}", end_str_part
+            start_dt = local_tz.localize(pd.to_datetime(f"{class_info['Date'].strftime('%Y-%m-%d')} {full_start_str}"))
+            end_dt = local_tz.localize(pd.to_datetime(f"{class_info['Date'].strftime('%Y-%m-%d')} {full_end_str}"))
+            e.name, e.begin, e.end = f"{class_info['Subject']}", start_dt.astimezone(pytz.utc), end_dt.astimezone(pytz.utc)
+            e.location, e.description = class_info['Venue'], f"Faculty: {class_info['Faculty']}"
             e.uid = hashlib.md5(f"{start_dt.isoformat()}-{e.name}".encode('utf-8')).hexdigest() + "@timetable.app"
             c.events.add(e)
         except Exception:
@@ -125,13 +116,363 @@ def generate_ics_content(found_classes):
 # 4. STREAMLIT WEB APP INTERFACE
 st.set_page_config(page_title="Import Timetable to Google Calendar", layout="centered", initial_sidebar_state="collapsed")
 
-# (CSS and UI part unchanged — your same styling)
-# ... [Keep your CSS block exactly as before]
+st.markdown("""
+<style>
+    :root{
+        --bg:#070812;
+        --card:#0e1220;
+        --muted:#bfc8d6;
+        --accent-start:#47c6b7;
+        --accent-end:#ff7a66;
+        --accent-text: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        --glass-border: rgba(255,255,255,0.04);
+        --today-glow: #00ffcc;
+    }
 
-# ✅ Correct placement of import
-from datetime import date as dt_date
+    .stApp {
+        background: radial-gradient(1200px 600px at 10% 10%, rgba(71,198,183,0.06), transparent 10%),
+                    radial-gradient(1000px 500px at 90% 90%, rgba(255,122,102,0.04), transparent 10%),
+                    var(--bg);
+        color: #ffffff;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
 
-# ✅ Now inside the loop (correct indentation)
-# Everything after “if roll_number in student_data_map” remains same as before
+    .main-header {
+        font-size: 2.4rem;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        background: -webkit-linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 0.2px;
+    }
 
-# (you can paste back your HTML/CSS + loop section here — no indentation errors now)
+    .header-sub {
+        text-align:center;
+        color:var(--muted);
+        margin-top:-0.25rem;
+        margin-bottom:1.5rem;
+        font-size:0.95rem;
+    }
+
+    .day-card {
+        background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+        border-radius: 14px;
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+        border: 1px solid var(--glass-border);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+        scroll-margin-top: 20px;
+        position: relative;
+    }
+
+    .day-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 40px rgba(2,6,23,0.75);
+    }
+
+    /* TODAY'S HIGHLIGHT */
+    .day-card.today {
+        border: 3px solid var(--today-glow);
+        box-shadow: 0 0 35px rgba(0, 255, 204, 0.4), 
+                    0 0 60px rgba(0, 255, 204, 0.2),
+                    0 8px 30px rgba(2,6,23,0.6);
+        animation: pulse-glow 2s ease-in-out infinite;
+    }
+
+    .today-badge {
+        position: absolute;
+        top: -12px;
+        right: 20px;
+        background: var(--today-glow);
+        color: #070812;
+        font-size: 0.75rem;
+        font-weight: 800;
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        box-shadow: 0 4px 15px rgba(0, 255, 204, 0.4);
+        z-index: 10;
+    }
+
+    @keyframes pulse-glow {
+        0%, 100% {
+            box-shadow: 0 0 35px rgba(0, 255, 204, 0.4), 
+                        0 0 60px rgba(0, 255, 204, 0.2),
+                        0 8px 30px rgba(2,6,23,0.6);
+        }
+        50% {
+            box-shadow: 0 0 45px rgba(0, 255, 204, 0.6), 
+                        0 0 80px rgba(0, 255, 204, 0.3),
+                        0 8px 30px rgba(2,6,23,0.6);
+        }
+    }
+
+    .day-header {
+        display:flex;
+        align-items:center;
+        gap:0.6rem;
+        font-size:1.25rem;
+        font-weight:700;
+        color:#eaf6f1;
+        margin-bottom:0.6rem;
+    }
+
+    .day-header .date-badge {
+        font-size:0.85rem;
+        padding:0.28rem 0.55rem;
+        border-radius:8px;
+        background: linear-gradient(90deg, rgba(71,198,183,0.06), rgba(255,122,102,0.04));
+        color:var(--muted);
+        border:1px solid rgba(255,255,255,0.02);
+    }
+
+    .day-card.today .date-badge {
+        background: var(--today-glow);
+        color: #070812;
+        font-weight: 700;
+    }
+
+    .class-entry {
+        display:flex;
+        flex-direction:row;
+        align-items:center;
+        justify-content:space-between;
+        padding-top:0.65rem;
+        padding-bottom:0.65rem;
+        border-bottom:1px solid rgba(255,255,255,0.02);
+    }
+    .day-card .class-entry:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .left {
+        display:flex;
+        flex-direction:column;
+        gap:0.2rem;
+    }
+
+    .subject-name {
+        font-size:1.05rem;
+        font-weight:700;
+        margin:0;
+        color: transparent;
+        background: var(--accent-text);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .class-details {
+        font-size:0.94rem;
+        color:var(--muted);
+    }
+
+    .meta {
+        text-align:right;
+        min-width:170px;
+    }
+
+    .meta .time {
+        display:block;
+        font-weight:600;
+        color:#fff;
+        font-size:0.97rem;
+    }
+
+    .meta .venue, .meta .faculty {
+        display:block;
+        font-size:0.85rem;
+        color:var(--muted);
+    }
+
+    .stDownloadButton>button {
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        color: #0b0b0b;
+        font-weight:700;
+        padding: 0.5rem 0.9rem;
+        border-radius:10px;
+        border:none;
+        box-shadow: 0 8px 20px rgba(71,198,183,0.08);
+    }
+    .stDownloadButton>button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 30px rgba(71,198,183,0.12);
+    }
+
+    a {
+        color: #9fe6d8;
+        font-weight:600;
+    }
+
+    .css-1d391kg, .css-1v3fvcr, .css-18ni7ap {
+        color: #ffffff;
+    }
+
+    .stTextInput>div>div>input, .stTextInput>div>div>textarea {
+        background: rgba(255,255,255,0.02) !important;
+        color: #e6eef2 !important;
+        border: 1px solid rgba(255,255,255,0.04) !important;
+        padding: 0.6rem !important;
+        border-radius: 8px !important;
+    }
+
+    @media (max-width: 600px) {
+        .meta { min-width: 120px; font-size:0.9rem; }
+        .main-header { font-size: 1.8rem; }
+    }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown('<p class="main-header">📅 Import Timetable to Your Google Calendar</p>', unsafe_allow_html=True)
+st.markdown('<div class="header-sub">Elegant • Clean • Vibrant — your weekly classes, neatly organized</div>', unsafe_allow_html=True)
+
+master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
+student_data_map = get_all_student_data()
+
+if not master_schedule_df.empty and student_data_map:
+    with st.form("roll_number_form"):
+        roll_number = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
+        submitted = st.form_submit_button("Generate Timetable")
+
+    if submitted and roll_number:
+        if roll_number in student_data_map:
+            student_info = student_data_map[roll_number]
+            student_name, student_sections = student_info['name'], student_info['sections']
+            
+            with st.spinner(f'Finding classes for {student_name}...'):
+                NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
+                normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
+
+                time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
+                              6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
+                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
+                found_classes = []
+
+                for index, row in master_schedule_df.iterrows():
+                    date, day = row[0], row[1]
+                    for col_index, time in time_slots.items():
+                        cell_value = str(row[col_index])
+                        if cell_value and cell_value != 'nan':
+                            normalized_cell = normalize_string(cell_value)
+                            for norm_sec, orig_sec in normalized_student_section_map.items():
+                                if norm_sec in normalized_cell:
+                                    details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'})
+                                    found_classes.append({
+                                        "Date": date,
+                                        "Day": day,
+                                        "Time": time,
+                                        "Subject": orig_sec,
+                                        "Faculty": details.get('Faculty', 'N/A'),
+                                        "Venue": details.get('Venue', '-')
+                                    })
+
+                found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
+
+            st.success(f"Found {len(found_classes)} classes for **{student_name}**.")
+            
+            if found_classes:
+                ics_content = generate_ics_content(found_classes)
+                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
+                
+                st.download_button(
+                    label="📅 Download Calendar (.ics) File",
+                    data=ics_content,
+                    file_name=f"{sanitized_name}_Timetable.ics",
+                    mime='text/calendar'
+                )
+                
+                with st.expander("How to Import to Google Calendar", expanded=False):
+                    st.markdown(f"""
+                    1. Click the **'Download Calendar (.ics) File'** button above to save the schedule.  
+                    2. Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
+                    3. Under 'Import from computer', click **'Select file from your computer'**.  
+                    4. Choose the `.ics` file you just downloaded.  
+                    5. Click **'Import'** to add the events.
+                    """)
+
+                st.markdown("---")
+                st.subheader("Timetable Preview")
+
+                schedule_by_date = defaultdict(list)
+                for class_info in found_classes:
+                    schedule_by_date[class_info['Date']].append(class_info)
+                
+                sorted_dates = sorted(schedule_by_date.keys())
+                time_sorter = {time: i for i, time in enumerate(time_slots.values())}
+                for date_key in sorted_dates:
+                    schedule_by_date[date_key].sort(key=lambda x: time_sorter.get(x['Time'], 99))
+
+                # === CORRECTED SECTION ===
+                # We use 'date' which was imported at the top of the file.
+                # The incorrectly indented 'from datetime import date as dt_date' is removed.
+                today = date.today() 
+                # =========================
+                
+                for idx, date_obj in enumerate(sorted_dates):
+                    is_today = (date_obj == today)
+                    today_class = "today" if is_today else ""
+                    card_id = f"date-card-{idx}"
+                
+                    if is_today:
+                        today_anchor_id = card_id
+                
+                    # ✅ Properly render the header with unsafe_allow_html=True
+                    st.markdown(
+                        f"""
+                        <div class="day-card {today_class}" id="{card_id}">
+                            {'<div class="today-badge">TODAY</div>' if is_today else ''}
+                            <div class="day-header">
+                                <div class="date-badge">{date_obj.strftime('%d %b')}</div>
+                                <div>{date_obj.strftime('%A, %d %B %Y')}</div>
+                            </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                
+                    classes_today = schedule_by_date[date_obj]
+                    for class_info in classes_today:
+                        meta_html = f"""
+                        <div class="meta">
+                            <span class="time">🕒 {class_info['Time']}</span>
+                            <span class="venue">📍 {class_info['Venue']}</span>
+                            <span class="faculty">🧑‍🏫 {class_info['Faculty']}</span>
+                        </div>
+                        """
+                        st.markdown(
+                            f"""
+                            <div class="class-entry">
+                                <div class="left">
+                                    <div class="subject-name">{class_info['Subject']}</div>
+                                </div>
+                                {meta_html}
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                
+                    # ✅ Close the day-card properly
+                    st.markdown("</div>", unsafe_allow_html=True)
+                
+                # ✅ Smooth scroll to today’s card
+                if 'today_anchor_id' in locals():
+                    st.components.v1.html(
+                        f"""
+                        <script>
+                            function scrollToToday() {{
+                                const el = window.parent.document.getElementById('{today_anchor_id}');
+                                if (el) {{
+                                    el.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+                                }}
+                            }}
+                            setTimeout(scrollToToday, 800);
+                        </script>
+                        """,
+                        height=0
+                    )
+
+            
+        elif submitted:
+            st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
+else:
+    st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
