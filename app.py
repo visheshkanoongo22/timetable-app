@@ -9,6 +9,7 @@ from ics import Calendar, Event
 import pytz
 import hashlib
 from collections import defaultdict
+import streamlit.components.v1 as components
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -384,11 +385,15 @@ if not master_schedule_df.empty and student_data_map:
 
                 # Get today's date
                 today = date.today()
+                today_anchor_id = None
                 
                 for idx, date_obj in enumerate(sorted_dates):
                     is_today = (date_obj == today)
                     today_class = "today" if is_today else ""
                     card_id = f"date-card-{idx}"
+                    
+                    if is_today:
+                        today_anchor_id = card_id
                     
                     st.markdown(f'<div class="day-card {today_class}" id="{card_id}">', unsafe_allow_html=True)
                     st.markdown(f'<div class="day-header"><div class="date-badge">{date_obj.strftime("%d %b")}</div><div>{date_obj.strftime("%A, %d %B %Y")}</div></div>', unsafe_allow_html=True)
@@ -408,19 +413,29 @@ if not master_schedule_df.empty and student_data_map:
                     
                     st.markdown(f'</div>', unsafe_allow_html=True)
                 
-                # Auto-scroll to today's card
-                if today in sorted_dates:
-                    today_idx = sorted_dates.index(today)
-                    st.markdown(f"""
+                # Auto-scroll to today's card using components for reliable execution
+                if today_anchor_id:
+                    components.html(f"""
                     <script>
-                        setTimeout(function() {{
-                            var todayCard = document.getElementById('date-card-{today_idx}');
+                        function scrollToToday() {{
+                            const todayCard = window.parent.document.getElementById('{today_anchor_id}');
                             if (todayCard) {{
                                 todayCard.scrollIntoView({{behavior: 'smooth', block: 'center'}});
+                                return true;
                             }}
-                        }}, 500);
+                            return false;
+                        }}
+                        
+                        // Try immediately
+                        if (!scrollToToday()) {{
+                            // Retry after short delay
+                            setTimeout(scrollToToday, 500);
+                        }}
+                        
+                        // Final retry
+                        setTimeout(scrollToToday, 1500);
                     </script>
-                    """, unsafe_allow_html=True)
+                    """, height=0)
                 
         elif submitted:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
