@@ -1,3 +1,4 @@
+```python
 # 1. IMPORTS
 import pandas as pd
 import os
@@ -415,8 +416,24 @@ if not master_schedule_df.empty and student_data_map:
                     if is_today:
                         today_anchor_id = card_id
                     
-                    st.markdown(f'<div class="day-card {today_class}" id="{card_id}">', unsafe_allow_html=True)
-                    st.markdown(f'<div class="day-header"><div class="date-badge">{date_obj.strftime("%d %b")}</div><div>{date_obj.strftime("%A, %d %B %Y")}</div></div>', unsafe_allow_html=True)
+                    # Render opening div with or without today badge
+                    if is_today:
+                        st.markdown(f'''
+                            <div class="day-card {today_class}" id="{card_id}">
+                                <div class="today-badge">TODAY</div>
+                                <div class="day-header">
+                                    <div class="date-badge">{date_obj.strftime("%d %b")}</div>
+                                    <div>{date_obj.strftime("%A, %d %B %Y")}</div>
+                                </div>
+                        ''', unsafe_allow_html=True)
+                    else:
+                        st.markdown(f'''
+                            <div class="day-card {today_class}" id="{card_id}">
+                                <div class="day-header">
+                                    <div class="date-badge">{date_obj.strftime("%d %b")}</div>
+                                    <div>{date_obj.strftime("%A, %d %B %Y")}</div>
+                                </div>
+                        ''', unsafe_allow_html=True)
                     
                     classes_today = schedule_by_date[date_obj]
                     for class_info in classes_today:
@@ -425,13 +442,12 @@ if not master_schedule_df.empty and student_data_map:
                             <div class="class-entry">
                                 <div class="left">
                                     <div class="subject-name">{class_info["Subject"]}</div>
-                                    <div class="class-details"></div>
                                 </div>
                                 {meta_html}
                             </div>
                         ''', unsafe_allow_html=True)
                     
-                    st.markdown(f'</div>', unsafe_allow_html=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
                 
                 # Auto-scroll to today's card using components for reliable execution
                 if today_anchor_id:
@@ -461,3 +477,4 @@ if not master_schedule_df.empty and student_data_map:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+```
