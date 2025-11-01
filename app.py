@@ -370,7 +370,7 @@ if not master_schedule_df.empty and student_data_map:
 
                 found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
 
-            st.success(f"Found {len(found_classes)} classes for **{student_name}**.")
+            
             
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
@@ -477,4 +477,5 @@ if not master_schedule_df.empty and student_data_map:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
 
