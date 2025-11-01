@@ -18,27 +18,49 @@ TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
 
 COURSE_DETAILS_MAP = {
-    'AN(A)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'}, 'AN(B)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'},
-    'B2B(A)': {'Faculty': 'Sandip Trada', 'Venue': 'T5'}, 'B2B(B)': {'Faculty': 'Rupam Deb', 'Venue': 'E2'},
-    "B2B('C)": {'Faculty': 'Rupam Deb', 'Venue': 'E2'}, 'BS': {'Faculty': 'Satish Nair', 'Venue': 'T6'},
-    'CC&AU(A)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'}, 'CC&AU(B)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'},
-    'CSE': {'Faculty': 'Shahir Bhatt', 'Venue': 'T6'}, 'DADM': {'Faculty': 'Mahesh K C', 'Venue': 'T3'},
-    'DC': {'Faculty': 'Sapan Oza', 'Venue': 'T6'}, 'DM(A)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'},
-    'DM(B)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'}, "DRM('C)": {'Faculty': 'Pankaj Agrawal', 'Venue': 'T5'},
-    'DRM(A)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'}, 'DRM(B)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'},
-    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'E2'}, 'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
-    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'E2'},
-    'IMC(A)': {'Faculty': 'Sanjay Jain', 'Venue': 'T3'}, 'IMC(B)': {'Faculty': 'Riddhi Ambavale', 'Venue': 'T7'},
-    'INB(A)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'INB(B)': {'Faculty': 'M C Gupta', 'Venue': 'T7'},
-    'INB(C)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'LSS(A)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'},
-    'LSS(B)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'}, 'ML&AI(A)': {'Faculty': 'Omkar Sahoo', 'Venue': 'T5'},
-    'ML&AI(B)': {'Faculty': 'Omkar Sahoo', 'Venue': 'T5'}, 'OMSD': {'Faculty': 'Dinesh Panchal', 'Venue': 'T3'},
-    'PDBE(A)': {'Faculty': 'Nina Muncherji', 'Venue': 'T6'}, 'PDBE(B)': {'Faculty': 'Nina Muncherji', 'Venue': 'T6'},
-    "SCM('C)": {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SCM(A)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'},
-    'SCM(B)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SMKT(A)': {'Faculty': 'Himanshu Chauhan', 'Venue': 'T6'},
-    'SMKT(B)': {'Faculty': 'Kavita Saxena', 'Venue': 'T5'}, 'TEOM(A)': {'Faculty': 'P Ganesh', 'Venue': 'T3'},
-    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
-    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
+    courses = {
+    'AN(A)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'}, 
+    'AN(B)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'},
+    'B2B(A)': {'Faculty': 'Sandip Trada', 'Venue': 'T5'}, 
+    'B2B(B)': {'Faculty': 'Rupam Deb', 'Venue': '208-B'},  # Changed from E2
+    "B2B('C)": {'Faculty': 'Rupam Deb', 'Venue': '208-B'},  # Changed from E2
+    'BS': {'Faculty': 'Satish Nair', 'Venue': 'T6'},
+    'CC&AU(A)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'}, 
+    'CC&AU(B)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'},
+    'CSE': {'Faculty': 'Shahir Bhatt', 'Venue': 'T6'}, 
+    'DADM': {'Faculty': 'Mahesh K C', 'Venue': 'T3'},
+    'DC': {'Faculty': 'Sapan Oza', 'Venue': 'T6'}, 
+    'DM(A)': {'Faculty': 'Shailesh Prabhu', 'Venue': '214'},  # Changed from T7
+    'DM(B)': {'Faculty': 'Shailesh Prabhu', 'Venue': '214'},  # Changed from T7
+    "DRM('C)": {'Faculty': 'Pankaj Agrawal', 'Venue': 'T5'},
+    'DRM(A)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'}, 
+    'DRM(B)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'},
+    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'E2'},  # Already E2, no change needed
+    'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
+    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 
+    'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'E2'},
+    'IMC(A)': {'Faculty': 'Sanjay Jain', 'Venue': 'T3'}, 
+    'IMC(B)': {'Faculty': 'Riddhi Ambavale', 'Venue': 'T7'},
+    'INB(A)': {'Faculty': 'M C Gupta', 'Venue': '215'},  # Changed from T7
+    'INB(B)': {'Faculty': 'M C Gupta', 'Venue': '215'},  # Changed from T7
+    'INB(C)': {'Faculty': 'M C Gupta', 'Venue': '215'},  # Changed from T7
+    'LSS(A)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'},
+    'LSS(B)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'}, 
+    'ML&AI(A)': {'Faculty': 'Omkar Sahoo', 'Venue': 'T5'},
+    'ML&AI(B)': {'Faculty': 'Omkar Sahoo', 'Venue': 'T5'}, 
+    'OMSD': {'Faculty': 'Dinesh Panchal', 'Venue': 'T3'},  # Already T3, no change needed
+    'PDBE(A)': {'Faculty': 'Nina Muncherji', 'Venue': 'T6'}, 
+    'PDBE(B)': {'Faculty': 'Nina Muncherji', 'Venue': 'T6'},
+    "SCM('C)": {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 
+    'SCM(A)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'},
+    'SCM(B)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 
+    'SMKT(A)': {'Faculty': 'Himanshu Chauhan', 'Venue': 'T6'},
+    'SMKT(B)': {'Faculty': 'Kavita Saxena', 'Venue': 'T5'}, 
+    'TEOM(A)': {'Faculty': 'P Ganesh', 'Venue': 'T3'},
+    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, 
+    "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
+    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 
+    'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
 
@@ -477,6 +499,7 @@ if not master_schedule_df.empty and student_data_map:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
 
 
 
