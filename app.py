@@ -62,6 +62,7 @@ COURSE_DETAILS_MAP = {
     'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 
     'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
+ }   
 }
 
 # 3. FUNCTIONS
@@ -499,6 +500,7 @@ if not master_schedule_df.empty and student_data_map:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
 
 
 
