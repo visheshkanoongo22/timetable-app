@@ -187,7 +187,7 @@ local_css_string = """
         box-shadow: 0 8px 30px rgba(0,0,0,0.4); /* Darker shadow */
         border: 1px solid var(--glass-border);
         transition: transform 0.18s ease, box-shadow 0.18s ease;
-        scroll-margin-top: 20px;
+        scroll-margin-top: 85px; /* <--- THIS IS THE FIX */
         position: relative;
     }
     .day-card:hover {
@@ -367,12 +367,10 @@ local_css_string = """
         .meta { min-width: 120px; font-size:0.9rem; }
         .main-header { font-size: 1.8rem; }
     }
-
-    /* --- REMOVED .made-by CSS --- */
 </style>
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
-# --- REMOVED st.markdown for "Made by" from here ---
+# --- "Made by" markdown is removed from here ---
 
 # --- APP HEADER ---
 st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
@@ -396,7 +394,8 @@ if not master_schedule_df.empty and student_data_map:
         st.markdown(
             """
             <div class="welcome-box">
-                Welcome! This application helps you generate your personalized class schedule and export it as a <strong>.ics calendar file</strong> which can be imported to your google calendar.
+                Welcome! This application helps you generate your personalized class schedule and export it as a <strong>.ics calendar file</strong>.
+                Simply enter your roll number below to get started.
             </div>
             """,
             unsafe_allow_html=True
@@ -476,7 +475,6 @@ if not master_schedule_df.empty and student_data_map:
                     )
                     
                     st.markdown("### 2. How to Import to Google Calendar")
-                    # --- MODIFIED: Set expanded=False ---
                     with st.expander("Click to view import instructions", expanded=False):
                         st.markdown(f"""
                         1. Click the **'Download .ics Calendar File'** button above to save your schedule.  
@@ -500,7 +498,6 @@ if not master_schedule_df.empty and student_data_map:
                 for date in sorted_dates:
                     schedule_by_date[date].sort(key=lambda x: time_sorter.get(x['Time'], 99))
 
-                # --- MODIFIED: Get today's date in the correct timezone ---
                 today = datetime.now(pytz.timezone(TIMEZONE)).date()
                 today_anchor_id = None
                 
@@ -544,14 +541,13 @@ if not master_schedule_df.empty and student_data_map:
                     
                     st.markdown('</div>', unsafe_allow_html=True)
                 
-
-            if today_anchor_id:
+                if today_anchor_id:
                     components.html(f"""
                     <script>
                         function scrollToToday() {{
                             const todayCard = window.parent.document.getElementById('{today_anchor_id}');
                             if (todayCard) {{
-                                // This is correct! It will now obey the 60px scroll-margin-top.
+                                // This 'start' will now respect the 'scroll-margin-top' from the CSS
                                 todayCard.scrollIntoView({{behavior: 'smooth', block: 'start'}});
                                 return true;
                             }}
@@ -577,13 +573,6 @@ if not master_schedule_df.empty and student_data_map:
 elif master_schedule_df.empty or not student_data_map:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
 
-# --- NEW: ADDED CAPTION AT THE VERY END ---
+# --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---") # Optional: a faint line above the caption
 st.caption("_Made by Vishesh_")
-
-
-
-
-
-
-
