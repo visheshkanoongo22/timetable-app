@@ -187,7 +187,7 @@ local_css_string = """
         box-shadow: 0 8px 30px rgba(0,0,0,0.4); /* Darker shadow */
         border: 1px solid var(--glass-border);
         transition: transform 0.18s ease, box-shadow 0.18s ease;
-        scroll-margin-top: 85px; /* <--- THIS IS THE FIX */
+        scroll-margin-top: 85px; /* Offset for Streamlit's header bar */
         position: relative;
     }
     .day-card:hover {
@@ -233,27 +233,14 @@ local_css_string = """
     
     /* --- CARD CONTENT --- */
     .day-header {
-        display:flex;
-        align-items:center;
-        gap:0.5rem; /* Reduced gap */
-        font-size:1.15rem; /* Reduced font size */
-        font-weight:700;
-        color:#E2E8F0; /* Slightly brighter text for headers */
-        margin-bottom:0.5rem; /* Reduced margin */
-    }
-    .day-header .date-badge {
-        font-size:0.75rem; /* Reduced font size */
-        padding:0.2rem 0.45rem; /* Reduced padding */
-        border-radius:6px; /* Slightly smaller radius */
-        background: linear-gradient(90deg, rgba(96,165,250,0.06), rgba(129,140,248,0.04)); /* Muted gradient */
-        color:var(--muted);
-        border:1px solid rgba(255,255,250,0.04);
-    }
-    .day-card.today .date-badge {
-        background: var(--today-glow);
-        color: var(--bg);
+        font-size: 1.15rem; /* Reduced font size */
         font-weight: 700;
+        color: #E2E8F0; /* Slightly brighter text for headers */
+        margin-bottom: 0.5rem; /* Reduced margin */
     }
+    
+    /* --- Removed .day-header .date-badge and .day-card.today .date-badge --- */
+    
     .class-entry {
         display:flex;
         flex-direction:row;
@@ -509,21 +496,20 @@ if not master_schedule_df.empty and student_data_map:
                     if is_today:
                         today_anchor_id = card_id
                     
+                    # --- MODIFIED: Removed the redundant date-badge div ---
                     if is_today:
                         st.markdown(f'''
                             <div class="day-card {today_class}" id="{card_id}">
                                 <div class="today-badge">TODAY</div>
                                 <div class="day-header">
-                                    <div class="date-badge">{date_obj.strftime("%d %b")}</div>
-                                    <div>{date_obj.strftime("%A, %d %B %Y")}</div>
+                                    {date_obj.strftime("%A, %d %B %Y")}
                                 </div>
                         ''', unsafe_allow_html=True)
                     else:
                         st.markdown(f'''
                             <div class="day-card {today_class}" id="{card_id}">
                                 <div class="day-header">
-                                    <div class="date-badge">{date_obj.strftime("%d %b")}</div>
-                                    <div>{date_obj.strftime("%A, %d %B %Y")}</div>
+                                    {date_obj.strftime("%A, %d %B %Y")}
                                 </div>
                         ''', unsafe_allow_html=True)
                     
@@ -576,4 +562,3 @@ elif master_schedule_df.empty or not student_data_map:
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---") # Optional: a faint line above the caption
 st.caption("_Made by Vishesh_")
-
