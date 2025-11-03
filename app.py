@@ -380,7 +380,7 @@ st.markdown(
     """
     <div class="welcome-box">
         Welcome! This application helps you generate your personalized class schedule and export it as a <strong>.ics calendar file</strong>.
-        Simply enter your roll number below to get started.
+        Simply enter your roll number below to get started. Do note that some classrooms might not be correct.
     </div>
     """,
     unsafe_allow_html=True
@@ -535,3 +535,4 @@ if not master_schedule_df.empty and student_data_map:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
