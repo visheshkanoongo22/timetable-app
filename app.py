@@ -116,29 +116,28 @@ def generate_ics_content(found_classes):
 # 4. STREAMLIT WEB APP INTERFACE
 
 # --- CSS STYLING ---
-# We move all the CSS into one clean variable
 local_css_string = """
 <style>
     /* --- FONT IMPORT --- */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
 
     :root{
-        --bg:#070812;
-        --card:#0e1220;
-        --muted:#bfc8d6;
-        --accent-start:#47c6b7;
-        --accent-end:#ff7a66;
+        --bg:#0F172A; /* Darker, more muted background */
+        --card:#1E293B; /* Darker card background */
+        --muted:#94A3B8; /* Muted text color */
+        --accent-start:#60A5FA; /* Muted blue accent */
+        --accent-end:#818CF8; /* Muted violet accent */
         --accent-text: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-        --glass-border: rgba(255,255,255,0.04);
-        --today-glow: #00ffcc;
+        --glass-border: rgba(255,255,255,0.08); /* Slightly more visible border */
+        --today-glow: #38BDF8; /* Muted sky blue for today's highlight */
+        --today-glow-shadow: rgba(56, 189, 248, 0.4);
     }
 
     .stApp {
-        background: radial-gradient(1200px 600px at 10% 10%, rgba(71,198,183,0.06), transparent 10%),
-                    radial-gradient(1000px 500px at 90% 90%, rgba(255,122,102,0.04), transparent 10%),
+        background: radial-gradient(1200px 600px at 10% 10%, rgba(96,165,250,0.08), transparent 10%), /* Muted blue gradient */
+                    radial-gradient(1000px 500px at 90% 90%, rgba(129,140,248,0.06), transparent 10%), /* Muted violet gradient */
                     var(--bg);
         color: #ffffff;
-        /* --- Use the imported Inter font --- */
         font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     }
 
@@ -147,7 +146,7 @@ local_css_string = """
         font-size: 2.4rem;
         font-weight: 800;
         text-align: center;
-        margin-bottom: 0.5rem; /* Reduced margin */
+        margin-bottom: 0.5rem;
         background: -webkit-linear-gradient(90deg, var(--accent-start), var(--accent-end));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -158,11 +157,11 @@ local_css_string = """
         text-align:center;
         color:var(--muted);
         margin-top:0rem;
-        margin-bottom:2rem; /* More space after sub-header */
-        font-size:1.0rem; /* Slightly larger sub-header */
+        margin-bottom:2rem;
+        font-size:1.0rem;
     }
     
-    /* --- NEW: WELCOME BOX --- */
+    /* --- WELCOME BOX --- */
     .welcome-box {
         background: var(--card);
         border: 1px solid var(--glass-border);
@@ -177,13 +176,13 @@ local_css_string = """
         font-weight: 600;
     }
 
-    /* --- DAY PREVIEW CARD (Your excellent style, unchanged) --- */
+    /* --- DAY PREVIEW CARD --- */
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
         border-radius: 14px;
         padding: 1.25rem;
         margin-bottom: 1.25rem;
-        box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.4); /* Darker shadow */
         border: 1px solid var(--glass-border);
         transition: transform 0.18s ease, box-shadow 0.18s ease;
         scroll-margin-top: 20px;
@@ -191,15 +190,15 @@ local_css_string = """
     }
     .day-card:hover {
         transform: translateY(-6px);
-        box-shadow: 0 18px 40px rgba(2,6,23,0.75);
+        box-shadow: 0 18px 40px rgba(0,0,0,0.6); /* Darker shadow on hover */
     }
-    
-    /* --- TODAY'S HIGHLIGHT (Your excellent style, unchanged) --- */
+
+    /* --- TODAY'S HIGHLIGHT (Adjusted glow colors) --- */
     .day-card.today {
         border: 3px solid var(--today-glow);
-        box-shadow: 0 0 35px rgba(0, 255, 204, 0.4), 
-                    0 0 60px rgba(0, 255, 204, 0.2),
-                    0 8px 30px rgba(2,6,23,0.6);
+        box-shadow: 0 0 35px var(--today-glow-shadow), 
+                    0 0 60px rgba(56, 189, 248, 0.2), /* Muted blue glow */
+                    0 8px 30px rgba(0,0,0,0.4);
         animation: pulse-glow 2s ease-in-out infinite;
     }
     .today-badge {
@@ -207,50 +206,50 @@ local_css_string = """
         top: -12px;
         right: 20px;
         background: var(--today-glow);
-        color: #070812;
+        color: var(--bg); /* Use background color for text to make it subtle */
         font-size: 0.75rem;
         font-weight: 800;
         padding: 0.35rem 0.75rem;
         border-radius: 6px;
         letter-spacing: 0.5px;
         text-transform: uppercase;
-        box-shadow: 0 4px 15px rgba(0, 255, 204, 0.4);
+        box-shadow: 0 4px 15px var(--today-glow-shadow);
         z-index: 10;
     }
     @keyframes pulse-glow {
         0%, 100% {
-            box-shadow: 0 0 35px rgba(0, 255, 204, 0.4), 
-                        0 0 60px rgba(0, 255, 204, 0.2),
-                        0 8px 30px rgba(2,6,23,0.6);
+            box-shadow: 0 0 35px var(--today-glow-shadow), 
+                        0 0 60px rgba(56, 189, 248, 0.2),
+                        0 8px 30px rgba(0,0,0,0.4);
         }
         50% {
-            box-shadow: 0 0 45px rgba(0, 255, 204, 0.6), 
-                        0 0 80px rgba(0, 255, 204, 0.3),
-                        0 8px 30px rgba(2,6,23,0.6);
+            box-shadow: 0 0 45px rgba(56, 189, 248, 0.6), /* Muted blue glow */
+                        0 0 80px rgba(56, 189, 248, 0.3),
+                        0 8px 30px rgba(0,0,0,0.4);
         }
     }
     
-    /* --- CARD CONTENT (Your excellent styles, unchanged) --- */
+    /* --- CARD CONTENT --- */
     .day-header {
         display:flex;
         align-items:center;
         gap:0.6rem;
         font-size:1.25rem;
         font-weight:700;
-        color:#eaf6f1;
+        color:#E2E8F0; /* Slightly brighter text for headers */
         margin-bottom:0.6rem;
     }
     .day-header .date-badge {
         font-size:0.85rem;
         padding:0.28rem 0.55rem;
         border-radius:8px;
-        background: linear-gradient(90deg, rgba(71,198,183,0.06), rgba(255,122,102,0.04));
+        background: linear-gradient(90deg, rgba(96,165,250,0.06), rgba(129,140,248,0.04)); /* Muted gradient */
         color:var(--muted);
-        border:1px solid rgba(255,255,255,0.02);
+        border:1px solid rgba(255,255,255,0.04);
     }
     .day-card.today .date-badge {
         background: var(--today-glow);
-        color: #070812;
+        color: var(--bg);
         font-weight: 700;
     }
     .class-entry {
@@ -260,7 +259,7 @@ local_css_string = """
         justify-content:space-between;
         padding-top:0.65rem;
         padding-bottom:0.65rem;
-        border-bottom:1px solid rgba(255,255,255,0.02);
+        border-bottom:1px solid rgba(255,255,255,0.04); /* Slightly thicker/darker border */
     }
     .day-card .class-entry:last-child { border-bottom: none; padding-bottom: 0; }
     .left {
@@ -300,48 +299,48 @@ local_css_string = """
     /* --- INPUT & BUTTON STYLES --- */
     .stDownloadButton>button {
         background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-        color: #0b0b0b;
+        color: var(--bg); /* Text color from background */
         font-weight:700;
         padding: 0.5rem 0.9rem;
         border-radius:10px;
         border:none;
-        box-shadow: 0 8px 20px rgba(71,198,183,0.08);
-        width: 100%; /* Make button full-width */
+        box-shadow: 0 8px 20px rgba(96,165,250,0.1); /* Muted shadow */
+        width: 100%;
     }
     .stDownloadButton>button:hover {
         transform: translateY(-3px);
-        box-shadow: 0 14px 30px rgba(71,198,183,0.12);
+        box-shadow: 0 14px 30px rgba(96,165,250,0.15); /* Muted shadow on hover */
     }
     
-    /* --- NEW: Style the main 'Generate' button --- */
+    /* --- Style the main 'Generate' button --- */
     div[data-testid="stForm"] button[kind="primary"] {
         background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-        color: #0b0b0b;
+        color: var(--bg);
         font-weight: 700;
         padding: 0.5rem 0.9rem;
         border-radius: 10px;
         border: none;
-        width: 100%; /* Make it full-width */
-        box-shadow: 0 8px 20px rgba(71,198,183,0.08);
+        width: 100%;
+        box-shadow: 0 8px 20px rgba(96,165,250,0.1);
     }
     div[data-testid="stForm"] button[kind="primary"]:hover {
         transform: translateY(-3px);
-        box-shadow: 0 14px 30px rgba(71,198,183,0.12);
+        box-shadow: 0 14px 30px rgba(96,165,250,0.15);
     }
 
     a {
-        color: #9fe6d8;
+        color: var(--accent-start); /* Use one of the accent colors for links */
         font-weight:600;
     }
     
-    /* --- FORM INPUT STYLING (Your style, unchanged) --- */
+    /* --- FORM INPUT STYLING --- */
     .css-1d391kg, .css-1v3fvcr, .css-18ni7ap {
         color: #ffffff;
     }
     .stTextInput>div>div>input, .stTextInput>div>div>textarea {
         background: rgba(255,255,255,0.02) !important;
-        color: #e6eef2 !important;
-        border: 1px solid rgba(255,255,255,0.04) !important;
+        color: #E2E8F0 !important; /* Brighter text for input */
+        border: 1px solid rgba(255,255,255,0.06) !important; /* Slightly more visible border */
         padding: 0.6rem !important;
         border-radius: 8px !important;
     }
@@ -354,6 +353,15 @@ local_css_string = """
         border-radius: 14px;
         margin-bottom: 1.5rem;
     }
+    .results-container h3 {
+        color: #E2E8F0; /* Subheader color */
+        margin-top: 0;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+    }
+    .results-container h3:not(:first-child) {
+        margin-top: 1.5rem; /* Space between sections */
+    }
 
     @media (max-width: 600px) {
         .meta { min-width: 120px; font-size:0.9rem; }
@@ -364,16 +372,15 @@ local_css_string = """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
 # --- APP HEADER ---
-# (I've made the titles a bit more "branded" to your university context)
-st.markdown('<p class="main-header">📅 Nirma MBA Timetable Assistant</p>', unsafe_allow_html=True)
+st.markdown('<p class="main-header">Nirma MBA Timetable Assistant</p>', unsafe_allow_html=True)
 st.markdown('<div class="header-sub">Your Trimester IV schedule, ready for Google Calendar.</div>', unsafe_allow_html=True)
 
 # --- WELCOME BOX ---
 st.markdown(
     """
     <div class="welcome-box">
-        👋 Welcome! This app finds your personal schedule and creates a <strong>.ics calendar file</strong> for you to import.
-        Just enter your roll number to begin.
+        Welcome! This application helps you generate your personalized class schedule and export it as a <strong>.ics calendar file</strong>.
+        Simply enter your roll number below to get started.
     </div>
     """,
     unsafe_allow_html=True
@@ -394,11 +401,9 @@ if not master_schedule_df.empty and student_data_map:
             student_info = student_data_map[roll_number]
             student_name, student_sections = student_info['name'], student_info['sections']
             
-            # --- POSITIVE FEEDBACK ---
-            st.success(f"Success! Found schedule for {student_name}. Here's your preview:")
+            st.success(f"Schedule found for {student_name}.") # More direct success message
             
-            with st.spinner(f'Finding classes for {student_name}...'):
-                # (Your class-finding logic is perfect, no changes)
+            with st.spinner(f'Compiling classes for {student_name}...'): # Updated spinner text
                 NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
                 normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
 
@@ -429,32 +434,30 @@ if not master_schedule_df.empty and student_data_map:
                 ics_content = generate_ics_content(found_classes)
                 sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                 
-                # We put the Download & Instructions in a clean "results-container"
                 with st.container():
                     st.markdown('<div class="results-container">', unsafe_allow_html=True)
-                    st.markdown("### 1. Download Your Calendar")
+                    st.markdown("### 1. Download Calendar File")
                     st.download_button(
-                        label="📅 Download Calendar (.ics) File",
+                        label="Download .ics Calendar File", # Removed emoji
                         data=ics_content,
                         file_name=f"{sanitized_name}_Timetable.ics",
                         mime='text/calendar'
                     )
                     
-                    st.markdown("### 2. How to Import")
-                    # Expanded=True is more helpful for first-time users
-                    with st.expander("Click to see import instructions for Google Calendar", expanded=True): 
+                    st.markdown("### 2. How to Import to Google Calendar")
+                    with st.expander("Click to view import instructions", expanded=True): # Slightly more formal wording
                         st.markdown(f"""
-                        1. Click the **'Download Calendar (.ics) File'** button above to save the schedule.  
-                        2. Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
+                        1. Click the **'Download .ics Calendar File'** button above to save your schedule.  
+                        2. Navigate to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
                         3. Under 'Import from computer', click **'Select file from your computer'**.  
                         4. Choose the `.ics` file you just downloaded.  
-                        5. Click **'Import'** to add the events.
+                        5. Click **'Import'** to add the events to your calendar.
                         """)
                     st.markdown('</div>', unsafe_allow_html=True)
 
                 # --- PREVIEW SECTION ---
                 st.markdown("---")
-                st.subheader("🗓️ Schedule Preview")
+                st.subheader("Your Timetable Preview") # Simpler subheader
 
                 schedule_by_date = defaultdict(list)
                 for class_info in found_classes:
@@ -476,7 +479,6 @@ if not master_schedule_df.empty and student_data_map:
                     if is_today:
                         today_anchor_id = card_id
                     
-                    # (Your card rendering logic is perfect, no changes)
                     if is_today:
                         st.markdown(f'''
                             <div class="day-card {today_class}" id="{card_id}">
@@ -497,7 +499,8 @@ if not master_schedule_df.empty and student_data_map:
                     
                     classes_today = schedule_by_date[date_obj]
                     for class_info in classes_today:
-                        meta_html = f'<div class="meta"><span class="time">🕒 {class_info["Time"]}</span><span class="venue">📍 {class_info["Venue"]}</span><span class="faculty">🧑‍🏫 {class_info["Faculty"]}</span></div>'
+                        # Removed emojis from meta section
+                        meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span><span class="venue">{class_info["Venue"]}</span><span class="faculty">{class_info["Faculty"]}</span></div>'
                         st.markdown(f'''
                             <div class="class-entry">
                                 <div class="left">
@@ -509,7 +512,6 @@ if not master_schedule_df.empty and student_data_map:
                     
                     st.markdown('</div>', unsafe_allow_html=True)
                 
-                # (Your brilliant auto-scroll script, no changes)
                 if today_anchor_id:
                     components.html(f"""
                     <script>
@@ -522,13 +524,9 @@ if not master_schedule_df.empty and student_data_map:
                             return false;
                         }}
                         
-                        // Try immediately
                         if (!scrollToToday()) {{
-                            // Retry after short delay
                             setTimeout(scrollToToday, 500);
                         }}
-                        
-                        // Final retry
                         setTimeout(scrollToToday, 1500);
                     </script>
                     """, height=0)
