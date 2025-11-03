@@ -2,7 +2,7 @@
 import pandas as pd
 import os
 import glob
-from datetime import datetime, date
+from datetime import datetime, date, timedelta  # Added timedelta
 import re
 import streamlit as st
 from ics import Calendar, Event
@@ -10,6 +10,7 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
+import streamlit_cookies_manager  # <-- ADDED THIS IMPORT
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -116,6 +117,7 @@ def generate_ics_content(found_classes):
 
 # 4. STREAMLIT WEB APP INTERFACE
 st.set_page_config(page_title="Nirma Timetable Assistant", layout="centered", initial_sidebar_state="collapsed")
+cookies = streamlit_cookies_manager.CookieManager()  # <-- ADDED THIS
 
 # --- CSS STYLING ---
 local_css_string = """
@@ -269,7 +271,6 @@ local_css_string = """
         gap:0.2rem;
     }
     
-    /* --- THIS IS THE MODIFIED LECTURE/SUBJECT STYLE --- */
     .subject-name {
         font-size:1.05rem;
         font-weight:700;
@@ -385,11 +386,14 @@ if 'submitted' not in st.session_state:
 if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
 
-# --- NEW: AUTO-SUBMIT FROM URL ---
-param_roll = st.query_params.get("roll_number", [None])[0]
-if param_roll and not st.session_state.submitted:
-    st.session_state.roll_number = param_roll.strip().upper()
-    st.session_state.submitted = True
+# --- NEW: AUTO-SUBMIT FROM COOKIE ---
+if not st.session_state.submitted:
+    # Try to get the cookie
+    remembered_roll = cookies.get('remembered_roll_number')
+    if remembered_roll:
+        # If found, set the session state
+        st.session_state.roll_number = remembered_roll.strip().upper()
+        st.session_state.submitted = True
 
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
@@ -425,8 +429,10 @@ if not master_schedule_df.empty and student_data_map:
 
         # Handle valid roll number
         elif roll_to_process in student_data_map:
-            # Save successful roll number to URL
-            st.query_params.roll_number = roll_to_process
+            # --- NEW: SET THE COOKIE ON SUCCESS ---
+            cookies.set('remembered_roll_number', 
+                        roll_to_process, 
+                        expires_at=datetime.now() + timedelta(days=365)) # Remember for 1 year
             
             student_info = student_data_map[roll_to_process]
             student_name, student_sections = student_info['name'], student_info['sections']
@@ -439,7 +445,7 @@ if not master_schedule_df.empty and student_data_map:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
                     st.session_state.roll_number = ""
-                    st.query_params.clear()
+                    cookies.delete('remembered_roll_number')  # --- NEW: DELETE THE COOKIE ---
                     st.rerun()
             
             with st.spinner(f'Compiling classes for {student_name}...'):
@@ -576,8 +582,8 @@ if not master_schedule_df.empty and student_data_map:
             st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
             st.session_state.submitted = False
             st.session_state.roll_number = ""
-            st.query_params.clear()
-            st.rerun()
+            cookies.delete('remembered_roll_number')  # --- NEW: DELETE BAD COOKIE ---
+            st.rerun() # Use rerun to force it back to the form
 
 elif master_schedule_df.empty or not student_data_map:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
