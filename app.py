@@ -235,19 +235,19 @@ local_css_string = """
     .day-header {
         display:flex;
         align-items:center;
-        gap:0.6rem;
-        font-size:1.25rem;
+        gap:0.5rem; /* Reduced gap */
+        font-size:1.15rem; /* Reduced font size */
         font-weight:700;
         color:#E2E8F0; /* Slightly brighter text for headers */
-        margin-bottom:0.6rem;
+        margin-bottom:0.5rem; /* Reduced margin */
     }
     .day-header .date-badge {
-        font-size:0.85rem;
-        padding:0.28rem 0.55rem;
-        border-radius:8px;
+        font-size:0.75rem; /* Reduced font size */
+        padding:0.2rem 0.45rem; /* Reduced padding */
+        border-radius:6px; /* Slightly smaller radius */
         background: linear-gradient(90deg, rgba(96,165,250,0.06), rgba(129,140,248,0.04)); /* Muted gradient */
         color:var(--muted);
-        border:1px solid rgba(255,255,255,0.04);
+        border:1px solid rgba(255,255,250,0.04);
     }
     .day-card.today .date-badge {
         background: var(--today-glow);
@@ -576,3 +576,4 @@ elif master_schedule_df.empty or not student_data_map:
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---") # Optional: a faint line above the caption
 st.caption("_Made by Vishesh_")
+
