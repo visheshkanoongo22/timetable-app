@@ -114,296 +114,279 @@ def generate_ics_content(found_classes):
     return c.serialize()
 
 # 4. STREAMLIT WEB APP INTERFACE
-st.set_page_config(page_title="Academic Timetable", layout="centered", initial_sidebar_state="collapsed")
 
-st.markdown("""
+# --- CSS STYLING ---
+# We move all the CSS into one clean variable
+local_css_string = """
 <style>
-    .stApp {
-        background: #0a0e1a;
-        color: #e8eef2;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    
-    .main .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        max-width: 800px;
+    /* --- FONT IMPORT --- */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+    :root{
+        --bg:#070812;
+        --card:#0e1220;
+        --muted:#bfc8d6;
+        --accent-start:#47c6b7;
+        --accent-end:#ff7a66;
+        --accent-text: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        --glass-border: rgba(255,255,255,0.04);
+        --today-glow: #00ffcc;
     }
 
+    .stApp {
+        background: radial-gradient(1200px 600px at 10% 10%, rgba(71,198,183,0.06), transparent 10%),
+                    radial-gradient(1000px 500px at 90% 90%, rgba(255,122,102,0.04), transparent 10%),
+                    var(--bg);
+        color: #ffffff;
+        /* --- Use the imported Inter font --- */
+        font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    /* --- PAGE HEADER --- */
     .main-header {
-        font-size: 2rem;
-        font-weight: 600;
+        font-size: 2.4rem;
+        font-weight: 800;
         text-align: center;
-        margin-bottom: 0.5rem;
-        color: #e8eef2;
-        letter-spacing: -0.5px;
+        margin-bottom: 0.5rem; /* Reduced margin */
+        background: -webkit-linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 0.2px;
     }
 
     .header-sub {
-        text-align: center;
-        color: #8b95a8;
-        margin-bottom: 2.5rem;
-        font-size: 0.9rem;
-        font-weight: 400;
+        text-align:center;
+        color:var(--muted);
+        margin-top:0rem;
+        margin-bottom:2rem; /* More space after sub-header */
+        font-size:1.0rem; /* Slightly larger sub-header */
     }
-
-    @keyframes fadeInDown {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .stTextInput > div > div > input {
-        background: #12171f !important;
-        border: 1px solid #2a3441 !important;
-        border-radius: 8px !important;
-        color: #e8eef2 !important;
-        font-size: 1rem !important;
-        padding: 0.75rem 1rem !important;
-        transition: all 0.2s ease !important;
-    }
-
-    .stTextInput > div > div > input:focus {
-        border-color: #4a9eff !important;
-        background: #12171f !important;
-        box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.1) !important;
-    }
-
-    .stTextInput > label {
-        color: #8b95a8 !important;
-        font-size: 0.875rem !important;
-        margin-bottom: 0.5rem !important;
-        font-weight: 500 !important;
-    }
-
-    div[data-testid="stForm"] {
-        background: #12171f;
-        border: 1px solid #2a3441;
-        border-radius: 12px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-    }
-
-    .stButton > button {
-        background: #4a9eff !important;
-        color: #ffffff !important;
-        border: none !important;
-        border-radius: 8px !important;
-        padding: 0.75rem 1.5rem !important;
-        font-weight: 500 !important;
-        font-size: 0.95rem !important;
-        transition: all 0.2s ease !important;
-        width: 100% !important;
-    }
-
-    .stButton > button:hover {
-        background: #3a8eef !important;
-        transform: translateY(-1px) !important;
-    }
-
-    .stDownloadButton > button {
-        background: #4a9eff !important;
-        color: #ffffff !important;
-        border: none !important;
-        border-radius: 8px !important;
-        padding: 0.75rem 1.5rem !important;
-        font-weight: 500 !important;
-        transition: all 0.2s ease !important;
-    }
-
-    .stDownloadButton > button:hover {
-        background: #3a8eef !important;
-        transform: translateY(-1px) !important;
-    }
-
-    .day-card {
-        background: #12171f;
-        border: 1px solid #2a3441;
-        border-radius: 12px;
-        padding: 1.5rem;
+    
+    /* --- NEW: WELCOME BOX --- */
+    .welcome-box {
+        background: var(--card);
+        border: 1px solid var(--glass-border);
+        padding: 1rem 1.25rem;
+        border-radius: 14px;
         margin-bottom: 1.5rem;
-        transition: all 0.2s ease;
-        scroll-margin-top: 2rem;
+        color: var(--muted);
+        font-size: 0.95rem;
     }
-
-    .day-card:hover {
-        border-color: #3a4551;
-    }
-
-    .day-card.today {
-        border-color: #4a9eff;
-        background: linear-gradient(180deg, rgba(74, 158, 255, 0.05), #12171f);
-    }
-
-    .today-badge {
-        display: inline-block;
-        background: rgba(74, 158, 255, 0.15);
-        color: #4a9eff;
-        padding: 0.25rem 0.65rem;
-        border-radius: 4px;
-        font-size: 0.7rem;
+    .welcome-box strong {
+        color: #ffffff;
         font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        border: 1px solid rgba(74, 158, 255, 0.3);
-        margin-left: 0.75rem;
     }
 
-    .day-header {
-        display: flex;
-        align-items: center;
+    /* --- DAY PREVIEW CARD (Your excellent style, unchanged) --- */
+    .day-card {
+        background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+        border-radius: 14px;
+        padding: 1.25rem;
         margin-bottom: 1.25rem;
+        box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+        border: 1px solid var(--glass-border);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+        scroll-margin-top: 20px;
+        position: relative;
     }
-
-    .day-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #e8eef2;
-        margin-bottom: 0.25rem;
+    .day-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 40px rgba(2,6,23,0.75);
     }
-
-    .day-date {
-        color: #8b95a8;
-        font-size: 0.875rem;
+    
+    /* --- TODAY'S HIGHLIGHT (Your excellent style, unchanged) --- */
+    .day-card.today {
+        border: 3px solid var(--today-glow);
+        box-shadow: 0 0 35px rgba(0, 255, 204, 0.4), 
+                    0 0 60px rgba(0, 255, 204, 0.2),
+                    0 8px 30px rgba(2,6,23,0.6);
+        animation: pulse-glow 2s ease-in-out infinite;
     }
-
-    .class-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        padding: 1rem 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-        transition: all 0.2s ease;
-    }
-
-    .class-item:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-    }
-
-    .class-item:hover {
-        background: rgba(74, 158, 255, 0.03);
-        margin: 0 -0.75rem;
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
+    .today-badge {
+        position: absolute;
+        top: -12px;
+        right: 20px;
+        background: var(--today-glow);
+        color: #070812;
+        font-size: 0.75rem;
+        font-weight: 800;
+        padding: 0.35rem 0.75rem;
         border-radius: 6px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        box-shadow: 0 4px 15px rgba(0, 255, 204, 0.4);
+        z-index: 10;
     }
-
-    .class-subject {
-        font-size: 1rem;
-        font-weight: 500;
-        color: #e8eef2;
-        margin-bottom: 0.25rem;
-    }
-
-    .class-meta {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 0.25rem;
-        min-width: 150px;
-    }
-
-    .class-time {
-        font-weight: 500;
-        color: #e8eef2;
-        font-size: 0.9rem;
-    }
-
-    .class-venue, .class-faculty {
-        font-size: 0.8rem;
-        color: #8b95a8;
-    }
-
-    .section-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 2rem;
-        text-align: center;
-        color: #e8eef2;
-    }
-
-    .stExpander {
-        background: #12171f;
-        border: 1px solid #2a3441;
-        border-radius: 8px;
-        margin-top: 1rem;
-    }
-
-    .stExpander > div > div > div > div {
-        color: #8b95a8 !important;
-    }
-
-    div[data-testid="stMarkdownContainer"] a {
-        color: #4a9eff !important;
-        font-weight: 500;
-    }
-
-    hr {
-        border-color: #2a3441 !important;
-        margin: 2rem 0 !important;
-    }
-
-    h2, h3 {
-        color: #e8eef2 !important;
+    @keyframes pulse-glow {
+        0%, 100% {
+            box-shadow: 0 0 35px rgba(0, 255, 204, 0.4), 
+                        0 0 60px rgba(0, 255, 204, 0.2),
+                        0 8px 30px rgba(2,6,23,0.6);
+        }
+        50% {
+            box-shadow: 0 0 45px rgba(0, 255, 204, 0.6), 
+                        0 0 80px rgba(0, 255, 204, 0.3),
+                        0 8px 30px rgba(2,6,23,0.6);
+        }
     }
     
-    p, li {
-        color: #e8eef2 !important;
+    /* --- CARD CONTENT (Your excellent styles, unchanged) --- */
+    .day-header {
+        display:flex;
+        align-items:center;
+        gap:0.6rem;
+        font-size:1.25rem;
+        font-weight:700;
+        color:#eaf6f1;
+        margin-bottom:0.6rem;
+    }
+    .day-header .date-badge {
+        font-size:0.85rem;
+        padding:0.28rem 0.55rem;
+        border-radius:8px;
+        background: linear-gradient(90deg, rgba(71,198,183,0.06), rgba(255,122,102,0.04));
+        color:var(--muted);
+        border:1px solid rgba(255,255,255,0.02);
+    }
+    .day-card.today .date-badge {
+        background: var(--today-glow);
+        color: #070812;
+        font-weight: 700;
+    }
+    .class-entry {
+        display:flex;
+        flex-direction:row;
+        align-items:center;
+        justify-content:space-between;
+        padding-top:0.65rem;
+        padding-bottom:0.65rem;
+        border-bottom:1px solid rgba(255,255,255,0.02);
+    }
+    .day-card .class-entry:last-child { border-bottom: none; padding-bottom: 0; }
+    .left {
+        display:flex;
+        flex-direction:column;
+        gap:0.2rem;
+    }
+    .subject-name {
+        font-size:1.05rem;
+        font-weight:700;
+        margin:0;
+        color: transparent;
+        background: var(--accent-text);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .class-details {
+        font-size:0.94rem;
+        color:var(--muted);
+    }
+    .meta {
+        text-align:right;
+        min-width:170px;
+    }
+    .meta .time {
+        display:block;
+        font-weight:600;
+        color:#fff;
+        font-size:0.97rem;
+    }
+    .meta .venue, .meta .faculty {
+        display:block;
+        font-size:0.85rem;
+        color:var(--muted);
     }
     
-    .stSpinner > div {
-        border-top-color: #4a9eff !important;
+    /* --- INPUT & BUTTON STYLES --- */
+    .stDownloadButton>button {
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        color: #0b0b0b;
+        font-weight:700;
+        padding: 0.5rem 0.9rem;
+        border-radius:10px;
+        border:none;
+        box-shadow: 0 8px 20px rgba(71,198,183,0.08);
+        width: 100%; /* Make button full-width */
+    }
+    .stDownloadButton>button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 30px rgba(71,198,183,0.12);
     }
     
-    .stAlert {
-        background: #12171f !important;
-        border: 1px solid #2a3441 !important;
-        color: #e8eef2 !important;
+    /* --- NEW: Style the main 'Generate' button --- */
+    div[data-testid="stForm"] button[kind="primary"] {
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        color: #0b0b0b;
+        font-weight: 700;
+        padding: 0.5rem 0.9rem;
+        border-radius: 10px;
+        border: none;
+        width: 100%; /* Make it full-width */
+        box-shadow: 0 8px 20px rgba(71,198,183,0.08);
+    }
+    div[data-testid="stForm"] button[kind="primary"]:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 30px rgba(71,198,183,0.12);
     }
 
-    @media (max-width: 768px) {
-        .main-header {
-            font-size: 1.5rem;
-        }
-        
-        .class-item {
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .class-meta {
-            align-items: flex-start;
-        }
+    a {
+        color: #9fe6d8;
+        font-weight:600;
+    }
+    
+    /* --- FORM INPUT STYLING (Your style, unchanged) --- */
+    .css-1d391kg, .css-1v3fvcr, .css-18ni7ap {
+        color: #ffffff;
+    }
+    .stTextInput>div>div>input, .stTextInput>div>div>textarea {
+        background: rgba(255,255,255,0.02) !important;
+        color: #e6eef2 !important;
+        border: 1px solid rgba(255,255,255,0.04) !important;
+        padding: 0.6rem !important;
+        border-radius: 8px !important;
+    }
+    
+    /* --- RESULTS CONTAINER --- */
+    .results-container {
+        background: var(--card);
+        border: 1px solid var(--glass-border);
+        padding: 1.25rem;
+        border-radius: 14px;
+        margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 600px) {
+        .meta { min-width: 120px; font-size:0.9rem; }
+        .main-header { font-size: 1.8rem; }
     }
 </style>
-""", unsafe_allow_html=True)
+"""
+st.markdown(local_css_string, unsafe_allow_html=True)
 
-st.markdown('<p class="main-header">Class Schedule</p>', unsafe_allow_html=True)
-st.markdown('<div class="header-sub">Your personalized timetable</div>', unsafe_allow_html=True)
+# --- APP HEADER ---
+# (I've made the titles a bit more "branded" to your university context)
+st.markdown('<p class="main-header">📅 Nirma MBA Timetable Assistant</p>', unsafe_allow_html=True)
+st.markdown('<div class="header-sub">Your Trimester IV schedule, ready for Google Calendar.</div>', unsafe_allow_html=True)
 
+# --- WELCOME BOX ---
+st.markdown(
+    """
+    <div class="welcome-box">
+        👋 Welcome! This app finds your personal schedule and creates a <strong>.ics calendar file</strong> for you to import.
+        Just enter your roll number to begin.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
 
+# --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
     with st.form("roll_number_form"):
-        roll_number = st.text_input("Enter Your Roll Number", placeholder="e.g., 24MBA463").strip().upper()
+        roll_number = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
         submitted = st.form_submit_button("Generate Timetable")
 
     if submitted and roll_number:
@@ -411,7 +394,11 @@ if not master_schedule_df.empty and student_data_map:
             student_info = student_data_map[roll_number]
             student_name, student_sections = student_info['name'], student_info['sections']
             
+            # --- POSITIVE FEEDBACK ---
+            st.success(f"Success! Found schedule for {student_name}. Here's your preview:")
+            
             with st.spinner(f'Finding classes for {student_name}...'):
+                # (Your class-finding logic is perfect, no changes)
                 NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
                 normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
 
@@ -430,38 +417,44 @@ if not master_schedule_df.empty and student_data_map:
                                 if norm_sec in normalized_cell:
                                     details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'})
                                     found_classes.append({
-                                        "Date": date,
-                                        "Day": day,
-                                        "Time": time,
-                                        "Subject": orig_sec,
+                                        "Date": date, "Day": day, "Time": time, "Subject": orig_sec,
                                         "Faculty": details.get('Faculty', 'N/A'),
                                         "Venue": details.get('Venue', '-')
                                     })
 
                 found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
 
+            # --- ORGANIZED RESULTS SECTION ---
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
                 sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                 
-                st.download_button(
-                    label="Download Calendar File",
-                    data=ics_content,
-                    file_name=f"{sanitized_name}_Timetable.ics",
-                    mime='text/calendar'
-                )
-                
-                with st.expander("How to Import to Google Calendar", expanded=False):
-                    st.markdown(f"""
-                    1. Click the **'Download Calendar File'** button above to save the schedule.  
-                    2. Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
-                    3. Under 'Import from computer', click **'Select file from your computer'**.  
-                    4. Choose the `.ics` file you just downloaded.  
-                    5. Click **'Import'** to add the events.
-                    """)
+                # We put the Download & Instructions in a clean "results-container"
+                with st.container():
+                    st.markdown('<div class="results-container">', unsafe_allow_html=True)
+                    st.markdown("### 1. Download Your Calendar")
+                    st.download_button(
+                        label="📅 Download Calendar (.ics) File",
+                        data=ics_content,
+                        file_name=f"{sanitized_name}_Timetable.ics",
+                        mime='text/calendar'
+                    )
+                    
+                    st.markdown("### 2. How to Import")
+                    # Expanded=True is more helpful for first-time users
+                    with st.expander("Click to see import instructions for Google Calendar", expanded=True): 
+                        st.markdown(f"""
+                        1. Click the **'Download Calendar (.ics) File'** button above to save the schedule.  
+                        2. Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
+                        3. Under 'Import from computer', click **'Select file from your computer'**.  
+                        4. Choose the `.ics` file you just downloaded.  
+                        5. Click **'Import'** to add the events.
+                        """)
+                    st.markdown('</div>', unsafe_allow_html=True)
 
+                # --- PREVIEW SECTION ---
                 st.markdown("---")
-                st.markdown('<h2 class="section-title">Your Weekly Schedule</h2>', unsafe_allow_html=True)
+                st.subheader("🗓️ Schedule Preview")
 
                 schedule_by_date = defaultdict(list)
                 for class_info in found_classes:
@@ -483,44 +476,40 @@ if not master_schedule_df.empty and student_data_map:
                     if is_today:
                         today_anchor_id = card_id
                     
+                    # (Your card rendering logic is perfect, no changes)
                     if is_today:
                         st.markdown(f'''
-                            <div class="day-card today" id="{card_id}">
+                            <div class="day-card {today_class}" id="{card_id}">
+                                <div class="today-badge">TODAY</div>
                                 <div class="day-header">
-                                    <div>
-                                        <div class="day-title">{date_obj.strftime("%A")}<span class="today-badge">Today</span></div>
-                                        <div class="day-date">{date_obj.strftime("%B %d, %Y")}</div>
-                                    </div>
+                                    <div class="date-badge">{date_obj.strftime("%d %b")}</div>
+                                    <div>{date_obj.strftime("%A, %d %B %Y")}</div>
                                 </div>
                         ''', unsafe_allow_html=True)
                     else:
                         st.markdown(f'''
-                            <div class="day-card" id="{card_id}">
+                            <div class="day-card {today_class}" id="{card_id}">
                                 <div class="day-header">
-                                    <div>
-                                        <div class="day-title">{date_obj.strftime("%A")}</div>
-                                        <div class="day-date">{date_obj.strftime("%B %d, %Y")}</div>
-                                    </div>
+                                    <div class="date-badge">{date_obj.strftime("%d %b")}</div>
+                                    <div>{date_obj.strftime("%A, %d %B %Y")}</div>
                                 </div>
                         ''', unsafe_allow_html=True)
                     
                     classes_today = schedule_by_date[date_obj]
                     for class_info in classes_today:
+                        meta_html = f'<div class="meta"><span class="time">🕒 {class_info["Time"]}</span><span class="venue">📍 {class_info["Venue"]}</span><span class="faculty">🧑‍🏫 {class_info["Faculty"]}</span></div>'
                         st.markdown(f'''
-                            <div class="class-item">
-                                <div>
-                                    <div class="class-subject">{class_info["Subject"]}</div>
+                            <div class="class-entry">
+                                <div class="left">
+                                    <div class="subject-name">{class_info["Subject"]}</div>
                                 </div>
-                                <div class="class-meta">
-                                    <div class="class-time">{class_info["Time"]}</div>
-                                    <div class="class-venue">{class_info["Venue"]}</div>
-                                    <div class="class-faculty">{class_info["Faculty"]}</div>
-                                </div>
+                                {meta_html}
                             </div>
                         ''', unsafe_allow_html=True)
                     
                     st.markdown('</div>', unsafe_allow_html=True)
                 
+                # (Your brilliant auto-scroll script, no changes)
                 if today_anchor_id:
                     components.html(f"""
                     <script>
@@ -533,14 +522,17 @@ if not master_schedule_df.empty and student_data_map:
                             return false;
                         }}
                         
+                        // Try immediately
                         if (!scrollToToday()) {{
+                            // Retry after short delay
                             setTimeout(scrollToToday, 500);
                         }}
                         
+                        // Final retry
                         setTimeout(scrollToToday, 1500);
                     </script>
                     """, height=0)
-                
+            
         elif submitted:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
