@@ -2,7 +2,7 @@
 import pandas as pd
 import os
 import glob
-from datetime import datetime, date, timedelta  # Added timedelta
+from datetime import datetime, date
 import re
 import streamlit as st
 from ics import Calendar, Event
@@ -10,7 +10,7 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
-import streamlit_cookies_manager  # <-- ADDED THIS IMPORT
+# (Removed streamlit_cookies_manager and timedelta)
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -117,7 +117,6 @@ def generate_ics_content(found_classes):
 
 # 4. STREAMLIT WEB APP INTERFACE
 st.set_page_config(page_title="Nirma Timetable Assistant", layout="centered", initial_sidebar_state="collapsed")
-cookies = streamlit_cookies_manager.CookieManager()  # <-- ADDED THIS
 
 # --- CSS STYLING ---
 local_css_string = """
@@ -373,8 +372,8 @@ local_css_string = """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
 # --- APP HEADER ---
-st.markdown('<p class="main-header">Timetable Assistant</p>', unsafe_allow_html=True)
-st.markdown('<div class="header-sub">Your Trimester V schedule, on your Fingertips.</div>', unsafe_allow_html=True)
+st.markdown('<p class="main-header">Nirma MBA Timetable Assistant</p>', unsafe_allow_html=True)
+st.markdown('<div class="header-sub">Your Trimester IV schedule, ready for Google Calendar.</div>', unsafe_allow_html=True)
 
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
@@ -385,15 +384,6 @@ if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
-
-# --- NEW: AUTO-SUBMIT FROM COOKIE ---
-if not st.session_state.submitted:
-    # Try to get the cookie
-    remembered_roll = cookies.get('remembered_roll_number')
-    if remembered_roll:
-        # If found, set the session state
-        st.session_state.roll_number = remembered_roll.strip().upper()
-        st.session_state.submitted = True
 
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
@@ -429,11 +419,6 @@ if not master_schedule_df.empty and student_data_map:
 
         # Handle valid roll number
         elif roll_to_process in student_data_map:
-            # --- NEW: SET THE COOKIE ON SUCCESS ---
-            cookies.set('remembered_roll_number', 
-                        roll_to_process, 
-                        expires_at=datetime.now() + timedelta(days=365)) # Remember for 1 year
-            
             student_info = student_data_map[roll_to_process]
             student_name, student_sections = student_info['name'], student_info['sections']
             
@@ -445,7 +430,6 @@ if not master_schedule_df.empty and student_data_map:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
                     st.session_state.roll_number = ""
-                    cookies.delete('remembered_roll_number')  # --- NEW: DELETE THE COOKIE ---
                     st.rerun()
             
             with st.spinner(f'Compiling classes for {student_name}...'):
@@ -454,7 +438,7 @@ if not master_schedule_df.empty and student_data_map:
 
                 time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
                               6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
-                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
+                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:3App-c"}
                 found_classes = []
 
                 for index, row in master_schedule_df.iterrows():
@@ -477,7 +461,7 @@ if not master_schedule_df.empty and student_data_map:
             # --- ORGANIZED RESULTS SECTION ---
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
-                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
+                sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
                 
                 with st.container():
                     st.markdown('<div class="results-container">', unsafe_allow_html=True)
@@ -582,9 +566,7 @@ if not master_schedule_df.empty and student_data_map:
             st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
             st.session_state.submitted = False
             st.session_state.roll_number = ""
-            cookies.delete('remembered_roll_number')  # --- NEW: DELETE BAD COOKIE ---
             st.rerun() # Use rerun to force it back to the form
 
 elif master_schedule_df.empty or not student_data_map:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
-
