@@ -366,24 +366,13 @@ local_css_string = """
     @media (max-width: 600px) {
         .meta { min-width: 120px; font-size:0.9rem; }
         .main-header { font-size: 1.8rem; }
-        .made-by { opacity: 0; } /* Hide credit on small screens to avoid clutter */
     }
 
-    /* --- MODIFIED: "Made by" Credit --- */
-    .made-by {
-        position: fixed; /* Fixed position relative to viewport */
-        top: 10px;
-        right: 15px;
-        font-size: 0.8rem;
-        font-style: italic; /* Added italic style */
-        color: var(--muted);
-        opacity: 0.7;
-        z-index: 9999; /* Ensure it's on top of all other elements */
-    }
+    /* --- REMOVED .made-by CSS --- */
 </style>
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
-st.markdown('<div class="made-by">Made by Vishesh</div>', unsafe_allow_html=True)
+# --- REMOVED st.markdown for "Made by" from here ---
 
 # --- APP HEADER ---
 st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
@@ -586,3 +575,7 @@ if not master_schedule_df.empty and student_data_map:
 
 elif master_schedule_df.empty or not student_data_map:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
+# --- NEW: ADDED CAPTION AT THE VERY END ---
+st.markdown("---") # Optional: a faint line above the caption
+st.caption("Made by Vishesh")
