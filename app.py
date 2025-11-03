@@ -366,16 +366,19 @@ local_css_string = """
     @media (max-width: 600px) {
         .meta { min-width: 120px; font-size:0.9rem; }
         .main-header { font-size: 1.8rem; }
+        .made-by { opacity: 0; } /* Hide credit on small screens to avoid clutter */
     }
 
-    /* --- NEW: "Made by" Credit --- */
+    /* --- MODIFIED: "Made by" Credit --- */
     .made-by {
-        position: absolute;
+        position: fixed; /* Fixed position relative to viewport */
         top: 10px;
         right: 15px;
         font-size: 0.8rem;
+        font-style: italic; /* Added italic style */
         color: var(--muted);
         opacity: 0.7;
+        z-index: 9999; /* Ensure it's on top of all other elements */
     }
 </style>
 """
@@ -485,7 +488,8 @@ if not master_schedule_df.empty and student_data_map:
                     )
                     
                     st.markdown("### 2. How to Import to Google Calendar")
-                    with st.expander("Click to view import instructions", expanded=True):
+                    # --- MODIFIED: Set expanded=False ---
+                    with st.expander("Click to view import instructions", expanded=False):
                         st.markdown(f"""
                         1. Click the **'Download .ics Calendar File'** button above to save your schedule.  
                         2. Navigate to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
