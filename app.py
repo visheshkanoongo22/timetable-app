@@ -397,8 +397,6 @@ if not master_schedule_df.empty and student_data_map:
             """
             <div class="welcome-box">
                 Welcome! This application helps you generate your personalized class schedule and export it as a <strong>.ics calendar file</strong> which can be imported to your google calendar.
-               
-                Simply enter your roll number below to get started.
             </div>
             """,
             unsafe_allow_html=True
@@ -580,6 +578,7 @@ elif master_schedule_df.empty or not student_data_map:
 # --- NEW: ADDED CAPTION AT THE VERY END ---
 st.markdown("---") # Optional: a faint line above the caption
 st.caption("_Made by Vishesh_")
+
 
 
 
