@@ -578,4 +578,5 @@ elif master_schedule_df.empty or not student_data_map:
 
 # --- NEW: ADDED CAPTION AT THE VERY END ---
 st.markdown("---") # Optional: a faint line above the caption
-st.caption("Made by Vishesh")
+st.caption("_Made by Vishesh_")
+
