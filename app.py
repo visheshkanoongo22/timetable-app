@@ -116,7 +116,7 @@ def generate_ics_content(found_classes):
     return c.serialize()
 
 # 4. STREAMLIT WEB APP INTERFACE
-st.set_page_config(page_title="Nirma Timetable Assistant", layout="centered", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="MBA Timetable Assistant", layout="centered", initial_sidebar_state="collapsed")
 
 # --- CSS STYLING ---
 local_css_string = """
@@ -367,13 +367,24 @@ local_css_string = """
         .meta { min-width: 120px; font-size:0.9rem; }
         .main-header { font-size: 1.8rem; }
     }
+
+    /* --- NEW: "Made by" Credit --- */
+    .made-by {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 0.8rem;
+        color: var(--muted);
+        opacity: 0.7;
+    }
 </style>
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
+st.markdown('<div class="made-by">Made by Vishesh</div>', unsafe_allow_html=True)
 
 # --- APP HEADER ---
-st.markdown('<p class="main-header">Nirma MBA Timetable Assistant</p>', unsafe_allow_html=True)
-st.markdown('<div class="header-sub">Your Trimester IV schedule, ready for Google Calendar.</div>', unsafe_allow_html=True)
+st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
 
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
@@ -497,7 +508,8 @@ if not master_schedule_df.empty and student_data_map:
                 for date in sorted_dates:
                     schedule_by_date[date].sort(key=lambda x: time_sorter.get(x['Time'], 99))
 
-                today = date.today()
+                # --- MODIFIED: Get today's date in the correct timezone ---
+                today = datetime.now(pytz.timezone(TIMEZONE)).date()
                 today_anchor_id = None
                 
                 for idx, date_obj in enumerate(sorted_dates):
