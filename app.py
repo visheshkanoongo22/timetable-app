@@ -41,6 +41,7 @@ COURSE_DETAILS_MAP = {
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
 
+
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
@@ -114,6 +115,7 @@ def generate_ics_content(found_classes):
     return c.serialize()
 
 # 4. STREAMLIT WEB APP INTERFACE
+st.set_page_config(page_title="Nirma Timetable Assistant", layout="centered", initial_sidebar_state="collapsed")
 
 # --- CSS STYLING ---
 local_css_string = """
@@ -127,7 +129,6 @@ local_css_string = """
         --muted:#94A3B8; /* Muted text color */
         --accent-start:#60A5FA; /* Muted blue accent */
         --accent-end:#818CF8; /* Muted violet accent */
-        --accent-text: linear-gradient(90deg, var(--accent-start), var(--accent-end));
         --glass-border: rgba(255,255,255,0.08); /* Slightly more visible border */
         --today-glow: #38BDF8; /* Muted sky blue for today's highlight */
         --today-glow-shadow: rgba(56, 189, 248, 0.4);
@@ -267,15 +268,15 @@ local_css_string = """
         flex-direction:column;
         gap:0.2rem;
     }
+    
+    /* --- THIS IS THE MODIFIED LECTURE/SUBJECT STYLE --- */
     .subject-name {
         font-size:1.05rem;
         font-weight:700;
         margin:0;
-        color: transparent;
-        background: var(--accent-text);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: #FFFFFF; /* Set to solid white for max contrast */
     }
+    
     .class-details {
         font-size:0.94rem;
         color:var(--muted);
@@ -297,7 +298,7 @@ local_css_string = """
     }
     
     /* --- INPUT & BUTTON STYLES --- */
-    .stDownloadButton>button {
+    .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
         background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
         color: var(--bg); /* Text color from background */
         font-weight:700;
@@ -306,26 +307,25 @@ local_css_string = """
         border:none;
         box-shadow: 0 8px 20px rgba(96,165,250,0.1); /* Muted shadow */
         width: 100%;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
-    .stDownloadButton>button:hover {
+    .stDownloadButton>button:hover, div[data-testid="stForm"] button[kind="primary"]:hover, .stButton>button:hover {
         transform: translateY(-3px);
         box-shadow: 0 14px 30px rgba(96,165,250,0.15); /* Muted shadow on hover */
     }
     
-    /* --- Style the main 'Generate' button --- */
-    div[data-testid="stForm"] button[kind="primary"] {
-        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-        color: var(--bg);
-        font-weight: 700;
-        padding: 0.5rem 0.9rem;
-        border-radius: 10px;
-        border: none;
-        width: 100%;
-        box-shadow: 0 8px 20px rgba(96,165,250,0.1);
+    /* --- Style for the "Change" button --- */
+    .stButton>button {
+        width: auto; /* Allow the change button to be smaller */
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+        background: var(--card); /* Make it look different */
+        color: var(--muted);
+        border: 1px solid var(--glass-border);
     }
-    div[data-testid="stForm"] button[kind="primary"]:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 14px 30px rgba(96,165,250,0.15);
+    .stButton>button:hover {
+        color: var(--accent-start);
+        border-color: var(--accent-start);
     }
 
     a {
@@ -375,35 +375,74 @@ st.markdown(local_css_string, unsafe_allow_html=True)
 st.markdown('<p class="main-header">Nirma MBA Timetable Assistant</p>', unsafe_allow_html=True)
 st.markdown('<div class="header-sub">Your Trimester IV schedule, ready for Google Calendar.</div>', unsafe_allow_html=True)
 
-# --- WELCOME BOX ---
-st.markdown(
-    """
-    <div class="welcome-box">
-        Welcome! This application helps you generate your personalized class schedule and export it as a <strong>.ics calendar file</strong>.
-        Simply enter your roll number below to get started. Do note that some classrooms might not be correct.
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
 
+# --- INITIALIZE SESSION STATE ---
+if 'submitted' not in st.session_state:
+    st.session_state.submitted = False
+if 'roll_number' not in st.session_state:
+    st.session_state.roll_number = ""
+
+# --- NEW: AUTO-SUBMIT FROM URL ---
+param_roll = st.query_params.get("roll_number", [None])[0]
+if param_roll and not st.session_state.submitted:
+    st.session_state.roll_number = param_roll.strip().upper()
+    st.session_state.submitted = True
+
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
-    with st.form("roll_number_form"):
-        roll_number = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
-        submitted = st.form_submit_button("Generate Timetable")
+    
+    # --- DISPLAY FORM IF NOT SUBMITTED ---
+    if not st.session_state.submitted:
+        st.markdown(
+            """
+            <div class="welcome-box">
+                Welcome! This application helps you generate your personalized class schedule and export it as a <strong>.ics calendar file</strong>.
+                Simply enter your roll number below to get started.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        with st.form("roll_number_form"):
+            roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
+            submitted_button = st.form_submit_button("Generate Timetable")
+            
+            if submitted_button:
+                st.session_state.roll_number = roll_number_input
+                st.session_state.submitted = True
+                st.rerun()
 
-    if submitted and roll_number:
-        if roll_number in student_data_map:
-            student_info = student_data_map[roll_number]
+    # --- PROCESS AND DISPLAY SCHEDULE IF SUBMITTED ---
+    if st.session_state.submitted:
+        roll_to_process = st.session_state.roll_number
+        
+        # Handle empty submission
+        if not roll_to_process:
+            st.session_state.submitted = False
+            st.rerun()
+
+        # Handle valid roll number
+        elif roll_to_process in student_data_map:
+            # Save successful roll number to URL
+            st.query_params.roll_number = roll_to_process
+            
+            student_info = student_data_map[roll_to_process]
             student_name, student_sections = student_info['name'], student_info['sections']
             
-            st.success(f"Schedule found for {student_name}.") # More direct success message
+            # Display header with "Change" button
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.success(f"Displaying schedule for {student_name}")
+            with col2:
+                if st.button("Change Roll Number"):
+                    st.session_state.submitted = False
+                    st.session_state.roll_number = ""
+                    st.query_params.clear()
+                    st.rerun()
             
-            with st.spinner(f'Compiling classes for {student_name}...'): # Updated spinner text
+            with st.spinner(f'Compiling classes for {student_name}...'):
                 NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
                 normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
 
@@ -438,14 +477,14 @@ if not master_schedule_df.empty and student_data_map:
                     st.markdown('<div class="results-container">', unsafe_allow_html=True)
                     st.markdown("### 1. Download Calendar File")
                     st.download_button(
-                        label="Download .ics Calendar File", # Removed emoji
+                        label="Download .ics Calendar File",
                         data=ics_content,
                         file_name=f"{sanitized_name}_Timetable.ics",
                         mime='text/calendar'
                     )
                     
                     st.markdown("### 2. How to Import to Google Calendar")
-                    with st.expander("Click to view import instructions", expanded=True): # Slightly more formal wording
+                    with st.expander("Click to view import instructions", expanded=True):
                         st.markdown(f"""
                         1. Click the **'Download .ics Calendar File'** button above to save your schedule.  
                         2. Navigate to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
@@ -457,7 +496,7 @@ if not master_schedule_df.empty and student_data_map:
 
                 # --- PREVIEW SECTION ---
                 st.markdown("---")
-                st.subheader("Your Timetable Preview") # Simpler subheader
+                st.subheader("Your Timetable Preview")
 
                 schedule_by_date = defaultdict(list)
                 for class_info in found_classes:
@@ -499,7 +538,6 @@ if not master_schedule_df.empty and student_data_map:
                     
                     classes_today = schedule_by_date[date_obj]
                     for class_info in classes_today:
-                        # Removed emojis from meta section
                         meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span><span class="venue">{class_info["Venue"]}</span><span class="faculty">{class_info["Faculty"]}</span></div>'
                         st.markdown(f'''
                             <div class="class-entry">
@@ -530,9 +568,16 @@ if not master_schedule_df.empty and student_data_map:
                         setTimeout(scrollToToday, 1500);
                     </script>
                     """, height=0)
-            
-        elif submitted:
-            st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
-else:
-    st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+            else:
+                st.warning("No classes found for your registered sections in the master schedule.")
+                
+        # Handle invalid roll number
+        else:
+            st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
+            st.session_state.submitted = False
+            st.session_state.roll_number = ""
+            st.query_params.clear()
+            st.rerun()
 
+elif master_schedule_df.empty or not student_data_map:
+    st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
