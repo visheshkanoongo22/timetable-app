@@ -1,4 +1,3 @@
-
 # 1. IMPORTS
 import pandas as pd
 import os
@@ -115,225 +114,331 @@ def generate_ics_content(found_classes):
     return c.serialize()
 
 # 4. STREAMLIT WEB APP INTERFACE
-st.set_page_config(page_title="Import Timetable to Google Calendar", layout="centered", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Academic Timetable", layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown("""
 <style>
-    :root{
-        --bg:#070812;
-        --card:#0e1220;
-        --muted:#bfc8d6;
-        --accent-start:#47c6b7;
-        --accent-end:#ff7a66;
-        --accent-text: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-        --glass-border: rgba(255,255,255,0.04);
-        --today-glow: #00ffcc;
+    :root {
+        --primary-gradient: linear-gradient(135deg, #D6CC99 0%, #FDE5D4 100%);
+        --secondary-gradient: linear-gradient(135deg, #445D48 0%, #5E3023 100%);
+        --bg-light: #001524;
+        --bg-card: rgba(255, 255, 255, 0.05);
+        --text-primary: #FDE5D4;
+        --text-secondary: #D6CC99;
+        --accent: #445D48;
+        --border-color: rgba(214, 204, 153, 0.2);
+        --today-glow: rgba(214, 204, 153, 0.4);
+        --almost-black: #001524;
+        --rosy-creme: #FDE5D4;
+        --almost-mint: #D6CC99;
+        --olive-green: #445D48;
+        --espresso: #5E3023;
     }
 
     .stApp {
-        background: radial-gradient(1200px 600px at 10% 10%, rgba(71,198,183,0.06), transparent 10%),
-                    radial-gradient(1000px 500px at 90% 90%, rgba(255,122,102,0.04), transparent 10%),
-                    var(--bg);
-        color: #ffffff;
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        background: var(--almost-black);
+        color: var(--text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        position: relative;
+    }
+
+    .stApp::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 50%, rgba(214, 204, 153, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(253, 229, 212, 0.08) 0%, transparent 50%),
+            radial-gradient(circle at 40% 20%, rgba(68, 93, 72, 0.05) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
     }
 
     .main-header {
-        font-size: 2.4rem;
-        font-weight: 800;
+        font-size: 3rem;
+        font-weight: 700;
         text-align: center;
-        margin-bottom: 1.5rem;
-        background: -webkit-linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        margin-bottom: 0.5rem;
+        background: var(--primary-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        letter-spacing: 0.2px;
+        background-clip: text;
+        letter-spacing: -0.02em;
+        animation: fadeInDown 0.8s ease-out;
     }
 
     .header-sub {
-        text-align:center;
-        color:var(--muted);
-        margin-top:-0.25rem;
-        margin-bottom:1.5rem;
-        font-size:0.95rem;
+        text-align: center;
+        color: var(--text-primary);
+        margin-bottom: 3rem;
+        font-size: 1.1rem;
+        font-weight: 300;
+        opacity: 0.9;
+        animation: fadeInDown 0.8s ease-out 0.1s both;
+    }
+
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .stTextInput > div > div > input {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 8px !important;
+        color: var(--text-primary) !important;
+        font-size: 1rem !important;
+        padding: 0.75rem 1rem !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .stTextInput > div > div > input:focus {
+        border-color: var(--accent) !important;
+        background: rgba(255, 255, 255, 0.15) !important;
+        box-shadow: 0 0 0 3px rgba(214, 204, 153, 0.3) !important;
+    }
+
+    .stTextInput > label {
+        color: var(--text-secondary) !important;
+        font-size: 0.9rem !important;
+        margin-bottom: 0.5rem !important;
+        font-weight: 500 !important;
+    }
+
+    div[data-testid="stForm"] {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2rem;
+        backdrop-filter: blur(10px);
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .stButton > button {
+        background: var(--secondary-gradient) !important;
+        color: #FDE5D4 !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 0.75rem 2rem !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 2px 10px rgba(68, 93, 72, 0.4) !important;
+        width: 100% !important;
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(68, 93, 72, 0.5) !important;
+    }
+
+    .stButton > button:active {
+        transform: translateY(0) !important;
+    }
+
+    .stDownloadButton > button {
+        background: var(--primary-gradient) !important;
+        color: #001524 !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 0.75rem 1.5rem !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 2px 10px rgba(214, 204, 153, 0.4) !important;
+    }
+
+    .stDownloadButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(214, 204, 153, 0.5) !important;
     }
 
     .day-card {
-        background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-        border-radius: 14px;
-        padding: 1.25rem;
-        margin-bottom: 1.25rem;
-        box-shadow: 0 8px 30px rgba(2,6,23,0.6);
-        border: 1px solid var(--glass-border);
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
-        scroll-margin-top: 20px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        scroll-margin-top: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
         position: relative;
     }
 
     .day-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 18px 40px rgba(2,6,23,0.75);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        border-color: rgba(214, 204, 153, 0.3);
     }
 
-    /* TODAY'S HIGHLIGHT */
     .day-card.today {
-        border: 3px solid var(--today-glow);
-        box-shadow: 0 0 35px rgba(0, 255, 204, 0.4), 
-                    0 0 60px rgba(0, 255, 204, 0.2),
-                    0 8px 30px rgba(2,6,23,0.6);
-        animation: pulse-glow 2s ease-in-out infinite;
+        border-color: var(--accent);
+        background: linear-gradient(135deg, rgba(214, 204, 153, 0.2), rgba(253, 229, 212, 0.1));
+        box-shadow: 0 0 20px var(--today-glow), 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
     .today-badge {
         position: absolute;
-        top: -12px;
-        right: 20px;
-        background: var(--today-glow);
-        color: #070812;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: var(--primary-gradient);
+        color: #001524;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
         font-size: 0.75rem;
-        font-weight: 800;
-        padding: 0.35rem 0.75rem;
-        border-radius: 6px;
-        letter-spacing: 0.5px;
+        font-weight: 600;
         text-transform: uppercase;
-        box-shadow: 0 4px 15px rgba(0, 255, 204, 0.4);
-        z-index: 10;
-    }
-
-    @keyframes pulse-glow {
-        0%, 100% {
-            box-shadow: 0 0 35px rgba(0, 255, 204, 0.4), 
-                        0 0 60px rgba(0, 255, 204, 0.2),
-                        0 8px 30px rgba(2,6,23,0.6);
-        }
-        50% {
-            box-shadow: 0 0 45px rgba(0, 255, 204, 0.6), 
-                        0 0 80px rgba(0, 255, 204, 0.3),
-                        0 8px 30px rgba(2,6,23,0.6);
-        }
+        letter-spacing: 0.05em;
+        box-shadow: 0 2px 8px rgba(214, 204, 153, 0.3);
     }
 
     .day-header {
-        display:flex;
-        align-items:center;
-        gap:0.6rem;
-        font-size:1.25rem;
-        font-weight:700;
-        color:#eaf6f1;
-        margin-bottom:0.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
     }
 
-    .day-header .date-badge {
-        font-size:0.85rem;
-        padding:0.28rem 0.55rem;
-        border-radius:8px;
-        background: linear-gradient(90deg, rgba(71,198,183,0.06), rgba(255,122,102,0.04));
-        color:var(--muted);
-        border:1px solid rgba(255,255,255,0.02);
+    .day-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
     }
 
-    .day-card.today .date-badge {
-        background: var(--today-glow);
-        color: #070812;
-        font-weight: 700;
+    .day-date {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
     }
 
-    .class-entry {
-        display:flex;
-        flex-direction:row;
-        align-items:center;
-        justify-content:space-between;
-        padding-top:0.65rem;
-        padding-bottom:0.65rem;
-        border-bottom:1px solid rgba(255,255,255,0.02);
-    }
-    .day-card .class-entry:last-child { border-bottom: none; padding-bottom: 0; }
-
-    .left {
-        display:flex;
-        flex-direction:column;
-        gap:0.2rem;
+    .class-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+        transition: all 0.2s ease;
     }
 
-    .subject-name {
-        font-size:1.05rem;
-        font-weight:700;
-        margin:0;
-        color: transparent;
-        background: var(--accent-text);
+    .class-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .class-item:hover {
+        padding-left: 0.5rem;
+    }
+
+    .class-subject {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .class-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.25rem;
+    }
+
+    .class-time {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .class-venue, .class-faculty {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 2rem;
+        text-align: center;
+        background: var(--primary-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
-    .class-details {
-        font-size:0.94rem;
-        color:var(--muted);
+    .stExpander {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-top: 1rem;
     }
 
-    .meta {
-        text-align:right;
-        min-width:170px;
+    .stExpander > div > div > div > div {
+        color: var(--text-secondary) !important;
     }
 
-    .meta .time {
-        display:block;
-        font-weight:600;
-        color:#fff;
-        font-size:0.97rem;
+    div[data-testid="stMarkdownContainer"] a {
+        color: var(--accent) !important;
+        font-weight: 500;
     }
 
-    .meta .venue, .meta .faculty {
-        display:block;
-        font-size:0.85rem;
-        color:var(--muted);
+    hr {
+        border-color: var(--border-color) !important;
+        margin: 2rem 0 !important;
     }
 
-    .stDownloadButton>button {
-        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-        color: #0b0b0b;
-        font-weight:700;
-        padding: 0.5rem 0.9rem;
-        border-radius:10px;
-        border:none;
-        box-shadow: 0 8px 20px rgba(71,198,183,0.08);
-    }
-    .stDownloadButton>button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 14px 30px rgba(71,198,183,0.12);
+    h2, h3 {
+        color: var(--text-primary) !important;
     }
 
-    a {
-        color: #9fe6d8;
-        font-weight:600;
-    }
-
-    .css-1d391kg, .css-1v3fvcr, .css-18ni7ap {
-        color: #ffffff;
-    }
-
-    .stTextInput>div>div>input, .stTextInput>div>div>textarea {
-        background: rgba(255,255,255,0.02) !important;
-        color: #e6eef2 !important;
-        border: 1px solid rgba(255,255,255,0.04) !important;
-        padding: 0.6rem !important;
-        border-radius: 8px !important;
-    }
-
-    @media (max-width: 600px) {
-        .meta { min-width: 120px; font-size:0.9rem; }
-        .main-header { font-size: 1.8rem; }
+    @media (max-width: 768px) {
+        .main-header {
+            font-size: 2rem;
+        }
+        
+        .class-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .class-meta {
+            align-items: flex-start;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="main-header">📅 Import Timetable to Your Google Calendar</p>', unsafe_allow_html=True)
-st.markdown('<div class="header-sub">Elegant • Clean • Vibrant — your weekly classes, neatly organized</div>', unsafe_allow_html=True)
+st.markdown('<p class="main-header">Academic Timetable</p>', unsafe_allow_html=True)
+st.markdown('<div class="header-sub">Your personalized schedule, beautifully organized</div>', unsafe_allow_html=True)
 
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
 
 if not master_schedule_df.empty and student_data_map:
     with st.form("roll_number_form"):
-        roll_number = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
+        roll_number = st.text_input("Enter Your Roll Number", placeholder="e.g., 24MBA463").strip().upper()
         submitted = st.form_submit_button("Generate Timetable")
 
     if submitted and roll_number:
@@ -370,14 +475,12 @@ if not master_schedule_df.empty and student_data_map:
 
                 found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
 
-            
-            
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
                 sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                 
                 st.download_button(
-                    label="📅 Download Calendar (.ics) File",
+                    label="Download Calendar File",
                     data=ics_content,
                     file_name=f"{sanitized_name}_Timetable.ics",
                     mime='text/calendar'
@@ -385,7 +488,7 @@ if not master_schedule_df.empty and student_data_map:
                 
                 with st.expander("How to Import to Google Calendar", expanded=False):
                     st.markdown(f"""
-                    1. Click the **'Download Calendar (.ics) File'** button above to save the schedule.  
+                    1. Click the **'Download Calendar File'** button above to save the schedule.  
                     2. Go to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
                     3. Under 'Import from computer', click **'Select file from your computer'**.  
                     4. Choose the `.ics` file you just downloaded.  
@@ -393,7 +496,7 @@ if not master_schedule_df.empty and student_data_map:
                     """)
 
                 st.markdown("---")
-                st.subheader("Timetable Preview")
+                st.markdown('<h2 class="section-title">Your Weekly Schedule</h2>', unsafe_allow_html=True)
 
                 schedule_by_date = defaultdict(list)
                 for class_info in found_classes:
@@ -404,7 +507,6 @@ if not master_schedule_df.empty and student_data_map:
                 for date in sorted_dates:
                     schedule_by_date[date].sort(key=lambda x: time_sorter.get(x['Time'], 99))
 
-                # Get today's date
                 today = date.today()
                 today_anchor_id = None
                 
@@ -416,40 +518,45 @@ if not master_schedule_df.empty and student_data_map:
                     if is_today:
                         today_anchor_id = card_id
                     
-                    # Render opening div with or without today badge
                     if is_today:
                         st.markdown(f'''
                             <div class="day-card {today_class}" id="{card_id}">
-                                <div class="today-badge">TODAY</div>
+                                <div class="today-badge">Today</div>
                                 <div class="day-header">
-                                    <div class="date-badge">{date_obj.strftime("%d %b")}</div>
-                                    <div>{date_obj.strftime("%A, %d %B %Y")}</div>
+                                    <div>
+                                        <div class="day-title">{date_obj.strftime("%A")}</div>
+                                        <div class="day-date">{date_obj.strftime("%B %d, %Y")}</div>
+                                    </div>
                                 </div>
                         ''', unsafe_allow_html=True)
                     else:
                         st.markdown(f'''
                             <div class="day-card {today_class}" id="{card_id}">
                                 <div class="day-header">
-                                    <div class="date-badge">{date_obj.strftime("%d %b")}</div>
-                                    <div>{date_obj.strftime("%A, %d %B %Y")}</div>
+                                    <div>
+                                        <div class="day-title">{date_obj.strftime("%A")}</div>
+                                        <div class="day-date">{date_obj.strftime("%B %d, %Y")}</div>
+                                    </div>
                                 </div>
                         ''', unsafe_allow_html=True)
                     
                     classes_today = schedule_by_date[date_obj]
                     for class_info in classes_today:
-                        meta_html = f'<div class="meta"><span class="time">🕒 {class_info["Time"]}</span><span class="venue">📍 {class_info["Venue"]}</span><span class="faculty">🧑‍🏫 {class_info["Faculty"]}</span></div>'
                         st.markdown(f'''
-                            <div class="class-entry">
-                                <div class="left">
-                                    <div class="subject-name">{class_info["Subject"]}</div>
+                            <div class="class-item">
+                                <div>
+                                    <div class="class-subject">{class_info["Subject"]}</div>
                                 </div>
-                                {meta_html}
+                                <div class="class-meta">
+                                    <div class="class-time">{class_info["Time"]}</div>
+                                    <div class="class-venue">{class_info["Venue"]}</div>
+                                    <div class="class-faculty">{class_info["Faculty"]}</div>
+                                </div>
                             </div>
                         ''', unsafe_allow_html=True)
                     
                     st.markdown('</div>', unsafe_allow_html=True)
                 
-                # Auto-scroll to today's card using components for reliable execution
                 if today_anchor_id:
                     components.html(f"""
                     <script>
@@ -462,13 +569,10 @@ if not master_schedule_df.empty and student_data_map:
                             return false;
                         }}
                         
-                        // Try immediately
                         if (!scrollToToday()) {{
-                            // Retry after short delay
                             setTimeout(scrollToToday, 500);
                         }}
                         
-                        // Final retry
                         setTimeout(scrollToToday, 1500);
                     </script>
                     """, height=0)
@@ -477,12 +581,3 @@ if not master_schedule_df.empty and student_data_map:
             st.error(f"Roll Number '{roll_number}' not found. Please check the number and try again.")
 else:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
-
-
-
-
-
-
-
-
-
