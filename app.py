@@ -550,7 +550,8 @@ if not master_schedule_df.empty and student_data_map:
                         function scrollToToday() {{
                             const todayCard = window.parent.document.getElementById('{today_anchor_id}');
                             if (todayCard) {{
-                                todayCard.scrollIntoView({{behavior: 'smooth', block: 'center'}});
+                                // This is the change: 'center' is now 'start'
+                                todayCard.scrollIntoView({{behavior: 'smooth', block: 'start'}});
                                 return true;
                             }}
                             return false;
@@ -578,6 +579,7 @@ elif master_schedule_df.empty or not student_data_map:
 # --- NEW: ADDED CAPTION AT THE VERY END ---
 st.markdown("---") # Optional: a faint line above the caption
 st.caption("_Made by Vishesh_")
+
 
 
 
