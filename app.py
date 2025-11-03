@@ -118,51 +118,33 @@ st.set_page_config(page_title="Academic Timetable", layout="centered", initial_s
 
 st.markdown("""
 <style>
-    :root {
-        --primary-gradient: linear-gradient(135deg, #D6CC99 0%, #FDE5D4 100%);
-        --secondary-gradient: linear-gradient(135deg, #445D48 0%, #5E3023 100%);
-        --bg-dark: #001524;
-        --bg-card: #5E3023;
-        --text-primary: #FDE5D4;
-        --text-secondary: #D6CC99;
-        --accent: #445D48;
-        --border-color: #445D48;
-    }
-
     .stApp {
-        background: #001524;
-        color: #FDE5D4;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: #0a0e1a;
+        color: #e8eef2;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     
     .main .block-container {
-        position: relative;
-        z-index: 1;
         padding-top: 2rem;
         padding-bottom: 2rem;
+        max-width: 800px;
     }
 
     .main-header {
-        font-size: 3rem;
-        font-weight: 700;
+        font-size: 2rem;
+        font-weight: 600;
         text-align: center;
         margin-bottom: 0.5rem;
-        background: var(--primary-gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        letter-spacing: -0.02em;
-        animation: fadeInDown 0.8s ease-out;
+        color: #e8eef2;
+        letter-spacing: -0.5px;
     }
 
     .header-sub {
         text-align: center;
-        color: var(--text-primary);
-        margin-bottom: 3rem;
-        font-size: 1.1rem;
-        font-weight: 300;
-        opacity: 0.9;
-        animation: fadeInDown 0.8s ease-out 0.1s both;
+        color: #8b95a8;
+        margin-bottom: 2.5rem;
+        font-size: 0.9rem;
+        font-weight: 400;
     }
 
     @keyframes fadeInDown {
@@ -188,143 +170,125 @@ st.markdown("""
     }
 
     .stTextInput > div > div > input {
-        background: #5E3023 !important;
-        border: 2px solid #445D48 !important;
+        background: #12171f !important;
+        border: 1px solid #2a3441 !important;
         border-radius: 8px !important;
-        color: #FDE5D4 !important;
+        color: #e8eef2 !important;
         font-size: 1rem !important;
         padding: 0.75rem 1rem !important;
-        transition: all 0.3s ease !important;
+        transition: all 0.2s ease !important;
     }
 
     .stTextInput > div > div > input:focus {
-        border-color: #D6CC99 !important;
-        background: #5E3023 !important;
-        box-shadow: 0 0 0 3px rgba(214, 204, 153, 0.2) !important;
+        border-color: #4a9eff !important;
+        background: #12171f !important;
+        box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.1) !important;
     }
 
     .stTextInput > label {
-        color: #D6CC99 !important;
-        font-size: 0.9rem !important;
+        color: #8b95a8 !important;
+        font-size: 0.875rem !important;
         margin-bottom: 0.5rem !important;
         font-weight: 500 !important;
     }
 
     div[data-testid="stForm"] {
-        background: #5E3023;
-        border: 2px solid #445D48;
-        border-radius: 16px;
+        background: #12171f;
+        border: 1px solid #2a3441;
+        border-radius: 12px;
         padding: 2rem;
-        backdrop-filter: blur(10px);
-        animation: fadeInUp 0.8s ease-out 0.2s both;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        margin-bottom: 2rem;
     }
 
     .stButton > button {
-        background: var(--secondary-gradient) !important;
-        color: #FDE5D4 !important;
+        background: #4a9eff !important;
+        color: #ffffff !important;
         border: none !important;
         border-radius: 8px !important;
-        padding: 0.75rem 2rem !important;
-        font-weight: 600 !important;
-        font-size: 1rem !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 2px 10px rgba(68, 93, 72, 0.4) !important;
+        padding: 0.75rem 1.5rem !important;
+        font-weight: 500 !important;
+        font-size: 0.95rem !important;
+        transition: all 0.2s ease !important;
         width: 100% !important;
     }
 
     .stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 25px rgba(68, 93, 72, 0.5) !important;
-    }
-
-    .stButton > button:active {
-        transform: translateY(0) !important;
+        background: #3a8eef !important;
+        transform: translateY(-1px) !important;
     }
 
     .stDownloadButton > button {
-        background: var(--primary-gradient) !important;
-        color: #001524 !important;
+        background: #4a9eff !important;
+        color: #ffffff !important;
         border: none !important;
         border-radius: 8px !important;
         padding: 0.75rem 1.5rem !important;
-        font-weight: 600 !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 2px 10px rgba(214, 204, 153, 0.4) !important;
+        font-weight: 500 !important;
+        transition: all 0.2s ease !important;
     }
 
     .stDownloadButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 25px rgba(214, 204, 153, 0.5) !important;
+        background: #3a8eef !important;
+        transform: translateY(-1px) !important;
     }
 
     .day-card {
-        background: #5E3023;
-        border: 2px solid #445D48;
-        border-radius: 16px;
+        background: #12171f;
+        border: 1px solid #2a3441;
+        border-radius: 12px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         scroll-margin-top: 2rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(10px);
-        position: relative;
     }
 
     .day-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
-        border-color: #D6CC99;
+        border-color: #3a4551;
     }
 
     .day-card.today {
-        border-color: #D6CC99;
-        background: linear-gradient(135deg, rgba(214, 204, 153, 0.15), #5E3023);
-        box-shadow: 0 0 20px rgba(214, 204, 153, 0.3), 0 4px 20px rgba(0, 0, 0, 0.5);
+        border-color: #4a9eff;
+        background: linear-gradient(180deg, rgba(74, 158, 255, 0.05), #12171f);
     }
 
     .today-badge {
-        position: absolute;
-        top: 1.5rem;
-        right: 1.5rem;
-        background: var(--primary-gradient);
-        color: #001524;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
+        display: inline-block;
+        background: rgba(74, 158, 255, 0.15);
+        color: #4a9eff;
+        padding: 0.25rem 0.65rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        box-shadow: 0 2px 8px rgba(214, 204, 153, 0.3);
+        letter-spacing: 0.5px;
+        border: 1px solid rgba(74, 158, 255, 0.3);
+        margin-left: 0.75rem;
     }
 
     .day-header {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        margin-bottom: 1.5rem;
-        padding-bottom: 0;
-        border-bottom: none;
+        margin-bottom: 1.25rem;
     }
 
     .day-title {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
         font-weight: 600;
-        color: #FDE5D4;
+        color: #e8eef2;
         margin-bottom: 0.25rem;
     }
 
     .day-date {
-        color: #D6CC99;
-        font-size: 0.9rem;
+        color: #8b95a8;
+        font-size: 0.875rem;
     }
 
     .class-item {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start;
         padding: 1rem 0;
-        border-bottom: 1px solid rgba(68, 93, 72, 0.3);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
         transition: all 0.2s ease;
     }
 
@@ -334,17 +298,17 @@ st.markdown("""
     }
 
     .class-item:hover {
-        padding-left: 0.5rem;
-        background: rgba(68, 93, 72, 0.1);
-        margin-left: -0.5rem;
-        padding-right: 0.5rem;
-        border-radius: 8px;
+        background: rgba(74, 158, 255, 0.03);
+        margin: 0 -0.75rem;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+        border-radius: 6px;
     }
 
     .class-subject {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #FDE5D4;
+        font-size: 1rem;
+        font-weight: 500;
+        color: #e8eef2;
         margin-bottom: 0.25rem;
     }
 
@@ -353,77 +317,74 @@ st.markdown("""
         flex-direction: column;
         align-items: flex-end;
         gap: 0.25rem;
+        min-width: 150px;
     }
 
     .class-time {
         font-weight: 500;
-        color: #FDE5D4;
+        color: #e8eef2;
+        font-size: 0.9rem;
     }
 
     .class-venue, .class-faculty {
-        font-size: 0.85rem;
-        color: #D6CC99;
+        font-size: 0.8rem;
+        color: #8b95a8;
     }
 
     .section-title {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         font-weight: 600;
         margin-bottom: 2rem;
         text-align: center;
-        background: var(--primary-gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: #e8eef2;
     }
 
     .stExpander {
-        background: #5E3023;
-        border: 2px solid #445D48;
+        background: #12171f;
+        border: 1px solid #2a3441;
         border-radius: 8px;
         margin-top: 1rem;
     }
 
     .stExpander > div > div > div > div {
-        color: #D6CC99 !important;
+        color: #8b95a8 !important;
     }
 
     div[data-testid="stMarkdownContainer"] a {
-        color: #D6CC99 !important;
+        color: #4a9eff !important;
         font-weight: 500;
-        text-decoration: underline;
     }
 
     hr {
-        border-color: #445D48 !important;
+        border-color: #2a3441 !important;
         margin: 2rem 0 !important;
     }
 
     h2, h3 {
-        color: #FDE5D4 !important;
+        color: #e8eef2 !important;
     }
     
-    p, li, div {
-        color: #FDE5D4 !important;
+    p, li {
+        color: #e8eef2 !important;
     }
     
     .stSpinner > div {
-        border-top-color: #D6CC99 !important;
+        border-top-color: #4a9eff !important;
     }
     
     .stAlert {
-        background: #5E3023 !important;
-        border: 2px solid #445D48 !important;
-        color: #FDE5D4 !important;
+        background: #12171f !important;
+        border: 1px solid #2a3441 !important;
+        color: #e8eef2 !important;
     }
 
     @media (max-width: 768px) {
         .main-header {
-            font-size: 2rem;
+            font-size: 1.5rem;
         }
         
         .class-item {
             flex-direction: column;
-            align-items: flex-start;
             gap: 0.5rem;
         }
         
@@ -434,8 +395,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="main-header">Academic Timetable</p>', unsafe_allow_html=True)
-st.markdown('<div class="header-sub">Your personalized schedule, beautifully organized</div>', unsafe_allow_html=True)
+st.markdown('<p class="main-header">Class Schedule</p>', unsafe_allow_html=True)
+st.markdown('<div class="header-sub">Your personalized timetable</div>', unsafe_allow_html=True)
 
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
@@ -524,18 +485,17 @@ if not master_schedule_df.empty and student_data_map:
                     
                     if is_today:
                         st.markdown(f'''
-                            <div class="day-card {today_class}" id="{card_id}">
-                                <div class="today-badge">Today</div>
+                            <div class="day-card today" id="{card_id}">
                                 <div class="day-header">
                                     <div>
-                                        <div class="day-title">{date_obj.strftime("%A")}</div>
+                                        <div class="day-title">{date_obj.strftime("%A")}<span class="today-badge">Today</span></div>
                                         <div class="day-date">{date_obj.strftime("%B %d, %Y")}</div>
                                     </div>
                                 </div>
                         ''', unsafe_allow_html=True)
                     else:
                         st.markdown(f'''
-                            <div class="day-card {today_class}" id="{card_id}">
+                            <div class="day-card" id="{card_id}">
                                 <div class="day-header">
                                     <div>
                                         <div class="day-title">{date_obj.strftime("%A")}</div>
