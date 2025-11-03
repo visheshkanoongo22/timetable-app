@@ -121,18 +121,12 @@ st.markdown("""
     :root {
         --primary-gradient: linear-gradient(135deg, #D6CC99 0%, #FDE5D4 100%);
         --secondary-gradient: linear-gradient(135deg, #445D48 0%, #5E3023 100%);
-        --bg-light: #001524;
-        --bg-card: rgba(255, 255, 255, 0.05);
+        --bg-dark: #001524;
+        --bg-card: #5E3023;
         --text-primary: #FDE5D4;
         --text-secondary: #D6CC99;
         --accent: #445D48;
-        --border-color: rgba(214, 204, 153, 0.2);
-        --today-glow: rgba(214, 204, 153, 0.4);
-        --almost-black: #001524;
-        --rosy-creme: #FDE5D4;
-        --almost-mint: #D6CC99;
-        --olive-green: #445D48;
-        --espresso: #5E3023;
+        --border-color: #445D48;
     }
 
     .stApp {
@@ -194,36 +188,36 @@ st.markdown("""
     }
 
     .stTextInput > div > div > input {
-        background: rgba(255, 255, 255, 0.1) !important;
-        border: 1px solid var(--border-color) !important;
+        background: #5E3023 !important;
+        border: 2px solid #445D48 !important;
         border-radius: 8px !important;
-        color: var(--text-primary) !important;
+        color: #FDE5D4 !important;
         font-size: 1rem !important;
         padding: 0.75rem 1rem !important;
         transition: all 0.3s ease !important;
     }
 
     .stTextInput > div > div > input:focus {
-        border-color: var(--accent) !important;
-        background: rgba(255, 255, 255, 0.15) !important;
-        box-shadow: 0 0 0 3px rgba(214, 204, 153, 0.3) !important;
+        border-color: #D6CC99 !important;
+        background: #5E3023 !important;
+        box-shadow: 0 0 0 3px rgba(214, 204, 153, 0.2) !important;
     }
 
     .stTextInput > label {
-        color: var(--text-secondary) !important;
+        color: #D6CC99 !important;
         font-size: 0.9rem !important;
         margin-bottom: 0.5rem !important;
         font-weight: 500 !important;
     }
 
     div[data-testid="stForm"] {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
+        background: #5E3023;
+        border: 2px solid #445D48;
         border-radius: 16px;
         padding: 2rem;
         backdrop-filter: blur(10px);
         animation: fadeInUp 0.8s ease-out 0.2s both;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
 
     .stButton > button {
@@ -265,28 +259,28 @@ st.markdown("""
     }
 
     .day-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
+        background: #5E3023;
+        border: 2px solid #445D48;
         border-radius: 16px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
         transition: all 0.3s ease;
         scroll-margin-top: 2rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(10px);
         position: relative;
     }
 
     .day-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-        border-color: rgba(214, 204, 153, 0.3);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+        border-color: #D6CC99;
     }
 
     .day-card.today {
-        border-color: var(--accent);
-        background: linear-gradient(135deg, rgba(214, 204, 153, 0.2), rgba(253, 229, 212, 0.1));
-        box-shadow: 0 0 20px var(--today-glow), 0 4px 20px rgba(0, 0, 0, 0.4);
+        border-color: #D6CC99;
+        background: linear-gradient(135deg, rgba(214, 204, 153, 0.15), #5E3023);
+        box-shadow: 0 0 20px rgba(214, 204, 153, 0.3), 0 4px 20px rgba(0, 0, 0, 0.5);
     }
 
     .today-badge {
@@ -309,8 +303,8 @@ st.markdown("""
         align-items: center;
         justify-content: space-between;
         margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0;
+        border-bottom: none;
     }
 
     .day-title {
@@ -330,7 +324,7 @@ st.markdown("""
         justify-content: space-between;
         align-items: center;
         padding: 1rem 0;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid rgba(68, 93, 72, 0.3);
         transition: all 0.2s ease;
     }
 
@@ -341,6 +335,10 @@ st.markdown("""
 
     .class-item:hover {
         padding-left: 0.5rem;
+        background: rgba(68, 93, 72, 0.1);
+        margin-left: -0.5rem;
+        padding-right: 0.5rem;
+        border-radius: 8px;
     }
 
     .class-subject {
@@ -379,8 +377,8 @@ st.markdown("""
     }
 
     .stExpander {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(214, 204, 153, 0.2);
+        background: #5E3023;
+        border: 2px solid #445D48;
         border-radius: 8px;
         margin-top: 1rem;
     }
@@ -390,12 +388,13 @@ st.markdown("""
     }
 
     div[data-testid="stMarkdownContainer"] a {
-        color: #445D48 !important;
+        color: #D6CC99 !important;
         font-weight: 500;
+        text-decoration: underline;
     }
 
     hr {
-        border-color: rgba(214, 204, 153, 0.2) !important;
+        border-color: #445D48 !important;
         margin: 2rem 0 !important;
     }
 
@@ -412,8 +411,8 @@ st.markdown("""
     }
     
     .stAlert {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(214, 204, 153, 0.2) !important;
+        background: #5E3023 !important;
+        border: 2px solid #445D48 !important;
         color: #FDE5D4 !important;
     }
 
