@@ -544,13 +544,13 @@ if not master_schedule_df.empty and student_data_map:
                     
                     st.markdown('</div>', unsafe_allow_html=True)
                 
-                if today_anchor_id:
+               if today_anchor_id:
                     components.html(f"""
                     <script>
                         function scrollToToday() {{
                             const todayCard = window.parent.document.getElementById('{today_anchor_id}');
                             if (todayCard) {{
-                                // This is the change: 'center' is now 'start'
+                                // This is correct! It will now obey the 60px scroll-margin-top.
                                 todayCard.scrollIntoView({{behavior: 'smooth', block: 'start'}});
                                 return true;
                             }}
@@ -579,6 +579,7 @@ elif master_schedule_df.empty or not student_data_map:
 # --- NEW: ADDED CAPTION AT THE VERY END ---
 st.markdown("---") # Optional: a faint line above the caption
 st.caption("_Made by Vishesh_")
+
 
 
 
