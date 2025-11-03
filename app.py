@@ -373,8 +373,8 @@ local_css_string = """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
 # --- APP HEADER ---
-st.markdown('<p class="main-header">Nirma MBA Timetable Assistant</p>', unsafe_allow_html=True)
-st.markdown('<div class="header-sub">Your Trimester IV schedule, ready for Google Calendar.</div>', unsafe_allow_html=True)
+st.markdown('<p class="main-header">Timetable Assistant</p>', unsafe_allow_html=True)
+st.markdown('<div class="header-sub">Your Trimester V schedule, on your Fingertips.</div>', unsafe_allow_html=True)
 
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
@@ -587,3 +587,4 @@ if not master_schedule_df.empty and student_data_map:
 
 elif master_schedule_df.empty or not student_data_map:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
