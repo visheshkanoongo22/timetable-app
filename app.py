@@ -136,25 +136,16 @@ st.markdown("""
     }
 
     .stApp {
-        background: var(--almost-black);
-        color: var(--text-primary);
+        background: #001524;
+        color: #FDE5D4;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        position: relative;
     }
-
-    .stApp::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: 
-            radial-gradient(circle at 20% 50%, rgba(214, 204, 153, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 80% 80%, rgba(253, 229, 212, 0.08) 0%, transparent 50%),
-            radial-gradient(circle at 40% 20%, rgba(68, 93, 72, 0.05) 0%, transparent 50%);
-        pointer-events: none;
-        z-index: 0;
+    
+    .main .block-container {
+        position: relative;
+        z-index: 1;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
     }
 
     .main-header {
@@ -325,12 +316,12 @@ st.markdown("""
     .day-title {
         font-size: 1.5rem;
         font-weight: 600;
-        color: var(--text-primary);
+        color: #FDE5D4;
         margin-bottom: 0.25rem;
     }
 
     .day-date {
-        color: var(--text-secondary);
+        color: #D6CC99;
         font-size: 0.9rem;
     }
 
@@ -355,7 +346,7 @@ st.markdown("""
     .class-subject {
         font-size: 1.1rem;
         font-weight: 600;
-        color: var(--text-primary);
+        color: #FDE5D4;
         margin-bottom: 0.25rem;
     }
 
@@ -368,12 +359,12 @@ st.markdown("""
 
     .class-time {
         font-weight: 500;
-        color: var(--text-primary);
+        color: #FDE5D4;
     }
 
     .class-venue, .class-faculty {
         font-size: 0.85rem;
-        color: var(--text-secondary);
+        color: #D6CC99;
     }
 
     .section-title {
@@ -388,28 +379,42 @@ st.markdown("""
     }
 
     .stExpander {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(214, 204, 153, 0.2);
         border-radius: 8px;
         margin-top: 1rem;
     }
 
     .stExpander > div > div > div > div {
-        color: var(--text-secondary) !important;
+        color: #D6CC99 !important;
     }
 
     div[data-testid="stMarkdownContainer"] a {
-        color: var(--accent) !important;
+        color: #445D48 !important;
         font-weight: 500;
     }
 
     hr {
-        border-color: var(--border-color) !important;
+        border-color: rgba(214, 204, 153, 0.2) !important;
         margin: 2rem 0 !important;
     }
 
     h2, h3 {
-        color: var(--text-primary) !important;
+        color: #FDE5D4 !important;
+    }
+    
+    p, li, div {
+        color: #FDE5D4 !important;
+    }
+    
+    .stSpinner > div {
+        border-top-color: #D6CC99 !important;
+    }
+    
+    .stAlert {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(214, 204, 153, 0.2) !important;
+        color: #FDE5D4 !important;
     }
 
     @media (max-width: 768px) {
