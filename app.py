@@ -115,11 +115,34 @@ def generate_ics_content(found_classes):
     return c.serialize()
 
 # 4. STREAMLIT WEB APP INTERFACE
-st.set_page_config(page_title="MBA Timetable Assistant", layout="centered", initial_sidebar_state="collapsed")
+st.set_page_config(
+    page_title="MBA Timetable Assistant", 
+    layout="centered", 
+    initial_sidebar_state="collapsed"
+)
+
+# Force dark mode by injecting meta tags and overriding system preferences
+st.markdown("""
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0F172A">
+""", unsafe_allow_html=True)
 
 # --- CSS STYLING ---
 local_css_string = """
 <style>
+    /* --- FORCE DARK MODE --- */
+    * {
+        color-scheme: dark !important;
+    }
+    
+    /* Override any light mode settings from Streamlit */
+    [data-testid="stAppViewContainer"],
+    [data-testid="stHeader"],
+    section[data-testid="stSidebar"] {
+        background-color: var(--bg) !important;
+        color: #ffffff !important;
+    }
+    
     /* --- FONT IMPORT --- */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
 
