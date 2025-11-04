@@ -10,7 +10,6 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
-# (Removed streamlit_cookies_manager and timedelta)
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -239,8 +238,6 @@ local_css_string = """
         margin-bottom: 0.5rem; /* Reduced margin */
     }
     
-    /* --- Removed .day-header .date-badge and .day-card.today .date-badge --- */
-    
     .class-entry {
         display:flex;
         flex-direction:row;
@@ -357,7 +354,6 @@ local_css_string = """
 </style>
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
-# --- "Made by" markdown is removed from here ---
 
 # --- APP HEADER ---
 st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
@@ -485,6 +481,19 @@ if not master_schedule_df.empty and student_data_map:
                 for date in sorted_dates:
                     schedule_by_date[date].sort(key=lambda x: time_sorter.get(x['Time'], 99))
 
+                # Fill in missing dates between first and last class date
+                if sorted_dates:
+                    first_date = sorted_dates[0]
+                    last_date = sorted_dates[-1]
+                    current_date = first_date
+                    all_dates = []
+                    
+                    while current_date <= last_date:
+                        all_dates.append(current_date)
+                        current_date = date.fromordinal(current_date.toordinal() + 1)
+                    
+                    sorted_dates = all_dates
+
                 today = datetime.now(pytz.timezone(TIMEZONE)).date()
                 today_anchor_id = None
                 
@@ -496,7 +505,6 @@ if not master_schedule_df.empty and student_data_map:
                     if is_today:
                         today_anchor_id = card_id
                     
-                    # --- MODIFIED: Removed the redundant date-badge div ---
                     if is_today:
                         st.markdown(f'''
                             <div class="day-card {today_class}" id="{card_id}">
@@ -513,17 +521,29 @@ if not master_schedule_df.empty and student_data_map:
                                 </div>
                         ''', unsafe_allow_html=True)
                     
-                    classes_today = schedule_by_date[date_obj]
-                    for class_info in classes_today:
-                        meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span><span class="venue">{class_info["Venue"]}</span><span class="faculty">{class_info["Faculty"]}</span></div>'
-                        st.markdown(f'''
+                    classes_today = schedule_by_date.get(date_obj, [])
+                    
+                    if not classes_today:
+                        # No classes scheduled for this day
+                        st.markdown('''
                             <div class="class-entry">
                                 <div class="left">
-                                    <div class="subject-name">{class_info["Subject"]}</div>
+                                    <div class="subject-name" style="color: var(--muted); font-style: italic;">No classes scheduled</div>
                                 </div>
-                                {meta_html}
+                                <div class="meta"><span class="time" style="color: var(--muted);">—</span></div>
                             </div>
                         ''', unsafe_allow_html=True)
+                    else:
+                        for class_info in classes_today:
+                            meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span><span class="venue">{class_info["Venue"]}</span><span class="faculty">{class_info["Faculty"]}</span></div>'
+                            st.markdown(f'''
+                                <div class="class-entry">
+                                    <div class="left">
+                                        <div class="subject-name">{class_info["Subject"]}</div>
+                                    </div>
+                                    {meta_html}
+                                </div>
+                            ''', unsafe_allow_html=True)
                     
                     st.markdown('</div>', unsafe_allow_html=True)
                 
@@ -533,7 +553,6 @@ if not master_schedule_df.empty and student_data_map:
                         function scrollToToday() {{
                             const todayCard = window.parent.document.getElementById('{today_anchor_id}');
                             if (todayCard) {{
-                                // This 'start' will now respect the 'scroll-margin-top' from the CSS
                                 todayCard.scrollIntoView({{behavior: 'smooth', block: 'start'}});
                                 return true;
                             }}
@@ -554,11 +573,11 @@ if not master_schedule_df.empty and student_data_map:
             st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
             st.session_state.submitted = False
             st.session_state.roll_number = ""
-            st.rerun() # Use rerun to force it back to the form
+            st.rerun()
 
 elif master_schedule_df.empty or not student_data_map:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
 
 # --- ADDED CAPTION AT THE VERY END ---
-st.markdown("---") # Optional: a faint line above the caption
+st.markdown("---")
 st.caption("_Made by Vishesh_")
