@@ -15,7 +15,6 @@ import streamlit.components.v1 as components
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
-
 COURSE_DETAILS_MAP = {
     'AN(A)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'}, 'AN(B)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'},
     'B2B(A)': {'Faculty': 'Sandip Trada', 'Venue': 'T5'}, 'B2B(B)': {'Faculty': 'Rupam Deb', 'Venue': 'E2'},
@@ -41,7 +40,18 @@ COURSE_DETAILS_MAP = {
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
 
-
+# Special venue overrides for specific dates
+VENUE_OVERRIDES = {
+    date(2025, 11, 6): {
+        'B2B(B)': '309-F',
+        "B2B('C)": '309-F',
+        'IMC(A)': 'T3',
+        "DV&VS('C)": 'E2',
+        'DM(A)': '214',
+        'DM(B)': '214',
+        'OMSD': '214'
+    }
+}
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
