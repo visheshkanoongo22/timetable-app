@@ -11,33 +11,58 @@ import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
 
+# 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
+
+# UPDATED COURSE DETAILS MAP WITH NEW CLASSROOM ARRANGEMENTS
 COURSE_DETAILS_MAP = {
-    'AN(A)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'}, 'AN(B)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'},
-    'B2B(A)': {'Faculty': 'Sandip Trada', 'Venue': 'T5'}, 'B2B(B)': {'Faculty': 'Rupam Deb', 'Venue': '309-F'},
-    "B2B('C)": {'Faculty': 'Rupam Deb', 'Venue': '309-F'}, 'BS': {'Faculty': 'Satish Nair', 'Venue': 'T6'},
-    'CC&AU(A)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'}, 'CC&AU(B)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'},
-    'CSE': {'Faculty': 'Shahir Bhatt', 'Venue': 'T6'}, 'DADM': {'Faculty': 'Mahesh K C', 'Venue': 'T3'},
-    'DC': {'Faculty': 'Sapan Oza', 'Venue': 'T6'}, 'DM(A)': {'Faculty': 'Shailesh Prabhu', 'Venue': '214'},
-    'DM(B)': {'Faculty': 'Shailesh Prabhu', 'Venue': '214'}, "DRM('C)": {'Faculty': 'Pankaj Agrawal', 'Venue': 'T5'},
-    'DRM(A)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'}, 'DRM(B)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'},
-    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'E2'}, 'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
-    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'T5'},
-    'IMC(A)': {'Faculty': 'Sanjay Jain', 'Venue': 'T3'}, 'IMC(B)': {'Faculty': 'Riddhi Ambavale', 'Venue': 'T7'},
-    'INB(A)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'INB(B)': {'Faculty': 'M C Gupta', 'Venue': 'T7'},
-    'INB(C)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'LSS(A)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'},
-    'LSS(B)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'}, 'ML&AI(A)': {'Faculty': 'Omkar Sahoo', 'Venue': 'T5'},
-    'ML&AI(B)': {'Faculty': 'Omkar Sahoo', 'Venue': 'T5'}, 'OMSD': {'Faculty': 'Dinesh Panchal', 'Venue': '214'},
-    'PDBE(A)': {'Faculty': 'Nina Muncherji', 'Venue': 'T6'}, 'PDBE(B)': {'Faculty': 'Nina Muncherji', 'Venue': 'T6'},
-    "SCM('C)": {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SCM(A)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'},
-    'SCM(B)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SMKT(A)': {'Faculty': 'Himanshu Chauhan', 'Venue': 'T6'},
-    'SMKT(B)': {'Faculty': 'Kavita Saxena', 'Venue': 'T5'}, 'TEOM(A)': {'Faculty': 'P Ganesh', 'Venue': 'T3'},
-    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
-    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
+    'AN(A)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'}, 
+    'AN(B)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'},
+    'B2B(A)': {'Faculty': 'Sandip Trada', 'Venue': 'T5'}, 
+    'B2B(B)': {'Faculty': 'Rupam Deb', 'Venue': 'E1'},  # Changed from E2 to E1
+    "B2B('C)": {'Faculty': 'Rupam Deb', 'Venue': 'E1'},  # Changed from E2 to E1
+    'BS': {'Faculty': 'Satish Nair', 'Venue': 'T6'},
+    'CC&AU(A)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'}, 
+    'CC&AU(B)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'},
+    'CSE': {'Faculty': 'Shahir Bhatt', 'Venue': 'T6'}, 
+    'DADM': {'Faculty': 'Mahesh K C', 'Venue': 'T3'},
+    'DC': {'Faculty': 'Sapan Oza', 'Venue': 'T6'}, 
+    'DM(A)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'},  # Already T7
+    'DM(B)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'},  # Already T7
+    "DRM('C)": {'Faculty': 'Pankaj Agrawal', 'Venue': 'T5'},
+    'DRM(A)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'}, 
+    'DRM(B)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'},
+    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'E2'},  # Already E2
+    'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
+    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 
+    'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'E2'},
+    'IMC(A)': {'Faculty': 'Sanjay Jain', 'Venue': 'T1'}, 
+    'IMC(B)': {'Faculty': 'Riddhi Ambavale', 'Venue': 'T7'},  # Already T7
+    'INB(A)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 
+    'INB(B)': {'Faculty': 'M C Gupta', 'Venue': 'T7'},
+    'INB(C)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 
+    'LSS(A)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'},
+    'LSS(B)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'}, 
+    'ML&AI(A)': {'Faculty': 'Omkar Sahoo', 'Venue': 'T5'},
+    'ML&AI(B)': {'Faculty': 'Omkar Sahoo', 'Venue': 'T5'}, 
+    'OMSD': {'Faculty': 'Dinesh Panchal', 'Venue': 'T3'},
+    'PDBE(A)': {'Faculty': 'Nina Muncherji', 'Venue': 'T6'}, 
+    'PDBE(B)': {'Faculty': 'Nina Muncherji', 'Venue': 'T6'},
+    "SCM('C)": {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 
+    'SCM(A)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'},
+    'SCM(B)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 
+    'SMKT(A)': {'Faculty': 'Himanshu Chauhan', 'Venue': 'T6'},
+    'SMKT(B)': {'Faculty': 'Kavita Saxena', 'Venue': 'T5'}, 
+    'TEOM(A)': {'Faculty': 'P Ganesh', 'Venue': 'T3'},
+    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, 
+    "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
+    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 
+    'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
+
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
@@ -141,7 +166,6 @@ local_css_string = """
     
     /* --- FONT IMPORT --- */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-
     :root{
         --bg:#0F172A; /* Darker, more muted background */
         --card:#1E293B; /* Darker card background */
@@ -152,7 +176,6 @@ local_css_string = """
         --today-glow: #38BDF8; /* Muted sky blue for today's highlight */
         --today-glow-shadow: rgba(56, 189, 248, 0.4);
     }
-
     .stApp {
         background: radial-gradient(1200px 600px at 10% 10%, rgba(96,165,250,0.08), transparent 10%), /* Muted blue gradient */
                     radial-gradient(1000px 500px at 90% 90%, rgba(129,140,248,0.06), transparent 10%), /* Muted violet gradient */
@@ -160,7 +183,6 @@ local_css_string = """
         color: #ffffff;
         font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     }
-
     /* --- PAGE HEADER --- */
     .main-header {
         font-size: 2.4rem;
@@ -172,7 +194,6 @@ local_css_string = """
         -webkit-text-fill-color: transparent;
         letter-spacing: 0.2px;
     }
-
     .header-sub {
         text-align:center;
         color:var(--muted);
@@ -195,7 +216,6 @@ local_css_string = """
         color: #ffffff;
         font-weight: 600;
     }
-
     /* --- DAY PREVIEW CARD --- */
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
@@ -212,7 +232,6 @@ local_css_string = """
         transform: translateY(-6px);
         box-shadow: 0 18px 40px rgba(0,0,0,0.6); /* Darker shadow on hover */
     }
-
     /* --- TODAY'S HIGHLIGHT (Adjusted glow colors) --- */
     .day-card.today {
         border: 3px solid var(--today-glow);
@@ -330,7 +349,6 @@ local_css_string = """
         color: var(--accent-start);
         border-color: var(--accent-start);
     }
-
     a {
         color: var(--accent-start); /* Use one of the accent colors for links */
         font-weight:600;
@@ -365,7 +383,6 @@ local_css_string = """
     .results-container h3:not(:first-child) {
         margin-top: 1.5rem; /* Space between sections */
     }
-
     @media (max-width: 600px) {
         .meta { min-width: 120px; font-size:0.9rem; }
         .main-header { font-size: 1.8rem; }
@@ -410,7 +427,6 @@ if not master_schedule_df.empty and student_data_map:
                 st.session_state.roll_number = roll_number_input
                 st.session_state.submitted = True
                 st.rerun()
-
     # --- PROCESS AND DISPLAY SCHEDULE IF SUBMITTED ---
     if st.session_state.submitted:
         roll_to_process = st.session_state.roll_number
@@ -419,7 +435,6 @@ if not master_schedule_df.empty and student_data_map:
         if not roll_to_process:
             st.session_state.submitted = False
             st.rerun()
-
         # Handle valid roll number
         elif roll_to_process in student_data_map:
             student_info = student_data_map[roll_to_process]
@@ -438,12 +453,10 @@ if not master_schedule_df.empty and student_data_map:
             with st.spinner(f'Compiling classes for {student_name}...'):
                 NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
                 normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
-
                 time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
                               6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
                               10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:3App-c"}
                 found_classes = []
-
                 for index, row in master_schedule_df.iterrows():
                     date, day = row[0], row[1]
                     for col_index, time in time_slots.items():
@@ -458,9 +471,7 @@ if not master_schedule_df.empty and student_data_map:
                                         "Faculty": details.get('Faculty', 'N/A'),
                                         "Venue": details.get('Venue', '-')
                                     })
-
                 found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
-
             # --- ORGANIZED RESULTS SECTION ---
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
@@ -486,11 +497,9 @@ if not master_schedule_df.empty and student_data_map:
                         5. Click **'Import'** to add the events to your calendar.
                         """)
                     st.markdown('</div>', unsafe_allow_html=True)
-
                 # --- PREVIEW SECTION ---
                 st.markdown("---")
                 st.subheader("Your Timetable Preview")
-
                 schedule_by_date = defaultdict(list)
                 for class_info in found_classes:
                     schedule_by_date[class_info['Date']].append(class_info)
@@ -499,7 +508,6 @@ if not master_schedule_df.empty and student_data_map:
                 time_sorter = {time: i for i, time in enumerate(time_slots.values())}
                 for date in sorted_dates:
                     schedule_by_date[date].sort(key=lambda x: time_sorter.get(x['Time'], 99))
-
                 # Fill in missing dates between first and last class date
                 if sorted_dates:
                     first_date = sorted_dates[0]
@@ -512,7 +520,6 @@ if not master_schedule_df.empty and student_data_map:
                         current_date = date.fromordinal(current_date.toordinal() + 1)
                     
                     sorted_dates = all_dates
-
                 today = datetime.now(pytz.timezone(TIMEZONE)).date()
                 today_anchor_id = None
                 
@@ -593,12 +600,9 @@ if not master_schedule_df.empty and student_data_map:
             st.session_state.submitted = False
             st.session_state.roll_number = ""
             st.rerun()
-
 elif master_schedule_df.empty or not student_data_map:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
 
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("_Made by Vishesh_")
-
-
