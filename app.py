@@ -41,51 +41,19 @@ COURSE_DETAILS_MAP = {
 }
 
 # --- DAY-SPECIFIC OVERRIDES & ADDITIONS ---
-# Used to override default venues/faculties for a specific date
-# IMPORTANT: The subject keys must be the NORMALIZED version (all caps, no spaces/symbols)
 DAY_SPECIFIC_OVERRIDES = {
-    # Date: {Normalized_Subject: {Venue: 'New Venue', Faculty: 'New Faculty'}}
     date(2025, 11, 8): {
-        'DC': {'Venue': '216'},
-        'VALUC': {'Venue': '216'},  # From VALU('C)
-        'VALUD': {'Venue': '216'},
-        'IMCB': {'Venue': '216'},
+        'DC': {'Venue': '216'}, 'VALUC': {'Venue': '216'}, 'VALUD': {'Venue': '216'}, 'IMCB': {'Venue': '216'},
     },
     date(2025, 11, 10): {
-        'B2BB': {'Venue': 'E1'},
-        'B2BC': {'Venue': 'E1'},  # From B2B('C)
-        'DVVSC': {'Venue': 'E2'}, # From DV&VS('C)
-        'DMB': {'Venue': '214'},
-        'DMA': {'Venue': '214'},
-        'OMSD': {'Venue': '214'},
+        'B2BB': {'Venue': 'E1'}, 'B2BC': {'Venue': 'E1'}, 'DVVSC': {'Venue': 'E2'},
+        'DMB': {'Venue': '214'}, 'DMA': {'Venue': '214'}, 'OMSD': {'Venue': '214'},
     }
 }
-
-# Used to add new classes not present in the master schedule
-# IMPORTANT: The 'Subject' name must be the ORIGINAL version (e.g., "SCM('C)")
 ADDITIONAL_CLASSES = [
-    # {'Date': date(YYYY, M, D), 'Time': '...', 'Subject': '...', 'Faculty': '...', 'Venue': '...'}
-    {
-        'Date': date(2025, 11, 8), 
-        'Time': '10:20-11:20AM', 
-        'Subject': 'SCM(A)', 
-        'Faculty': 'Guest Session', 
-        'Venue': 'Online'
-    },
-    {
-        'Date': date(2025, 11, 8), 
-        'Time': '10:20-11:20AM', 
-        'Subject': 'SCM(B)', 
-        'Faculty': 'Guest Session', 
-        'Venue': 'Online'
-    },
-    {
-        'Date': date(2025, 11, 8), 
-        'Time': '10:20-11:20AM', 
-        'Subject': "SCM('C)", # Must match the name in the student files
-        'Faculty': 'Guest Session', 
-        'Venue': 'Online'
-    },
+    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': "SCM('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
 ]
 
 # 3. FUNCTIONS
@@ -162,7 +130,6 @@ st.set_page_config(
     layout="centered", 
     initial_sidebar_state="collapsed"
 )
-# Force dark mode by injecting meta tags and overriding system preferences
 st.markdown("""
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0F172A">
@@ -170,248 +137,94 @@ st.markdown("""
 # --- CSS STYLING ---
 local_css_string = """
 <style>
-    /* --- FORCE DARK MODE --- */
-    * {
-        color-scheme: dark !important;
+    /* ... (your entire CSS string remains unchanged here) ... */
+    * { color-scheme: dark !important; }
+    [data-testid="stAppViewContainer"], [data-testid="stHeader"], section[data-testid="stSidebar"] {
+        background-color: var(--bg) !important; color: #ffffff !important;
     }
-    
-    /* Override any light mode settings from Streamlit */
-    [data-testid="stAppViewContainer"],
-    [data-testid="stHeader"],
-    section[data-testid="stSidebar"] {
-        background-color: var(--bg) !important;
-        color: #ffffff !important;
-    }
-    
-    /* --- FONT IMPORT --- */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
     :root{
-        --bg:#0F172A; /* Darker, more muted background */
-        --card:#1E293B; /* Darker card background */
-        --muted:#94A3B8; /* Muted text color */
-        --accent-start:#60A5FA; /* Muted blue accent */
-        --accent-end:#818CF8; /* Muted violet accent */
-        --glass-border: rgba(255,255,255,0.08); /* Slightly more visible border */
-        --today-glow: #38BDF8; /* Muted sky blue for today's highlight */
-        --today-glow-shadow: rgba(56, 189, 248, 0.4);
-        --venue-change-color: #F87171; /* Light red for changed venues */
+        --bg:#0F172A; --card:#1E293B; --muted:#94A3B8; --accent-start:#60A5FA; --accent-end:#818CF8;
+        --glass-border: rgba(255,255,255,0.08); --today-glow: #38BDF8; --today-glow-shadow: rgba(56, 189, 248, 0.4);
+        --venue-change-color: #F87171;
     }
     .stApp {
-        background: radial-gradient(1200px 600px at 10% 10%, rgba(96,165,250,0.08), transparent 10%), /* Muted blue gradient */
-                    radial-gradient(1000px 500px at 90% 90%, rgba(129,140,248,0.06), transparent 10%), /* Muted violet gradient */
-                    var(--bg);
-        color: #ffffff;
-        font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        background: radial-gradient(1200px 600px at 10% 10%, rgba(96,165,250,0.08), transparent 10%),
+                    radial-gradient(1000px 500px at 90% 90%, rgba(129,140,248,0.06), transparent 10%), var(--bg);
+        color: #ffffff; font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     }
-    /* --- PAGE HEADER --- */
     .main-header {
-        font-size: 2.4rem;
-        font-weight: 800;
-        text-align: center;
-        margin-bottom: 0.5rem;
+        font-size: 2.4rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem;
         background: -webkit-linear-gradient(90deg, var(--accent-start), var(--accent-end));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: 0.2px;
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 0.2px;
     }
-    .header-sub {
-        text-align:center;
-        color:var(--muted);
-        margin-top:0rem;
-        margin-bottom:2rem;
-        font-size:1.0rem;
-    }
-    
-    /* --- WELCOME BOX --- */
+    .header-sub { text-align:center; color:var(--muted); margin-top:0rem; margin-bottom:2rem; font-size:1.0rem; }
     .welcome-box {
-        background: var(--card);
-        border: 1px solid var(--glass-border);
-        padding: 1rem 1.25rem;
-        border-radius: 14px;
-        margin-bottom: 1.5rem;
-        color: var(--muted);
-        font-size: 0.95rem;
+        background: var(--card); border: 1px solid var(--glass-border); padding: 1rem 1.25rem;
+        border-radius: 14px; margin-bottom: 1.5rem; color: var(--muted); font-size: 0.95rem;
     }
-    .welcome-box strong {
-        color: #ffffff;
-        font-weight: 600;
-    }
-    /* --- DAY PREVIEW CARD --- */
+    .welcome-box strong { color: #ffffff; font-weight: 600; }
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-        border-radius: 14px;
-        padding: 1.25rem;
-        margin-bottom: 1.25rem;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.4); /* Darker shadow */
-        border: 1px solid var(--glass-border);
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
-        scroll-margin-top: 85px; /* Offset for Streamlit's header bar */
-        position: relative;
+        border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        border: 1px solid var(--glass-border); transition: transform 0.18s ease, box-shadow 0.18s ease;
+        scroll-margin-top: 85px; position: relative;
     }
-    .day-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 18px 40px rgba(0,0,0,0.6); /* Darker shadow on hover */
-    }
-    /* --- TODAY'S HIGHLIGHT (Adjusted glow colors) --- */
+    .day-card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(0,0,0,0.6); }
     .day-card.today {
         border: 3px solid var(--today-glow);
-        box-shadow: 0 0 35px var(--today-glow-shadow), 
-                    0 0 60px rgba(56, 189, 248, 0.2), /* Muted blue glow */
-                    0 8px 30px rgba(0,0,0,0.4);
+        box-shadow: 0 0 35px var(--today-glow-shadow), 0 0 60px rgba(56, 189, 248, 0.2), 0 8px 30px rgba(0,0,0,0.4);
         animation: pulse-glow 2s ease-in-out infinite;
     }
     .today-badge {
-        position: absolute;
-        top: -12px;
-        right: 20px;
-        background: var(--today-glow);
-        color: var(--bg); /* Use background color for text to make it subtle */
-        font-size: 0.75rem;
-        font-weight: 800;
-        padding: 0.35rem 0.75rem;
-        border-radius: 6px;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        box-shadow: 0 4px 15px var(--today-glow-shadow);
-        z-index: 10;
+        position: absolute; top: -12px; right: 20px; background: var(--today-glow); color: var(--bg);
+        font-size: 0.75rem; font-weight: 800; padding: 0.35rem 0.75rem; border-radius: 6px;
+        letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 4px 15px var(--today-glow-shadow); z-index: 10;
     }
     @keyframes pulse-glow {
-        0%, 100% {
-            box-shadow: 0 0 35px var(--today-glow-shadow), 
-                        0 0 60px rgba(56, 189, 248, 0.2),
-                        0 8px 30px rgba(0,0,0,0.4);
-        }
-        50% {
-            box-shadow: 0 0 45px rgba(56, 189, 248, 0.6), /* Muted blue glow */
-                        0 0 80px rgba(56, 189, 248, 0.3),
-                        0 8px 30px rgba(0,0,0,0.4);
-        }
+        0%, 100% { box-shadow: 0 0 35px var(--today-glow-shadow), 0 0 60px rgba(56, 189, 248, 0.2), 0 8px 30px rgba(0,0,0,0.4); }
+        50% { box-shadow: 0 0 45px rgba(56, 189, 248, 0.6), 0 0 80px rgba(56, 189, 248, 0.3), 0 8px 30px rgba(0,0,0,0.4); }
     }
-    
-    /* --- CARD CONTENT --- */
-    .day-header {
-        font-size: 1.15rem; /* Reduced font size */
-        font-weight: 700;
-        color: #E2E8F0; /* Slightly brighter text for headers */
-        margin-bottom: 0.5rem; /* Reduced margin */
-    }
-    
+    .day-header { font-size: 1.15rem; font-weight: 700; color: #E2E8F0; margin-bottom: 0.5rem; }
     .class-entry {
-        display:flex;
-        flex-direction:row;
-        align-items:center;
-        justify-content:space-between;
-        padding-top:0.65rem;
-        padding-bottom:0.65rem;
-        border-bottom:1px solid rgba(255,255,255,0.04); /* Slightly thicker/darker border */
+        display:flex; flex-direction:row; align-items:center; justify-content:space-between;
+        padding-top:0.65rem; padding-bottom:0.65rem; border-bottom:1px solid rgba(255,255,255,0.04);
     }
     .day-card .class-entry:last-child { border-bottom: none; padding-bottom: 0; }
-    .left {
-        display:flex;
-        flex-direction:column;
-        gap:0.2rem;
-    }
-    
-    .subject-name {
-        font-size:1.05rem;
-        font-weight:700;
-        margin:0;
-        color: #FFFFFF; /* Set to solid white for max contrast */
-    }
-    
-    .class-details {
-        font-size:0.94rem;
-        color:var(--muted);
-    }
-    .meta {
-        text-align:right;
-        min-width:170px;
-    }
-    .meta .time {
-        display:block;
-        font-weight:600;
-        color:#fff;
-        font-size:0.97rem;
-    }
-    .meta .venue, .meta .faculty {
-        display:block;
-        font-size:0.85rem;
-        color:var(--muted);
-    }
-    /* This class will be applied to changed venues */
-    .venue-changed {
-        color: var(--venue-change-color) !important;
-        font-weight: 600;
-    }
-    
-    /* --- INPUT & BUTTON STYLES --- */
+    .left { display:flex; flex-direction:column; gap:0.2rem; }
+    .subject-name { font-size:1.05rem; font-weight:700; margin:0; color: #FFFFFF; }
+    .class-details { font-size:0.94rem; color:var(--muted); }
+    .meta { text-align:right; min-width:170px; }
+    .meta .time { display:block; font-weight:600; color:#fff; font-size:0.97rem; }
+    .meta .venue, .meta .faculty { display:block; font-size:0.85rem; color:var(--muted); }
+    .venue-changed { color: var(--venue-change-color) !important; font-weight: 600; }
     .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
-        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-        color: var(--bg); /* Text color from background */
-        font-weight:700;
-        padding: 0.5rem 0.9rem;
-        border-radius:10px;
-        border:none;
-        box-shadow: 0 8px 20px rgba(96,165,250,0.1); /* Muted shadow */
-        width: 100%;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); color: var(--bg);
+        font-weight:700; padding: 0.5rem 0.9rem; border-radius:10px; border:none;
+        box-shadow: 0 8px 20px rgba(96,165,250,0.1); width: 100%;
         transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
     .stDownloadButton>button:hover, div[data-testid="stForm"] button[kind="primary"]:hover, .stButton>button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 14px 30px rgba(96,165,250,0.15); /* Muted shadow on hover */
+        transform: translateY(-3px); box-shadow: 0 14px 30px rgba(96,165,250,0.15);
     }
-    
-    /* --- Style for the "Change" button --- */
     .stButton>button {
-        width: auto; /* Allow the change button to be smaller */
-        padding: 0.4rem 0.8rem;
-        font-size: 0.9rem;
-        background: var(--card); /* Make it look different */
-        color: var(--muted);
-        border: 1px solid var(--glass-border);
+        width: auto; padding: 0.4rem 0.8rem; font-size: 0.9rem; background: var(--card);
+        color: var(--muted); border: 1px solid var(--glass-border);
     }
-    .stButton>button:hover {
-        color: var(--accent-start);
-        border-color: var(--accent-start);
-    }
-    a {
-        color: var(--accent-start); /* Use one of the accent colors for links */
-        font-weight:600;
-    }
-    
-    /* --- FORM INPUT STYLING --- */
-    .css-1d391kg, .css-1v3fvcr, .css-18ni7ap {
-        color: #ffffff;
-    }
+    .stButton>button:hover { color: var(--accent-start); border-color: var(--accent-start); }
+    a { color: var(--accent-start); font-weight:600; }
+    .css-1d391kg, .css-1v3fvcr, .css-18ni7ap { color: #ffffff; }
     .stTextInput>div>div>input, .stTextInput>div>div>textarea {
-        background: rgba(255,255,255,0.02) !important;
-        color: #E2E8F0 !important; /* Brighter text for input */
-        border: 1px solid rgba(255,255,255,0.06) !important; /* Slightly more visible border */
-        padding: 0.6rem !important;
-        border-radius: 8px !important;
+        background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
+        border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
     }
-    
-    /* --- RESULTS CONTAINER --- */
     .results-container {
-        background: var(--card);
-        border: 1px solid var(--glass-border);
-        padding: 1.25rem;
-        border-radius: 14px;
-        margin-bottom: 1.5rem;
+        background: var(--card); border: 1px solid var(--glass-border); padding: 1.25rem;
+        border-radius: 14px; margin-bottom: 1.5rem;
     }
-    .results-container h3 {
-        color: #E2E8F0; /* Subheader color */
-        margin-top: 0;
-        margin-bottom: 1rem;
-        font-size: 1.3rem;
-    }
-    .results-container h3:not(:first-child) {
-        margin-top: 1.5rem; /* Space between sections */
-    }
-    @media (max-width: 600px) {
-        .meta { min-width: 120px; font-size:0.9rem; }
-        .main-header { font-size: 1.8rem; }
-    }
+    .results-container h3 { color: #E2E8F0; margin-top: 0; margin-bottom: 1rem; font-size: 1.3rem; }
+    .results-container h3:not(:first-child) { margin-top: 1.5rem; }
+    @media (max-width: 600px) { .meta { min-width: 120px; font-size:0.9rem; } .main-header { font-size: 1.8rem; } }
 </style>
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
@@ -421,19 +234,19 @@ st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingerti
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
+
 # --- INITIALIZE SESSION STATE ---
 if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
 if 'persisted_roll_number' not in st.session_state:
-    st.session_state.persisted_roll_number = None
+    st.session_state.persisted_roll_number = None # This will store the value *after* we process it
 
-
-# --- (FIX 1/2) COMPONENT TO READ FROM LOCALSTORAGE ---
-# We just *call* the component. We DO NOT assign it to a variable.
-# Its return value will be stored in st.session_state.local_storage_reader
-if not st.session_state.submitted:
+# --- (FIXED) COMPONENT TO READ FROM LOCALSTORAGE ---
+# This component will ONLY run if we haven't processed the localStorage value yet
+# and if the user isn't already logged in.
+if st.session_state.persisted_roll_number is None and not st.session_state.submitted:
     components.html("""
         <script>
         // Wait for streamlit to be ready
@@ -451,26 +264,27 @@ if not st.session_state.submitted:
         </script>
         """, height=0, key="local_storage_reader")
 
-
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
     
-    # --- (FIX 2/2) LOGIC TO HANDLE AUTO-LOGIN FROM LOCALSTORAGE ---
-    # We check for the key in st.session_state, not the (now removed) variable
-    if not st.session_state.submitted and "local_storage_reader" in st.session_state and st.session_state.local_storage_reader is not None:
+    # --- (FIXED) LOGIC TO HANDLE AUTO-LOGIN FROM LOCALSTORAGE ---
+    if not st.session_state.submitted and "local_storage_reader" in st.session_state:
         
-        # Get the value from the session state
-        component_value = st.session_state.local_storage_reader
-        
-        if st.session_state.persisted_roll_number is None: # Only run this logic once
+        # Check if we just received the value (it's not None)
+        # and if we haven't processed it yet (persisted_roll_number is None)
+        if st.session_state.local_storage_reader is not None and st.session_state.persisted_roll_number is None:
+            
+            component_value = st.session_state.local_storage_reader
+            
             if component_value in student_data_map:
                 # Valid roll number found, auto-login
                 st.session_state.roll_number = component_value
                 st.session_state.submitted = True
+                st.session_state.persisted_roll_number = component_value # Mark as processed
                 st.rerun() # Jump straight to the "submitted" view
             else:
-                # No valid roll, just prefill the form with whatever was found
-                st.session_state.persisted_roll_number = component_value or "" 
+                # No valid roll, just prefill the form
+                st.session_state.persisted_roll_number = component_value or "" # Mark as processed
                 st.rerun() # Rerun to show the prefilled form
 
     # --- DISPLAY FORM IF NOT SUBMITTED ---
@@ -485,7 +299,7 @@ if not master_schedule_df.empty and student_data_map:
             unsafe_allow_html=True
         )
         with st.form("roll_number_form"):
-            # Use the persisted value to pre-fill the text input
+            # Use the persisted value (which is now safe to use) to pre-fill the text input
             default_roll = st.session_state.persisted_roll_number or ""
             roll_number_input = st.text_input("Enter your Roll Number:", value=default_roll, placeholder="e.g., 24MBA463").strip().upper()
             submitted_button = st.form_submit_button("Generate Timetable")
@@ -493,6 +307,7 @@ if not master_schedule_df.empty and student_data_map:
             if submitted_button:
                 st.session_state.roll_number = roll_number_input
                 st.session_state.submitted = True
+                st.session_state.persisted_roll_number = roll_number_input # Store for pre-filling next time
 
                 # --- COMPONENT TO WRITE TO LOCALSTORAGE ON SUBMIT ---
                 components.html(f"""
@@ -511,16 +326,14 @@ if not master_schedule_df.empty and student_data_map:
     if st.session_state.submitted:
         roll_to_process = st.session_state.roll_number
         
-        # Handle empty submission
         if not roll_to_process:
             st.session_state.submitted = False
+            st.session_state.persisted_roll_number = None # Reset
             st.rerun()
-        # Handle valid roll number
         elif roll_to_process in student_data_map:
             student_info = student_data_map[roll_to_process]
             student_name, student_sections = student_info['name'], student_info['sections']
             
-            # Display header with "Change" button
             col1, col2 = st.columns([3, 1])
             with col1:
                 st.success(f"Displaying schedule for {student_name}")
@@ -528,16 +341,11 @@ if not master_schedule_df.empty and student_data_map:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
                     st.session_state.roll_number = ""
-                    st.session_state.persisted_roll_number = None # Reset this
+                    st.session_state.persisted_roll_number = None # Reset
                     
-                    # --- COMPONENT TO CLEAR LOCALSTORAGE ON LOGOUT ---
                     components.html("""
                         <script>
-                            try {{
-                                localStorage.removeItem('roll_number');
-                            }} catch (e) {{
-                                // Handle cases where localStorage might be disabled
-                            }}
+                            try {{ localStorage.removeItem('roll_number'); }} catch (e) {{}}
                         </script>
                     """, height=0)
                     
@@ -558,47 +366,34 @@ if not master_schedule_df.empty and student_data_map:
                             normalized_cell = normalize_string(cell_value)
                             for norm_sec, orig_sec in normalized_student_section_map.items():
                                 if norm_sec in normalized_cell:
-                                    # 1. Get default details
                                     details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'}).copy()
-                                    is_venue_override = False # Initialize flag
+                                    is_venue_override = False 
                                     
-                                    # 2. Check for and apply day-specific overrides
                                     if date in DAY_SPECIFIC_OVERRIDES:
                                         if norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
-                                            # Check if 'Venue' is part of the override
                                             if 'Venue' in DAY_SPECIFIC_OVERRIDES[date][norm_sec]:
-                                                is_venue_override = True # Set flag
-                                            
+                                                is_venue_override = True
                                             details.update(DAY_SPECIFIC_OVERRIDES[date][norm_sec])
                                             
-                                    # 3. Append the (potentially modified) class
                                     found_classes.append({
                                         "Date": date, "Day": day, "Time": time, "Subject": orig_sec,
                                         "Faculty": details.get('Faculty', 'N/A'),
                                         "Venue": details.get('Venue', '-'),
-                                        "is_venue_override": is_venue_override # Add flag
+                                        "is_venue_override": is_venue_override
                                     })
                 
-                # --- ADD ADDITIONAL CLASSES (e.g., Guest Sessions) ---
                 for added_class in ADDITIONAL_CLASSES:
                     norm_added_subject = normalize_string(added_class['Subject'])
-                    # Check if the student is in this section
                     if norm_added_subject in normalized_student_section_map:
                         day_of_week = added_class['Date'].strftime('%A')
-                        
                         found_classes.append({
-                            "Date": added_class['Date'],
-                            "Day": day_of_week,
-                            "Time": added_class['Time'],
-                            "Subject": added_class['Subject'], # Use the original name
-                            "Faculty": added_class.get('Faculty', 'N/A'),
-                            "Venue": added_class.get('Venue', '-'),
-                            "is_venue_override": False # Added classes are not "overrides"
+                            "Date": added_class['Date'], "Day": day_of_week, "Time": added_class['Time'],
+                            "Subject": added_class['Subject'], "Faculty": added_class.get('Faculty', 'N/A'),
+                            "Venue": added_class.get('Venue', '-'), "is_venue_override": False
                         })
-                # --- END OF ADDITIONS ---
 
                 found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
-            # --- ORGANIZED RESULTS SECTION ---
+            
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
                 sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
@@ -607,12 +402,9 @@ if not master_schedule_df.empty and student_data_map:
                     st.markdown('<div class="results-container">', unsafe_allow_html=True)
                     st.markdown("### 1. Download Calendar File")
                     st.download_button(
-                        label="Download .ics Calendar File",
-                        data=ics_content,
-                        file_name=f"{sanitized_name}_Timetable.ics",
-                        mime='text/calendar'
+                        label="Download .ics Calendar File", data=ics_content,
+                        file_name=f"{sanitized_name}_Timetable.ics", mime='text/calendar'
                     )
-                    
                     st.markdown("### 2. How to Import to Google Calendar")
                     with st.expander("Click to view import instructions", expanded=False):
                         st.markdown(f"""
@@ -623,7 +415,7 @@ if not master_schedule_df.empty and student_data_map:
                         5. Click **'Import'** to add the events to your calendar.
                         """)
                     st.markdown('</div>', unsafe_allow_html=True)
-                # --- PREVIEW SECTION ---
+                
                 st.markdown("---")
                 st.subheader("Your Timetable Preview")
                 schedule_by_date = defaultdict(list)
@@ -632,20 +424,18 @@ if not master_schedule_df.empty and student_data_map:
                 
                 sorted_dates = sorted(schedule_by_date.keys())
                 time_sorter = {time: i for i, time in enumerate(time_slots.values())}
-                for date in sorted_dates:
-                    schedule_by_date[date].sort(key=lambda x: time_sorter.get(x['Time'], 99))
-                # Fill in missing dates between first and last class date
+                for date_key in sorted_dates:
+                    schedule_by_date[date_key].sort(key=lambda x: time_sorter.get(x['Time'], 99))
+                
                 if sorted_dates:
-                    first_date = sorted_dates[0]
-                    last_date = sorted_dates[-1]
-                    current_date = first_date
                     all_dates = []
-                    
+                    current_date = sorted_dates[0]
+                    last_date = sorted_dates[-1]
                     while current_date <= last_date:
                         all_dates.append(current_date)
                         current_date = date.fromordinal(current_date.toordinal() + 1)
-                    
                     sorted_dates = all_dates
+                
                 today = datetime.now(pytz.timezone(TIMEZONE)).date()
                 today_anchor_id = None
                 
@@ -656,52 +446,32 @@ if not master_schedule_df.empty and student_data_map:
                     
                     if is_today:
                         today_anchor_id = card_id
-                    
-                    if is_today:
-                        st.markdown(f'''
-                            <div class="day-card {today_class}" id="{card_id}">
-                                <div class="today-badge">TODAY</div>
-                                <div class="day-header">
-                                    {date_obj.strftime("%A, %d %B %Y")}
-                                </div>
-                        ''', unsafe_allow_html=True)
+                        st.markdown(f'<div class="day-card {today_class}" id="{card_id}"><div class="today-badge">TODAY</div>', unsafe_allow_html=True)
                     else:
-                        st.markdown(f'''
-                            <div class="day-card {today_class}" id="{card_id}">
-                                <div class="day-header">
-                                    {date_obj.strftime("%A, %d %B %Y")}
-                                </div>
-                        ''', unsafe_allow_html=True)
+                        st.markdown(f'<div class="day-card {today_class}" id="{card_id}">', unsafe_allow_html=True)
+                    
+                    st.markdown(f'<div class="day-header">{date_obj.strftime("%A, %d %B %Y")}</div>', unsafe_allow_html=True)
                     
                     classes_today = schedule_by_date.get(date_obj, [])
                     
                     if not classes_today:
-                        # No classes scheduled for this day
                         st.markdown('''
                             <div class="class-entry">
-                                <div class="left">
-                                    <div class="subject-name" style="color: var(--muted); font-style: italic;">No classes scheduled</div>
-                                </div>
+                                <div class="left"><div class="subject-name" style="color: var(--muted); font-style: italic;">No classes scheduled</div></div>
                                 <div class="meta"><span class="time" style="color: var(--muted);">—</span></div>
                             </div>
                         ''', unsafe_allow_html=True)
                     else:
                         for class_info in classes_today:
-                            # --- Logic for conditional venue display ---
-                            venue_display = ""
                             if class_info.get('is_venue_override', False):
                                 venue_display = f'<span class="venue venue-changed">Venue changed to {class_info["Venue"]}</span>'
                             else:
                                 venue_display = f'<span class="venue">{class_info["Venue"]}</span>'
-                            # --- END LOGIC ---
 
                             meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span>{venue_display}<span class="faculty">{class_info["Faculty"]}</span></div>'
-                            
                             st.markdown(f'''
                                 <div class="class-entry">
-                                    <div class="left">
-                                        <div class="subject-name">{class_info["Subject"]}</div>
-                                    </div>
+                                    <div class="left"><div class="subject-name">{class_info["Subject"]}</div></div>
                                     {meta_html}
                                 </div>
                             ''', unsafe_allow_html=True)
@@ -714,40 +484,25 @@ if not master_schedule_df.empty and student_data_map:
                         function scrollToToday() {{
                             const todayCard = window.parent.document.getElementById('{today_anchor_id}');
                             if (todayCard) {{
-                                todayCard.scrollIntoView({{behavior: 'smooth', block: 'start'}});
-                                return true;
+                                todayCard.scrollIntoView({{behavior: 'smooth', block: 'start'}}); return true;
                             }}
                             return false;
                         }}
-                        
-                        if (!scrollToToday()) {{
-                            setTimeout(scrollToToday, 500);
-                        }}
+                        if (!scrollToToday()) {{ setTimeout(scrollToToday, 500); }}
                         setTimeout(scrollToToday, 1500);
                     </script>
                     """, height=0)
             else:
                 st.warning("No classes found for your registered sections in the master schedule.")
                 
-        # Handle invalid roll number
         else:
             st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
-            # Clear the bad roll number from storage
-            components.html("""
-                <script>
-                    try {{
-                        localStorage.removeItem('roll_number');
-                    }} catch (e) {{
-                        // Handle cases where localStorage might be disabled
-                    }}
-                </script>
-            """, height=0)
+            components.html("""<script>try {{ localStorage.removeItem('roll_number'); }} catch (e) {{}}</script>""", height=0)
             st.session_state.submitted = False
             st.session_state.roll_number = ""
             st.session_state.persisted_roll_number = None
             st.rerun()
 elif master_schedule_df.empty or not student_data_map:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
-# --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("_Made by Vishesh_")
