@@ -40,28 +40,53 @@ COURSE_DETAILS_MAP = {
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
 
-# DAY-SPECIFIC OVERRIDES
-# Format: {date(YYYY, MM, DD): {'Section': {'Venue': 'NewVenue', 'Faculty': 'NewFaculty', 'Time': 'NewTime'}}}
-DAY_SPECIFIC_CHANGES = {
+# --- DAY-SPECIFIC OVERRIDES & ADDITIONS ---
+# Used to override default venues/faculties for a specific date
+# IMPORTANT: The subject keys must be the NORMALIZED version (all caps, no spaces/symbols)
+DAY_SPECIFIC_OVERRIDES = {
+    # Date: {Normalized_Subject: {Venue: 'New Venue', Faculty: 'New Faculty'}}
     date(2025, 11, 8): {
         'DC': {'Venue': '216'},
-        "VALU('C)": {'Venue': '216'},
-        'VALU(D)': {'Venue': '216'},
-        'IMC(B)': {'Venue': '216'},
-        # Combined online guest session for SCM
-        'SCM(A)': {'Venue': 'Online', 'Faculty': 'Guest Speaker', 'Time': '10:20-11:20AM', 'Note': 'Combined Session'},
-        'SCM(B)': {'Venue': 'Online', 'Faculty': 'Guest Speaker', 'Time': '10:20-11:20AM', 'Note': 'Combined Session'},
-        "SCM('C)": {'Venue': 'Online', 'Faculty': 'Guest Speaker', 'Time': '10:20-11:20AM', 'Note': 'Combined Session'},
+        'VALUC': {'Venue': '216'},  # From VALU('C)
+        'VALUD': {'Venue': '216'},
+        'IMCB': {'Venue': '216'},
     },
     date(2025, 11, 10): {
-        'B2B(B)': {'Venue': 'E1'},
-        "B2B('C)": {'Venue': 'E1'},
-        "DV&VS('C)": {'Venue': 'E2'},
-        'DM(B)': {'Venue': '214'},
-        'DM(A)': {'Venue': '214'},
+        'B2BB': {'Venue': 'E1'},
+        'B2BC': {'Venue': 'E1'},  # From B2B('C)
+        'DVVSC': {'Venue': 'E2'}, # From DV&VS('C)
+        'DMB': {'Venue': '214'},
+        'DMA': {'Venue': '214'},
         'OMSD': {'Venue': '214'},
     }
 }
+
+# Used to add new classes not present in the master schedule
+# IMPORTANT: The 'Subject' name must be the ORIGINAL version (e.g., "SCM('C)")
+ADDITIONAL_CLASSES = [
+    # {'Date': date(YYYY, M, D), 'Time': '...', 'Subject': '...', 'Faculty': '...', 'Venue': '...'}
+    {
+        'Date': date(2025, 11, 8), 
+        'Time': '10:20-11:20AM', 
+        'Subject': 'SCM(A)', 
+        'Faculty': 'Guest Session', 
+        'Venue': 'Online'
+    },
+    {
+        'Date': date(2025, 11, 8), 
+        'Time': '10:20-11:20AM', 
+        'Subject': 'SCM(B)', 
+        'Faculty': 'Guest Session', 
+        'Venue': 'Online'
+    },
+    {
+        'Date': date(2025, 11, 8), 
+        'Time': '10:20-11:20AM', 
+        'Subject': "SCM('C)", # Must match the name in the student files
+        'Faculty': 'Guest Session', 
+        'Venue': 'Online'
+    },
+]
 
 # 3. FUNCTIONS
 def normalize_string(text):
@@ -455,17 +480,46 @@ if not master_schedule_df.empty and student_data_map:
                             normalized_cell = normalize_string(cell_value)
                             for norm_sec, orig_sec in normalized_student_section_map.items():
                                 if norm_sec in normalized_cell:
-                                    details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'})
+                                    # 1. Get default details
+                                    # Use .copy() to avoid modifying the original map
+                                    details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'}).copy()
+                                    
+                                    # 2. Check for and apply day-specific overrides
+                                    if date in DAY_SPECIFIC_OVERRIDES:
+                                        if norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
+                                            # Update details (e.g., Venue) from the override
+                                            details.update(DAY_SPECIFIC_OVERRIDES[date][norm_sec])
+                                            
+                                    # 3. Append the (potentially modified) class
                                     found_classes.append({
                                         "Date": date, "Day": day, "Time": time, "Subject": orig_sec,
                                         "Faculty": details.get('Faculty', 'N/A'),
                                         "Venue": details.get('Venue', '-')
                                     })
+                
+                # --- ADD ADDITIONAL CLASSES (e.g., Guest Sessions) ---
+                for added_class in ADDITIONAL_CLASSES:
+                    norm_added_subject = normalize_string(added_class['Subject'])
+                    # Check if the student is in this section
+                    if norm_added_subject in normalized_student_section_map:
+                        # Get the correct day name for the date
+                        day_of_week = added_class['Date'].strftime('%A')
+                        
+                        found_classes.append({
+                            "Date": added_class['Date'],
+                            "Day": day_of_week,
+                            "Time": added_class['Time'],
+                            "Subject": added_class['Subject'], # Use the original name
+                            "Faculty": added_class.get('Faculty', 'N/A'),
+                            "Venue": added_class.get('Venue', '-')
+                        })
+                # --- END OF ADDITIONS ---
+
                 found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
             # --- ORGANIZED RESULTS SECTION ---
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
-                sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
+                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                 
                 with st.container():
                     st.markdown('<div class="results-container">', unsafe_allow_html=True)
@@ -595,10 +649,3 @@ elif master_schedule_df.empty or not student_data_map:
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("_Made by Vishesh_")
-
-
-
-
-
-
-
