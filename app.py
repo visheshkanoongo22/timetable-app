@@ -124,6 +124,7 @@ def generate_ics_content(found_classes):
         except Exception:
             continue
     return c.serialize()
+
 # 4. STREAMLIT WEB APP INTERFACE
 st.set_page_config(
     page_title="MBA Timetable Assistant", 
@@ -235,29 +236,27 @@ st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingerti
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
 
-# --- INITIALIZE SESSION STATE ---
+# --- (FIX 1/3) INITIALIZE SESSION STATE ---
 if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
 if 'persisted_roll_number' not in st.session_state:
-    st.session_state.persisted_roll_number = None # This will store the value *after* we process it
+    st.session_state.persisted_roll_number = None # Stores the value we read
+if 'initial_read_done' not in st.session_state:
+    st.session_state.initial_read_done = False # Gatekeeper flag
 
-# --- (FIXED) COMPONENT TO READ FROM LOCALSTORAGE ---
+# --- (FIX 2/3) COMPONENT TO READ FROM LOCALSTORAGE ---
 # This component will ONLY run if we haven't processed the localStorage value yet
-# and if the user isn't already logged in.
-if st.session_state.persisted_roll_number is None and not st.session_state.submitted:
+# AND the user isn't already logged in.
+if not st.session_state.initial_read_done and not st.session_state.submitted:
     components.html("""
         <script>
-        // Wait for streamlit to be ready
         window.addEventListener('load', function() {
             try {
-                // Get the value from localStorage
                 const rollNumber = localStorage.getItem('roll_number');
-                // Send it to Streamlit
-                Streamlit.setComponentValue(rollNumber || ''); // Send empty string if null
+                Streamlit.setComponentValue(rollNumber || '');
             } catch (e) {
-                // Handle cases where localStorage might be disabled
                 Streamlit.setComponentValue('');
             }
         });
@@ -267,12 +266,14 @@ if st.session_state.persisted_roll_number is None and not st.session_state.submi
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
     
-    # --- (FIXED) LOGIC TO HANDLE AUTO-LOGIN FROM LOCALSTORAGE ---
+    # --- (FIX 3/3) LOGIC TO HANDLE AUTO-LOGIN ---
     if not st.session_state.submitted and "local_storage_reader" in st.session_state:
-        
         # Check if we just received the value (it's not None)
-        # and if we haven't processed it yet (persisted_roll_number is None)
-        if st.session_state.local_storage_reader is not None and st.session_state.persisted_roll_number is None:
+        # and if we haven't processed it yet (initial_read_done is False)
+        if st.session_state.local_storage_reader is not None and not st.session_state.initial_read_done:
+            
+            # CRITICAL: Set the gatekeeper flag to TRUE immediately
+            st.session_state.initial_read_done = True
             
             component_value = st.session_state.local_storage_reader
             
@@ -280,12 +281,12 @@ if not master_schedule_df.empty and student_data_map:
                 # Valid roll number found, auto-login
                 st.session_state.roll_number = component_value
                 st.session_state.submitted = True
-                st.session_state.persisted_roll_number = component_value # Mark as processed
-                st.rerun() # Jump straight to the "submitted" view
+                st.session_state.persisted_roll_number = component_value
+                st.rerun()
             else:
                 # No valid roll, just prefill the form
-                st.session_state.persisted_roll_number = component_value or "" # Mark as processed
-                st.rerun() # Rerun to show the prefilled form
+                st.session_state.persisted_roll_number = component_value or ""
+                st.rerun()
 
     # --- DISPLAY FORM IF NOT SUBMITTED ---
     if not st.session_state.submitted:
@@ -299,7 +300,7 @@ if not master_schedule_df.empty and student_data_map:
             unsafe_allow_html=True
         )
         with st.form("roll_number_form"):
-            # Use the persisted value (which is now safe to use) to pre-fill the text input
+            # Use the persisted value (which is now safe to use) to pre-fill
             default_roll = st.session_state.persisted_roll_number or ""
             roll_number_input = st.text_input("Enter your Roll Number:", value=default_roll, placeholder="e.g., 24MBA463").strip().upper()
             submitted_button = st.form_submit_button("Generate Timetable")
@@ -307,16 +308,11 @@ if not master_schedule_df.empty and student_data_map:
             if submitted_button:
                 st.session_state.roll_number = roll_number_input
                 st.session_state.submitted = True
-                st.session_state.persisted_roll_number = roll_number_input # Store for pre-filling next time
+                st.session_state.persisted_roll_number = roll_number_input
 
-                # --- COMPONENT TO WRITE TO LOCALSTORAGE ON SUBMIT ---
                 components.html(f"""
                     <script>
-                        try {{
-                            localStorage.setItem('roll_number', '{roll_number_input}');
-                        }} catch (e) {{
-                            // Handle cases where localStorage might be disabled
-                        }}
+                        try {{ localStorage.setItem('roll_number', '{roll_number_input}'); }} catch (e) {{}}
                     </script>
                 """, height=0)
                 
@@ -328,7 +324,7 @@ if not master_schedule_df.empty and student_data_map:
         
         if not roll_to_process:
             st.session_state.submitted = False
-            st.session_state.persisted_roll_number = None # Reset
+            st.session_state.persisted_roll_number = "" # Clear prefill
             st.rerun()
         elif roll_to_process in student_data_map:
             student_info = student_data_map[roll_to_process]
@@ -341,7 +337,8 @@ if not master_schedule_df.empty and student_data_map:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
                     st.session_state.roll_number = ""
-                    st.session_state.persisted_roll_number = None # Reset
+                    # Keep persisted_roll_number as is, so form is pre-filled
+                    st.session_state.persisted_roll_number = "" # Set to empty
                     
                     components.html("""
                         <script>
@@ -359,7 +356,7 @@ if not master_schedule_df.empty and student_data_map:
                               10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:3App-c"}
                 found_classes = []
                 for index, row in master_schedule_df.iterrows():
-                    date, day = row[0], row[1]
+                    date_val, day = row[0], row[1]
                     for col_index, time in time_slots.items():
                         cell_value = str(row[col_index])
                         if cell_value and cell_value != 'nan':
@@ -369,14 +366,14 @@ if not master_schedule_df.empty and student_data_map:
                                     details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'}).copy()
                                     is_venue_override = False 
                                     
-                                    if date in DAY_SPECIFIC_OVERRIDES:
-                                        if norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
-                                            if 'Venue' in DAY_SPECIFIC_OVERRIDES[date][norm_sec]:
+                                    if date_val in DAY_SPECIFIC_OVERRIDES:
+                                        if norm_sec in DAY_SPECIFIC_OVERRIDES[date_val]:
+                                            if 'Venue' in DAY_SPECIFIC_OVERRIDES[date_val][norm_sec]:
                                                 is_venue_override = True
-                                            details.update(DAY_SPECIFIC_OVERRIDES[date][norm_sec])
+                                            details.update(DAY_SPECIFIC_OVERRIDES[date_val][norm_sec])
                                             
                                     found_classes.append({
-                                        "Date": date, "Day": day, "Time": time, "Subject": orig_sec,
+                                        "Date": date_val, "Day": day, "Time": time, "Subject": orig_sec,
                                         "Faculty": details.get('Faculty', 'N/A'),
                                         "Venue": details.get('Venue', '-'),
                                         "is_venue_override": is_venue_override
@@ -458,7 +455,7 @@ if not master_schedule_df.empty and student_data_map:
                         st.markdown('''
                             <div class="class-entry">
                                 <div class="left"><div class="subject-name" style="color: var(--muted); font-style: italic;">No classes scheduled</div></div>
-                                <div class="meta"><span class="time" style="color: var(--muted);">—</span></div>
+                                <div class.meta"><span class="time" style="color: var(--muted);">—</span></div>
                             </div>
                         ''', unsafe_allow_html=True)
                     else:
@@ -466,7 +463,7 @@ if not master_schedule_df.empty and student_data_map:
                             if class_info.get('is_venue_override', False):
                                 venue_display = f'<span class="venue venue-changed">Venue changed to {class_info["Venue"]}</span>'
                             else:
-                                venue_display = f'<span class="venue">{class_info["Venue"]}</span>'
+                                venue_display = f'<span class."venue">{class_info["Venue"]}</span>'
 
                             meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span>{venue_display}<span class="faculty">{class_info["Faculty"]}</span></div>'
                             st.markdown(f'''
@@ -501,6 +498,7 @@ if not master_schedule_df.empty and student_data_map:
             st.session_state.submitted = False
             st.session_state.roll_number = ""
             st.session_state.persisted_roll_number = None
+            st.session_state.initial_read_done = False # Reset gatekeeper on error
             st.rerun()
 elif master_schedule_df.empty or not student_data_map:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
