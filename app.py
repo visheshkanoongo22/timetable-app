@@ -10,65 +10,39 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
-
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
-
-# UPDATED COURSE DETAILS MAP WITH NEW CLASSROOM ARRANGEMENTS
 COURSE_DETAILS_MAP = {
-    'AN(A)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'}, 
-    'AN(B)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'},
-    'B2B(A)': {'Faculty': 'Sandip Trada', 'Venue': 'T5'}, 
-    'B2B(B)': {'Faculty': 'Rupam Deb', 'Venue': 'E1'},  # Changed from E2 to E1
-    "B2B('C)": {'Faculty': 'Rupam Deb', 'Venue': 'E1'},  # Changed from E2 to E1
-    'BS': {'Faculty': 'Satish Nair', 'Venue': 'T6'},
-    'CC&AU(A)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'}, 
-    'CC&AU(B)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'},
-    'CSE': {'Faculty': 'Shahir Bhatt', 'Venue': 'T6'}, 
-    'DADM': {'Faculty': 'Mahesh K C', 'Venue': 'T3'},
-    'DC': {'Faculty': 'Sapan Oza', 'Venue': 'T6'}, 
-    'DM(A)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'},  # Already T7
-    'DM(B)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'},  # Already T7
-    "DRM('C)": {'Faculty': 'Pankaj Agrawal', 'Venue': 'T5'},
-    'DRM(A)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'}, 
-    'DRM(B)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'},
-    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'E2'},  # Already E2
-    'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
-    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 
-    'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'E2'},
-    'IMC(A)': {'Faculty': 'Sanjay Jain', 'Venue': 'T1'}, 
-    'IMC(B)': {'Faculty': 'Riddhi Ambavale', 'Venue': 'T7'},  # Already T7
-    'INB(A)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 
-    'INB(B)': {'Faculty': 'M C Gupta', 'Venue': 'T7'},
-    'INB(C)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 
-    'LSS(A)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'},
-    'LSS(B)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'}, 
-    'ML&AI(A)': {'Faculty': 'Omkar Sahoo', 'Venue': 'T5'},
-    'ML&AI(B)': {'Faculty': 'Omkar Sahoo', 'Venue': 'T5'}, 
-    'OMSD': {'Faculty': 'Dinesh Panchal', 'Venue': 'T3'},
-    'PDBE(A)': {'Faculty': 'Nina Muncherji', 'Venue': 'T6'}, 
-    'PDBE(B)': {'Faculty': 'Nina Muncherji', 'Venue': 'T6'},
-    "SCM('C)": {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 
-    'SCM(A)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'},
-    'SCM(B)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 
-    'SMKT(A)': {'Faculty': 'Himanshu Chauhan', 'Venue': 'T6'},
-    'SMKT(B)': {'Faculty': 'Kavita Saxena', 'Venue': 'T5'}, 
-    'TEOM(A)': {'Faculty': 'P Ganesh', 'Venue': 'T3'},
-    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, 
-    "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
-    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 
-    'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
+    'AN(A)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'}, 'AN(B)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'},
+    'B2B(A)': {'Faculty': 'Sandip Trada', 'Venue': 'T5'}, 'B2B(B)': {'Faculty': 'Rupam Deb', 'Venue': 'E2'},
+    "B2B('C)": {'Faculty': 'Rupam Deb', 'Venue': 'E2'}, 'BS': {'Faculty': 'Satish Nair', 'Venue': 'T6'},
+    'CC&AU(A)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'}, 'CC&AU(B)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'},
+    'CSE': {'Faculty': 'Shahir Bhatt', 'Venue': 'T6'}, 'DADM': {'Faculty': 'Mahesh K C', 'Venue': 'T3'},
+    'DC': {'Faculty': 'Sapan Oza', 'Venue': 'T6'}, 'DM(A)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'},
+    'DM(B)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'}, "DRM('C)": {'Faculty': 'Pankaj Agrawal', 'Venue': 'T5'},
+    'DRM(A)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'}, 'DRM(B)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'},
+    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'E2'}, 'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
+    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'E2'},
+    'IMC(A)': {'Faculty': 'Sanjay Jain', 'Venue': 'T1'}, 'IMC(B)': {'Faculty': 'Riddhi Ambavale', 'Venue': 'T7'},
+    'INB(A)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'INB(B)': {'Faculty': 'M C Gupta', 'Venue': 'T7'},
+    'INB(C)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'LSS(A)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'},
+    'LSS(B)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'}, 'ML&AI(A)': {'Faculty': 'Omkar Sahoo', 'Venue': 'T5'},
+    'ML&AI(B)': {'Faculty': 'Omkar Sahoo', 'Venue': 'T5'}, 'OMSD': {'Faculty': 'Dinesh Panchal', 'Venue': 'T3'},
+    'PDBE(A)': {'Faculty': 'Nina Muncherji', 'Venue': 'T6'}, 'PDBE(B)': {'Faculty': 'Nina Muncherji', 'Venue': 'T6'},
+    "SCM('C)": {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SCM(A)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'},
+    'SCM(B)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SMKT(A)': {'Faculty': 'Himanshu Chauhan', 'Venue': 'T6'},
+    'SMKT(B)': {'Faculty': 'Kavita Saxena', 'Venue': 'T5'}, 'TEOM(A)': {'Faculty': 'P Ganesh', 'Venue': 'T3'},
+    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
+    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
-
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
         return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").upper()
     return ""
-
 @st.cache_data
 def load_and_clean_schedule(file_path):
     try:
@@ -83,7 +57,6 @@ def load_and_clean_schedule(file_path):
     except Exception as e:
         st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
         return pd.DataFrame()
-
 @st.cache_data
 def get_all_student_data(folder_path='.'):
     student_data_map = {}
@@ -110,7 +83,6 @@ def get_all_student_data(folder_path='.'):
         except Exception:
             continue
     return student_data_map
-
 def generate_ics_content(found_classes):
     c = Calendar(creator="-//Student Timetable Script//EN")
     local_tz = pytz.timezone(TIMEZONE)
@@ -134,20 +106,17 @@ def generate_ics_content(found_classes):
         except Exception:
             continue
     return c.serialize()
-
 # 4. STREAMLIT WEB APP INTERFACE
 st.set_page_config(
     page_title="MBA Timetable Assistant", 
     layout="centered", 
     initial_sidebar_state="collapsed"
 )
-
 # Force dark mode by injecting meta tags and overriding system preferences
 st.markdown("""
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0F172A">
 """, unsafe_allow_html=True)
-
 # --- CSS STYLING ---
 local_css_string = """
 <style>
@@ -390,21 +359,17 @@ local_css_string = """
 </style>
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
-
 # --- APP HEADER ---
 st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
 st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
-
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
-
 # --- INITIALIZE SESSION STATE ---
 if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
-
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
     
@@ -602,7 +567,9 @@ if not master_schedule_df.empty and student_data_map:
             st.rerun()
 elif master_schedule_df.empty or not student_data_map:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
-
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("_Made by Vishesh_")
+
+
+
