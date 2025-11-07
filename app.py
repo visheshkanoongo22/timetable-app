@@ -194,6 +194,7 @@ local_css_string = """
         --glass-border: rgba(255,255,255,0.08); /* Slightly more visible border */
         --today-glow: #38BDF8; /* Muted sky blue for today's highlight */
         --today-glow-shadow: rgba(56, 189, 248, 0.4);
+        --venue-change-color: #F87171; /* Light red for changed venues */
     }
     .stApp {
         background: radial-gradient(1200px 600px at 10% 10%, rgba(96,165,250,0.08), transparent 10%), /* Muted blue gradient */
@@ -337,6 +338,11 @@ local_css_string = """
         font-size:0.85rem;
         color:var(--muted);
     }
+    /* This class will be applied to changed venues */
+    .venue-changed {
+        color: var(--venue-change-color) !important;
+        font-weight: 600;
+    }
     
     /* --- INPUT & BUTTON STYLES --- */
     .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
@@ -412,7 +418,6 @@ st.markdown(local_css_string, unsafe_allow_html=True)
 # --- APP HEADER ---
 st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
 st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
-st.markdown('<div class="header-sub">Now Supporrts Dynamic Class/Venue/Schedule Changes!.</div>', unsafe_allow_html=True)
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
@@ -429,7 +434,7 @@ if not master_schedule_df.empty and student_data_map:
         st.markdown(
             """
             <div class="welcome-box">
-                Welcome! Download and Import your Time Table into your Calendar.
+                Welcome! This application helps you generate your personalized class schedule and export it as a <strong>.ics calendar file</strong>.
                 Simply enter your roll number below to get started.
             </div>
             """,
@@ -482,20 +487,24 @@ if not master_schedule_df.empty and student_data_map:
                             for norm_sec, orig_sec in normalized_student_section_map.items():
                                 if norm_sec in normalized_cell:
                                     # 1. Get default details
-                                    # Use .copy() to avoid modifying the original map
                                     details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'}).copy()
+                                    is_venue_override = False # <-- NEW: Initialize flag
                                     
                                     # 2. Check for and apply day-specific overrides
                                     if date in DAY_SPECIFIC_OVERRIDES:
                                         if norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
-                                            # Update details (e.g., Venue) from the override
+                                            # NEW: Check if 'Venue' is part of the override
+                                            if 'Venue' in DAY_SPECIFIC_OVERRIDES[date][norm_sec]:
+                                                is_venue_override = True # <-- NEW: Set flag
+                                            
                                             details.update(DAY_SPECIFIC_OVERRIDES[date][norm_sec])
                                             
                                     # 3. Append the (potentially modified) class
                                     found_classes.append({
                                         "Date": date, "Day": day, "Time": time, "Subject": orig_sec,
                                         "Faculty": details.get('Faculty', 'N/A'),
-                                        "Venue": details.get('Venue', '-')
+                                        "Venue": details.get('Venue', '-'),
+                                        "is_venue_override": is_venue_override # <-- NEW: Add flag
                                     })
                 
                 # --- ADD ADDITIONAL CLASSES (e.g., Guest Sessions) ---
@@ -503,7 +512,6 @@ if not master_schedule_df.empty and student_data_map:
                     norm_added_subject = normalize_string(added_class['Subject'])
                     # Check if the student is in this section
                     if norm_added_subject in normalized_student_section_map:
-                        # Get the correct day name for the date
                         day_of_week = added_class['Date'].strftime('%A')
                         
                         found_classes.append({
@@ -512,7 +520,8 @@ if not master_schedule_df.empty and student_data_map:
                             "Time": added_class['Time'],
                             "Subject": added_class['Subject'], # Use the original name
                             "Faculty": added_class.get('Faculty', 'N/A'),
-                            "Venue": added_class.get('Venue', '-')
+                            "Venue": added_class.get('Venue', '-'),
+                            "is_venue_override": False # <-- NEW: Added classes are not "overrides"
                         })
                 # --- END OF ADDITIONS ---
 
@@ -606,7 +615,16 @@ if not master_schedule_df.empty and student_data_map:
                         ''', unsafe_allow_html=True)
                     else:
                         for class_info in classes_today:
-                            meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span><span class="venue">{class_info["Venue"]}</span><span class="faculty">{class_info["Faculty"]}</span></div>'
+                            # --- NEW: Logic for conditional venue display ---
+                            venue_display = ""
+                            if class_info.get('is_venue_override', False):
+                                venue_display = f'<span class="venue venue-changed">Venue changed to {class_info["Venue"]}</span>'
+                            else:
+                                venue_display = f'<span class="venue">{class_info["Venue"]}</span>'
+                            # --- END NEW LOGIC ---
+
+                            meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span>{venue_display}<span class="faculty">{class_info["Faculty"]}</span></div>'
+                            
                             st.markdown(f'''
                                 <div class="class-entry">
                                     <div class="left">
@@ -650,5 +668,3 @@ elif master_schedule_df.empty or not student_data_map:
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("_Made by Vishesh_")
-
-
