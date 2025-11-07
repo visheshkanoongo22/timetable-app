@@ -426,16 +426,15 @@ if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
-# --- NEW: SESSION STATE FOR LOCALSTORAGE VALUE ---
 if 'persisted_roll_number' not in st.session_state:
     st.session_state.persisted_roll_number = None
 
 
-# --- NEW: COMPONENT TO READ FROM LOCALSTORAGE ---
-# This component will run on first load, get the value, and send it back to Streamlit
-# This will trigger a rerun, allowing us to auto-login or pre-fill the form
+# --- (FIX 1/2) COMPONENT TO READ FROM LOCALSTORAGE ---
+# We just *call* the component. We DO NOT assign it to a variable.
+# Its return value will be stored in st.session_state.local_storage_reader
 if not st.session_state.submitted:
-    component_value = components.html("""
+    components.html("""
         <script>
         // Wait for streamlit to be ready
         window.addEventListener('load', function() {
@@ -451,17 +450,19 @@ if not st.session_state.submitted:
         });
         </script>
         """, height=0, key="local_storage_reader")
-else:
-    component_value = None
 
 
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
     
-    # --- NEW: LOGIC TO HANDLE AUTO-LOGIN FROM LOCALSTORAGE ---
-    if not st.session_state.submitted and component_value is not None:
+    # --- (FIX 2/2) LOGIC TO HANDLE AUTO-LOGIN FROM LOCALSTORAGE ---
+    # We check for the key in st.session_state, not the (now removed) variable
+    if not st.session_state.submitted and "local_storage_reader" in st.session_state and st.session_state.local_storage_reader is not None:
+        
+        # Get the value from the session state
+        component_value = st.session_state.local_storage_reader
+        
         if st.session_state.persisted_roll_number is None: # Only run this logic once
-            # component_value is the value from localStorage (e.g., '24MBA463' or '')
             if component_value in student_data_map:
                 # Valid roll number found, auto-login
                 st.session_state.roll_number = component_value
@@ -493,7 +494,7 @@ if not master_schedule_df.empty and student_data_map:
                 st.session_state.roll_number = roll_number_input
                 st.session_state.submitted = True
 
-                # --- NEW: COMPONENT TO WRITE TO LOCALSTORAGE ON SUBMIT ---
+                # --- COMPONENT TO WRITE TO LOCALSTORAGE ON SUBMIT ---
                 components.html(f"""
                     <script>
                         try {{
@@ -503,7 +504,6 @@ if not master_schedule_df.empty and student_data_map:
                         }}
                     </script>
                 """, height=0)
-                # --- END NEW COMPONENT ---
                 
                 st.rerun()
 
@@ -530,7 +530,7 @@ if not master_schedule_df.empty and student_data_map:
                     st.session_state.roll_number = ""
                     st.session_state.persisted_roll_number = None # Reset this
                     
-                    # --- NEW: COMPONENT TO CLEAR LOCALSTORAGE ON LOGOUT ---
+                    # --- COMPONENT TO CLEAR LOCALSTORAGE ON LOGOUT ---
                     components.html("""
                         <script>
                             try {{
@@ -540,7 +540,6 @@ if not master_schedule_df.empty and student_data_map:
                             }}
                         </script>
                     """, height=0)
-                    # --- END NEW COMPONENT ---
                     
                     st.rerun()
             
