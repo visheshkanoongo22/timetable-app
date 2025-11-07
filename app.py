@@ -10,6 +10,7 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
+
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
 TIMEZONE = 'Asia/Kolkata'
@@ -37,6 +38,29 @@ COURSE_DETAILS_MAP = {
     'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
     'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
+}
+
+# DAY-SPECIFIC OVERRIDES
+# Format: {date(YYYY, MM, DD): {'Section': {'Venue': 'NewVenue', 'Faculty': 'NewFaculty', 'Time': 'NewTime'}}}
+DAY_SPECIFIC_CHANGES = {
+    date(2025, 11, 8): {
+        'DC': {'Venue': '216'},
+        "VALU('C)": {'Venue': '216'},
+        'VALU(D)': {'Venue': '216'},
+        'IMC(B)': {'Venue': '216'},
+        # Combined online guest session for SCM
+        'SCM(A)': {'Venue': 'Online', 'Faculty': 'Guest Speaker', 'Time': '10:20-11:20AM', 'Note': 'Combined Session'},
+        'SCM(B)': {'Venue': 'Online', 'Faculty': 'Guest Speaker', 'Time': '10:20-11:20AM', 'Note': 'Combined Session'},
+        "SCM('C)": {'Venue': 'Online', 'Faculty': 'Guest Speaker', 'Time': '10:20-11:20AM', 'Note': 'Combined Session'},
+    },
+    date(2025, 11, 10): {
+        'B2B(B)': {'Venue': 'E1'},
+        "B2B('C)": {'Venue': 'E1'},
+        "DV&VS('C)": {'Venue': 'E2'},
+        'DM(B)': {'Venue': '214'},
+        'DM(A)': {'Venue': '214'},
+        'OMSD': {'Venue': '214'},
+    }
 }
 # 3. FUNCTIONS
 def normalize_string(text):
@@ -570,6 +594,7 @@ elif master_schedule_df.empty or not student_data_map:
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("_Made by Vishesh_")
+
 
 
 
