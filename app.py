@@ -9,7 +9,7 @@ from ics import Calendar, Event
 import pytz
 import hashlib
 from collections import defaultdict
-from streamlit_javascript import st_javascript  # <-- YOUR NEW, CORRECT IMPORT
+from streamlit_javascript import st_javascript  # <-- This line is correct
 import streamlit.components.v1 as components
 
 # 2. CONFIGURATION
