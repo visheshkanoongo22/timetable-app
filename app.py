@@ -411,7 +411,8 @@ local_css_string = """
 st.markdown(local_css_string, unsafe_allow_html=True)
 # --- APP HEADER ---
 st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips. Now Supports Venue, Timings & Class Changes </div>', unsafe_allow_html=True)
+st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
+st.markdown('<div class="header-sub">Now Supporrts Dynamic Class/Venue/Schedule Changes!.</div>', unsafe_allow_html=True)
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
@@ -649,4 +650,5 @@ elif master_schedule_df.empty or not student_data_map:
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("_Made by Vishesh_")
+
 
