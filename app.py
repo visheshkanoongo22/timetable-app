@@ -10,6 +10,8 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
+from streamlit_javascript import st_javascript
+
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -421,11 +423,18 @@ st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingerti
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
-# --- INITIALIZE SESSION STATE ---
-if 'submitted' not in st.session_state:
-    st.session_state.submitted = False
-if 'roll_number' not in st.session_state:
-    st.session_state.roll_number = ""
+
+# --- INITIALIZE SESSION STATE WITH PERSISTENT LOCAL STORAGE ---
+from streamlit_javascript import st_javascript
+
+# Try to load any previously saved roll number from browser localStorage
+saved_roll = st_javascript("JSON.parse(localStorage.getItem('saved_roll') || '\"\"')")
+
+if "roll_number" not in st.session_state:
+    st.session_state.roll_number = saved_roll or ""
+if "submitted" not in st.session_state:
+    st.session_state.submitted = bool(saved_roll)
+
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
     
@@ -447,7 +456,14 @@ if not master_schedule_df.empty and student_data_map:
             if submitted_button:
                 st.session_state.roll_number = roll_number_input
                 st.session_state.submitted = True
+            
+                # Save roll number to browser localStorage (persists across refreshes)
+                st_javascript(f"""
+                    localStorage.setItem('saved_roll', JSON.stringify('{roll_number_input}'));
+                """)
+            
                 st.rerun()
+
     # --- PROCESS AND DISPLAY SCHEDULE IF SUBMITTED ---
     if st.session_state.submitted:
         roll_to_process = st.session_state.roll_number
@@ -469,8 +485,13 @@ if not master_schedule_df.empty and student_data_map:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
                     st.session_state.roll_number = ""
+                    
+                    # Remove saved roll number from browser localStorage
+                    st_javascript("localStorage.removeItem('saved_roll');")
+                    
                     st.rerun()
-            
+
+           
             with st.spinner(f'Compiling classes for {student_name}...'):
                 NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
                 normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
