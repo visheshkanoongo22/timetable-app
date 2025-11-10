@@ -200,6 +200,41 @@ local_css_string = """
     }
     .welcome-box strong { color: #ffffff; font-weight: 600; }
     
+    .next-class-card {
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        border-radius: 14px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(96,165,250,0.2);
+    }
+    .next-class-header {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--bg);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 0.75rem;
+    }
+    .next-class-body {
+        display:flex;
+        flex-direction:row;
+        align-items:center;
+        justify-content:space-between;
+    }
+    .next-class-body .left { gap: 0.1rem; }
+    .next-class-body .subject-name { color: #ffffff; font-size: 1.3rem; }
+    .next-class-body .meta { min-width: 100px; }
+    .next-class-body .meta .time, .next-class-body .meta .venue, .next-class-body .meta .faculty {
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    .next-class-body .meta .venue, .next-class-body .meta .faculty {
+        font-size: 0.9rem;
+        font-weight: 400;
+        opacity: 0.9;
+    }
+
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
         border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
@@ -431,13 +466,13 @@ if not master_schedule_df.empty and student_data_map:
                         st.markdown('<p style="color: var(--muted); font-style: italic;">No previous classes found.</p>', unsafe_allow_html=True)
                     
                     for date_obj in past_dates:
-                        # ... (This whole loop is unchanged)
                         st.markdown(f'''
                             <div class="day-card" id="date-card-past-{date_obj.toordinal()}">
                                 <div class="day-header">
                                     {date_obj.strftime("%A, %d %B %Y")}
                                 </div>
                         ''', unsafe_allow_html=True)
+                        
                         classes_today = schedule_by_date.get(date_obj, [])
                         if not classes_today:
                             st.markdown('''
@@ -456,6 +491,7 @@ if not master_schedule_df.empty and student_data_map:
                                     venue_display = f'<span class="venue venue-changed">Venue changed to {venue_text}</span>'
                                 else:
                                     venue_display = f'<span class="venue">{venue_text}</span>'
+
                                 meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span>{venue_display}<span class="faculty">{class_info["Faculty"]}</span></div>'
                                 st.markdown(f'''
                                     <div class="class-entry">
@@ -465,7 +501,7 @@ if not master_schedule_df.empty and student_data_map:
                                 ''', unsafe_allow_html=True)
                         st.markdown('</div>', unsafe_allow_html=True)
                 
-                # --- 2. RENDER UPCOMING CLASSES ---
+                # --- 2. RENDER "WHAT'S NEXT" AND UPCOMING CLASSES ---
                 
                 # --- "WHAT'S NEXT" CARD REMOVED ---
                 
@@ -474,12 +510,11 @@ if not master_schedule_df.empty and student_data_map:
 
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
-                    " ", # <-- Label set to empty string
-                    placeholder="e.g., DRM, SMKT, LSS, etc",
+                    "Search any subject:", 
+                    placeholder="e.g., DRM, SMKT, LSS, etc", 
                     debounce=300, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
-                st.caption("Search any subject") # <-- Label moved to caption below
                 search_query = search_query.lower() if search_query else ""
                 
                 # --- CLEAR SEARCH BUTTON ---
@@ -584,7 +619,7 @@ if not master_schedule_df.empty and student_data_map:
                             if "POSTPONED" in venue_text.upper():
                                 venue_display = f'<span class="venue venue-changed">{venue_text}</span>'
                             elif class_info.get('is_venue_override', False):
-                                venue_display = f'<span class_ ="venue venue-changed">Venue changed to {venue_text}</span>'
+                                venue_display = f'<span class="venue venue-changed">Venue changed to {venue_text}</span>'
                             else:
                                 venue_display = f'<span class="venue">{venue_text}</span>'
 
@@ -601,26 +636,22 @@ if not master_schedule_df.empty and student_data_map:
                         
                         st.markdown('</div>', unsafe_allow_html=True)
 
-                # --- AUTO-SCROLL SCRIPT (Unchanged) ---
+                # --- AUTO-SCROLL SCRIPT (Reverted to the one you requested) ---
                 if not st.session_state.scrolled_to_search:
                     components.html(f"""
                     <script>
-                        let attempts = 0;
-                        const scrollInterval = setInterval(() => {{
-                            attempts++;
+                        function scrollToSearch() {{
                             const searchAnchor = window.parent.document.getElementById('search-anchor-div');
-                            
                             if (searchAnchor) {{
-                                clearInterval(scrollInterval);
-                                const rect = searchAnchor.getBoundingClientRect();
-                                const currentScrollY = window.parent.scrollY;
-                                const targetY = rect.top + currentScrollY - 85; 
-                                window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
+                                searchAnchor.scrollIntoView({{behavior: 'smooth', block: 'start'}});
+                                return true;
                             }}
-                            if (attempts > 20) {{
-                                clearInterval(scrollInterval);
-                            }}
-                        }}, 250);
+                            return false;
+                        }}
+                        
+                        if (!scrollToSearch()) {{
+                            setTimeout(scrollToSearch, 500);
+                        }}
                     </script>
                     """, height=0)
                     st.session_state.scrolled_to_search = True 
