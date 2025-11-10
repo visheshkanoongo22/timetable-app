@@ -59,7 +59,7 @@ DAY_SPECIFIC_OVERRIDES = {
         'DMA': {'Venue': '214'},
         'OMSD': {'Venue': '214'},
     },
-    # *** NEW CHANGES FOR NOV 11 ***
+    # Changes for Nov 11
     date(2025, 11, 11): {
         'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # From SMKT(B)
         'IMCA': {'Venue': 'T3'}  # From IMC(A)
@@ -539,7 +539,7 @@ if not master_schedule_df.empty and student_data_map:
             # --- ORGANIZED RESULTS SECTION ---
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
-                sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
+                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                 
                 with st.container():
                     st.markdown('<div class="results-container">', unsafe_allow_html=True)
@@ -561,9 +561,10 @@ if not master_schedule_df.empty and student_data_map:
                         5. Click **'Import'** to add the events to your calendar.
                         """)
                     st.markdown('</div>', unsafe_allow_html=True)
-                # --- PREVIEW SECTION ---
+                
+                # --- *** NEW PREVIEW SECTION LOGIC *** ---
                 st.markdown("---")
-                st.subheader("Your Timetable Preview")
+                
                 schedule_by_date = defaultdict(list)
                 for class_info in found_classes:
                     schedule_by_date[class_info['Date']].append(class_info)
@@ -572,22 +573,72 @@ if not master_schedule_df.empty and student_data_map:
                 time_sorter = {time: i for i, time in enumerate(time_slots.values())}
                 for date in sorted_dates:
                     schedule_by_date[date].sort(key=lambda x: time_sorter.get(x['Time'], 99))
-                # Fill in missing dates between first and last class date
+                
+                all_dates = []
                 if sorted_dates:
                     first_date = sorted_dates[0]
                     last_date = sorted_dates[-1]
                     current_date = first_date
-                    all_dates = []
-                    
                     while current_date <= last_date:
                         all_dates.append(current_date)
                         current_date = date.fromordinal(current_date.toordinal() + 1)
-                    
-                    sorted_dates = all_dates
+                
                 today = datetime.now(pytz.timezone(TIMEZONE)).date()
                 today_anchor_id = None
                 
-                for idx, date_obj in enumerate(sorted_dates):
+                # --- Split dates into past and upcoming ---
+                past_dates = sorted([d for d in all_dates if d < today], reverse=True) # Show most recent past first
+                upcoming_dates = sorted([d for d in all_dates if d >= today])
+
+                # --- 1. RENDER PAST CLASSES (IN AN EXPANDER) ---
+                with st.expander("Show Previous Classes"):
+                    if not past_dates:
+                        st.markdown('<p style="color: var(--muted); font-style: italic;">No previous classes found.</p>', unsafe_allow_html=True)
+                    
+                    for date_obj in past_dates:
+                        st.markdown(f'''
+                            <div class="day-card" id="date-card-past-{date_obj.toordinal()}">
+                                <div class="day-header">
+                                    {date_obj.strftime("%A, %d %B %Y")}
+                                </div>
+                        ''', unsafe_allow_html=True)
+                        
+                        classes_today = schedule_by_date.get(date_obj, [])
+                        if not classes_today:
+                            st.markdown('''
+                                <div class="class-entry">
+                                    <div class="left"><div class="subject-name" style="color: var(--muted); font-style: italic;">No classes scheduled</div></div>
+                                    <div class="meta"><span class="time" style="color: var(--muted);">—</span></div>
+                                </div>
+                            ''', unsafe_allow_html=True)
+                        else:
+                            for class_info in classes_today:
+                                # --- Logic for conditional venue display ---
+                                venue_display = ""
+                                venue_text = class_info.get("Venue", "-")
+                                
+                                if "POSTPONED" in venue_text.upper():
+                                    venue_display = f'<span class="venue venue-changed">{venue_text}</span>'
+                                elif class_info.get('is_venue_override', False):
+                                    venue_display = f'<span class="venue venue-changed">Venue changed to {venue_text}</span>'
+                                else:
+                                    venue_display = f'<span class="venue">{venue_text}</span>'
+
+                                meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span>{venue_display}<span class="faculty">{class_info["Faculty"]}</span></div>'
+                                st.markdown(f'''
+                                    <div class="class-entry">
+                                        <div class="left"><div class="subject-name">{class_info["Subject"]}</div></div>
+                                        {meta_html}
+                                    </div>
+                                ''', unsafe_allow_html=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
+                
+                # --- 2. RENDER UPCOMING CLASSES (MAIN VIEW) ---
+                st.subheader("Upcoming Classes")
+                if not upcoming_dates:
+                     st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
+
+                for idx, date_obj in enumerate(upcoming_dates):
                     is_today = (date_obj == today)
                     today_class = "today" if is_today else ""
                     card_id = f"date-card-{idx}"
@@ -625,7 +676,7 @@ if not master_schedule_df.empty and student_data_map:
                         ''', unsafe_allow_html=True)
                     else:
                         for class_info in classes_today:
-                            # --- *** MODIFIED LOGIC FOR POSTPONED *** ---
+                            # --- Logic for conditional venue display ---
                             venue_display = ""
                             venue_text = class_info.get("Venue", "-")
                             
@@ -638,7 +689,7 @@ if not master_schedule_df.empty and student_data_map:
                             else:
                                 # It's a normal class
                                 venue_display = f'<span class="venue">{venue_text}</span>'
-                            # --- *** END MODIFIED LOGIC *** ---
+                            # --- END NEW LOGIC ---
 
                             meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span>{venue_display}<span class="faculty">{class_info["Faculty"]}</span></div>'
                             
