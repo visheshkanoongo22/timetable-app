@@ -10,7 +10,7 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
-from streamlit_extras.st_keyup import st_keyup # <-- NEW: For live search
+from streamlit_extras.st_keyup import st_keyup # For live search
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -310,7 +310,7 @@ if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
-if 'scrolled_to_search' not in st.session_state: # <-- NEW: For one-time scroll
+if 'scrolled_to_search' not in st.session_state: # For one-time scroll
     st.session_state.scrolled_to_search = False
 
 # --- MAIN APP LOGIC ---
@@ -356,7 +356,7 @@ if not master_schedule_df.empty and student_data_map:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
                     st.session_state.roll_number = ""
-                    st.session_state.scrolled_to_search = False # <-- NEW: Reset scroll flag
+                    st.session_state.scrolled_to_search = False # Reset scroll flag
                     st.rerun()
             
             with st.spinner(f'Compiling classes for {student_name}...'):
@@ -530,17 +530,23 @@ if not master_schedule_df.empty and student_data_map:
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # --- NEW: SEARCH ANCHOR ---
-                # This is an invisible element we can scroll to
+                # --- SEARCH ANCHOR ---
                 st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
 
-                # --- NEW: SEARCH BAR (using st_keyup) ---
+                # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
                     "Search any subject:", 
-                    placeholder="e.g., DRM, SMKT, INB, etc.",
+                    placeholder="e.g., SCM, P Ganesh, or T3",
                     debounce=300, # Waits 300ms after you stop typing
+                    key="search_bar" # Add key to control it
                 )
                 search_query = search_query.lower() if search_query else ""
+                
+                # --- NEW: CLEAR SEARCH BUTTON ---
+                if search_query: # Only show the button if there is text
+                    if st.button("Clear Search"):
+                        st.session_state.search_bar = ""
+                        st.rerun()
                 
                 if search_query:
                     st.subheader(f"Search Results for '{search_query}'")
@@ -632,8 +638,7 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query and not found_search_results:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
 
-                # --- NEW: AUTO-SCROLL SCRIPT ---
-                # This script will run ONCE and scroll to the search anchor
+                # --- AUTO-SCROLL SCRIPT ---
                 if not st.session_state.scrolled_to_search:
                     components.html(f"""
                     <script>
@@ -651,7 +656,7 @@ if not master_schedule_df.empty and student_data_map:
                         }}
                     </script>
                     """, height=0)
-                    st.session_state.scrolled_to_search = True # Set flag so it doesn't run again
+                    st.session_state.scrolled_to_search = True 
                 
             else:
                 if search_query:
