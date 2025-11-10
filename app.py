@@ -402,7 +402,7 @@ if not master_schedule_df.empty and student_data_map:
                 ics_content = generate_ics_content(found_classes)
                 sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                 
-                # --- *** MOVED THIS SECTION UP *** ---
+                # --- DOWNLOAD AND IMPORT SECTION (MOVED UP) ---
                 with st.container():
                     st.markdown('<div class="results-container">', unsafe_allow_html=True)
                     st.markdown("### 1. Download Calendar File")
@@ -525,10 +525,10 @@ if not master_schedule_df.empty and student_data_map:
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # --- *** SEARCH BAR MOVED HERE *** ---
+                # --- SEARCH BAR (MOVED HERE) ---
                 search_query = st.text_input(
                     "Search any subject:", # <-- Text changed
-                    placeholder="e.g., DRM, INB, SMKT, etc."
+                    placeholder="e.g., SCM, P Ganesh, or T3"
                 ).lower()
                 
                 if search_query:
@@ -545,12 +545,11 @@ if not master_schedule_df.empty and student_data_map:
                     today_class = "today" if is_today else ""
                     card_id = f"date-card-{idx}"
                     
-                    if is_today and not search_query: # Only set anchor if not searching
+                    if is_today and not search_query: 
                         today_anchor_id = card_id
                     
                     classes_today = schedule_by_date.get(date_obj, [])
                     
-                    # --- Search filter logic moved inside the loop ---
                     if search_query:
                         classes_today = [
                             c for c in classes_today if
@@ -563,9 +562,8 @@ if not master_schedule_df.empty and student_data_map:
                     
                     if not classes_today:
                         if search_query:
-                            continue # Don't show the day card if no classes match search
+                            continue 
                         else:
-                            # Show "No classes scheduled" card
                             st.markdown(f'''
                                 <div class="day-card {today_class}" id="{card_id}">
                                     <div class="day-header">
@@ -580,7 +578,6 @@ if not master_schedule_df.empty and student_data_map:
                                 </div>
                             ''', unsafe_allow_html=True)
                     else:
-                        # Render the day card with classes
                         if is_today:
                             st.markdown(f'''
                                 <div class="day-card {today_class}" id="{card_id}">
@@ -624,26 +621,14 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query and not found_search_results:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
 
-                if today_anchor_id and not search_query: # Only scroll if not searching
-                    components.html(f"""
-                    <script>
-                        function scrollToToday() {{
-                            const todayCard = window.parent.document.getElementById('{today_anchor_id}');
-                            if (todayCard) {{
-                                todayCard.scrollIntoView({{behavior: 'smooth', block: 'start'}});
-                                return true;
-                            }}
-                            return false;
-                        }}
-                        
-                        if (!scrollToToday()) {{
-                            setTimeout(scrollToToday, 500);
-                        }}
-                        setTimeout(scrollToToday, 1500);
-                    </script>
-                    """, height=0)
+                # --- AUTO-SCROLL SCRIPT REMOVED ---
+                # The components.html(...) block that was here is now gone.
+                
             else:
-                st.warning("No classes found for your registered sections in the master schedule.")
+                if search_query:
+                    st.warning(f"No classes found matching your search for '{search_query}'.")
+                else:
+                    st.warning("No classes found for your registered sections in the master schedule.")
                 
         # Handle invalid roll number
         else:
