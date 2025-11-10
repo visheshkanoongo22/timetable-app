@@ -483,7 +483,7 @@ if not master_schedule_df.empty and student_data_map:
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
                 # The st.caption() line has been removed
-                st.caption("Search any subject") # <-- Label moved to caption below
+                st.caption("") # <-- Label moved to caption below
                 search_query = search_query.lower() if search_query else ""
                 
                 # --- CLEAR SEARCH BUTTON ---
