@@ -625,13 +625,20 @@ if not master_schedule_df.empty and student_data_map:
                         ''', unsafe_allow_html=True)
                     else:
                         for class_info in classes_today:
-                            # --- Logic for conditional venue display ---
+                            # --- *** MODIFIED LOGIC FOR POSTPONED *** ---
                             venue_display = ""
-                            if class_info.get('is_venue_override', False):
-                                venue_display = f'<span class="venue venue-changed">Venue changed to {class_info["Venue"]}</span>'
+                            venue_text = class_info.get("Venue", "-")
+                            
+                            if "POSTPONED" in venue_text.upper():
+                                # Special case for postponed classes
+                                venue_display = f'<span class="venue venue-changed">{venue_text}</span>'
+                            elif class_info.get('is_venue_override', False):
+                                # It's an override, but not postponed
+                                venue_display = f'<span class="venue venue-changed">Venue changed to {venue_text}</span>'
                             else:
-                                venue_display = f'<span class="venue">{class_info["Venue"]}</span>'
-                            # --- END NEW LOGIC ---
+                                # It's a normal class
+                                venue_display = f'<span class="venue">{venue_text}</span>'
+                            # --- *** END MODIFIED LOGIC *** ---
 
                             meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span>{venue_display}<span class="faculty">{class_info["Faculty"]}</span></div>'
                             
