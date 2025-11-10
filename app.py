@@ -476,7 +476,7 @@ if not master_schedule_df.empty and student_data_map:
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
                     "", # <-- Set label to an empty space
-                    placeholder="Search by any Subject/Faculty/Classroom, e.g., DRM, Himanshu Chauhan, T5, etc", # <-- Placeholder changed
+                    placeholder="Search by any Subject Code/Faculty/Classroom", # <-- Placeholder changed
                     debounce=0, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
@@ -575,7 +575,7 @@ if not master_schedule_df.empty and student_data_map:
                     
                     st.markdown('</div>', unsafe_allow_html=True)
 
-                 # --- AUTO-SCROLL SCRIPT ---
+                  # --- AUTO-SCROLL SCRIPT ---
                 if not st.session_state.scrolled_to_search:
                     components.html(f"""
                     <script>
@@ -593,7 +593,7 @@ if not master_schedule_df.empty and student_data_map:
                         }}
                     </script>
                     """, height=0)
-                    st.session_state.scrolled_to_search = True 
+                    st.session_state.scrolled_to_search = True  
                 
             else:
                 if search_query:
