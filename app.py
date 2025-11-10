@@ -312,6 +312,8 @@ if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
 if 'scrolled_to_search' not in st.session_state: # For one-time scroll
     st.session_state.scrolled_to_search = False
+if 'search_clear_counter' not in st.session_state: # <-- NEW: For clearing search
+    st.session_state.search_clear_counter = 0
 
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
@@ -357,6 +359,7 @@ if not master_schedule_df.empty and student_data_map:
                     st.session_state.submitted = False
                     st.session_state.roll_number = ""
                     st.session_state.scrolled_to_search = False # Reset scroll flag
+                    st.session_state.search_clear_counter = 0 # Reset search
                     st.rerun()
             
             with st.spinner(f'Compiling classes for {student_name}...'):
@@ -534,18 +537,21 @@ if not master_schedule_df.empty and student_data_map:
                 st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
 
                 # --- SEARCH BAR (using st_keyup) ---
+                # We use a dynamic key based on the counter to force a reset
                 search_query = st_keyup(
                     "Search any subject:", 
-                    placeholder="e.g., SCM, P Ganesh, or T3",
+                    placeholder="e.g., DRM, SMKT, LSS, etc", # <-- Placeholder changed
                     debounce=300, # Waits 300ms after you stop typing
-                    key="search_bar" # Add key to control it
+                    key=f"search_bar_{st.session_state.search_clear_counter}" # <-- Dynamic key
                 )
                 search_query = search_query.lower() if search_query else ""
                 
-                # --- NEW: CLEAR SEARCH BUTTON ---
+                # --- CLEAR SEARCH BUTTON ---
                 if search_query: # Only show the button if there is text
                     if st.button("Clear Search"):
-                        st.session_state.search_bar = ""
+                        # This works by changing the key of the st_keyup component,
+                        # which forces Streamlit to destroy the old one and create a new, empty one.
+                        st.session_state.search_clear_counter += 1
                         st.rerun()
                 
                 if search_query:
