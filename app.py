@@ -473,9 +473,14 @@ if not master_schedule_df.empty and student_data_map:
                 # --- "WHAT'S NEXT" CARD REMOVED ---
                 
                 # --- SEARCH ANCHOR ---
-                st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
-
-                
+                # --- SEARCH BAR (using st_keyup) ---
+                search_query = st_keyup(
+                    " ", # <-- Set label to an empty space
+                    placeholder="e.g., DRM, SMKT, LSS, etc", # <-- Placeholder changed
+                    debounce=300, 
+                    key=f"search_bar_{st.session_state.search_clear_counter}" 
+                )
+                st.caption("Search any subject") # <-- Label moved to caption below
                 # The st.caption() line has been removed
                 st.caption("") # <-- Label moved to caption below
                 search_query = search_query.lower() if search_query else ""
