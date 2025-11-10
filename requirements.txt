@@ -6,3 +6,4 @@ pytz
 matplotlib
 Pillow
 streamlit-javascript
+streamlit-extras
