@@ -575,36 +575,22 @@ if not master_schedule_df.empty and student_data_map:
                     
                     st.markdown('</div>', unsafe_allow_html=True)
 
-                  # --- AUTO-SCROLL SCRIPT (with retry logic) ---
+                # --- AUTO-SCROLL SCRIPT ---
                 if not st.session_state.scrolled_to_search:
                     components.html(f"""
                     <script>
-                        let attempts = 0;
-                        const scrollInterval = setInterval(() => {{
-                            attempts++;
-                            // Find the anchor element within the parent Streamlit window
+                        function scrollToSearch() {{
                             const searchAnchor = window.parent.document.getElementById('search-anchor-div');
-                            
                             if (searchAnchor) {{
-                                // Element is found, clear the interval
-                                clearInterval(scrollInterval);
-                                
-                                const rect = searchAnchor.getBoundingClientRect();
-                                const currentScrollY = window.parent.scrollY;
-                                // Calculate target, subtracting 85px for the Streamlit header
-                                const targetY = rect.top + currentScrollY - 85; 
-
-                                window.parent.scrollTo({{
-                                    top: targetY,
-                                    behavior: 'smooth'
-                                }});
+                                searchAnchor.scrollIntoView({{behavior: 'smooth', block: 'start'}});
+                                return true;
                             }}
-
-                            if (attempts > 20) {{
-                                // Stop trying after 5 seconds (20 * 250ms)
-                                clearInterval(scrollInterval);
-                            }}
-                        }}, 250); // Check every 250ms
+                            return false;
+                        }}
+                        
+                        if (!scrollToSearch()) {{
+                            setTimeout(scrollToSearch, 500);
+                        }}
                     </script>
                     """, height=0)
                     st.session_state.scrolled_to_search = True  
