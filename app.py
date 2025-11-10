@@ -10,6 +10,7 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
+from streamlit_extras.st_keyup import st_keyup # <-- NEW: For live search
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -309,6 +310,9 @@ if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
+if 'scrolled_to_search' not in st.session_state: # <-- NEW: For one-time scroll
+    st.session_state.scrolled_to_search = False
+
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
     
@@ -352,6 +356,7 @@ if not master_schedule_df.empty and student_data_map:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
                     st.session_state.roll_number = ""
+                    st.session_state.scrolled_to_search = False # <-- NEW: Reset scroll flag
                     st.rerun()
             
             with st.spinner(f'Compiling classes for {student_name}...'):
@@ -400,7 +405,7 @@ if not master_schedule_df.empty and student_data_map:
             # --- ORGANIZED RESULTS SECTION ---
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
-                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
+                sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
                 
                 # --- DOWNLOAD AND IMPORT SECTION (MOVED UP) ---
                 with st.container():
@@ -525,11 +530,17 @@ if not master_schedule_df.empty and student_data_map:
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # --- SEARCH BAR (MOVED HERE) ---
-                search_query = st.text_input(
-                    "Search any subject:", # <-- Text changed
-                    placeholder="e.g., SCM, P Ganesh, or T3"
-                ).lower()
+                # --- NEW: SEARCH ANCHOR ---
+                # This is an invisible element we can scroll to
+                st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
+
+                # --- NEW: SEARCH BAR (using st_keyup) ---
+                search_query = st_keyup(
+                    "Search any subject:", 
+                    placeholder="e.g., SCM, P Ganesh, or T3",
+                    debounce=300, # Waits 300ms after you stop typing
+                )
+                search_query = search_query.lower() if search_query else ""
                 
                 if search_query:
                     st.subheader(f"Search Results for '{search_query}'")
@@ -621,8 +632,26 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query and not found_search_results:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
 
-                # --- AUTO-SCROLL SCRIPT REMOVED ---
-                # The components.html(...) block that was here is now gone.
+                # --- NEW: AUTO-SCROLL SCRIPT ---
+                # This script will run ONCE and scroll to the search anchor
+                if not st.session_state.scrolled_to_search:
+                    components.html(f"""
+                    <script>
+                        function scrollToSearch() {{
+                            const searchAnchor = window.parent.document.getElementById('search-anchor-div');
+                            if (searchAnchor) {{
+                                searchAnchor.scrollIntoView({{behavior: 'smooth', block: 'start'}});
+                                return true;
+                            }}
+                            return false;
+                        }}
+                        
+                        if (!scrollToSearch()) {{
+                            setTimeout(scrollToSearch, 500);
+                        }}
+                    </script>
+                    """, height=0)
+                    st.session_state.scrolled_to_search = True # Set flag so it doesn't run again
                 
             else:
                 if search_query:
