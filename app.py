@@ -523,13 +523,7 @@ if not master_schedule_df.empty and student_data_map:
                         st.session_state.search_clear_counter += 1
                         st.rerun()
                 
-                # --- COMPACT VIEW TOGGLE ---
-                compact_view = st.checkbox("Show Compact View", key="compact_view_toggle")
                 
-                if search_query:
-                    st.subheader(f"Search Results for '{search_query}'")
-                else:
-                    st.subheader("Upcoming Classes")
 
                 # --- Filter classes for display ---
                 display_classes = []
