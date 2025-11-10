@@ -475,13 +475,7 @@ if not master_schedule_df.empty and student_data_map:
                 # --- SEARCH ANCHOR ---
                 st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
 
-                # --- SEARCH BAR (using st_keyup) ---
-                search_query = st_keyup(
-                    "Search by any Subject/Faculty/Classroom:", # <-- Text is now the label
-                    placeholder="e.g., DRM, SMKT, LSS, etc", 
-                    debounce=300, 
-                    key=f"search_bar_{st.session_state.search_clear_counter}" 
-                )
+                
                 # The st.caption() line has been removed
                 st.caption("") # <-- Label moved to caption below
                 search_query = search_query.lower() if search_query else ""
