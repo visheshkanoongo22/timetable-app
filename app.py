@@ -546,36 +546,7 @@ if not master_schedule_df.empty and student_data_map:
                      else:
                          st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
                 
-                # --- BRANCH VIEW LOGIC ---
-                if compact_view:
-                    # --- COMPACT TABLE VIEW ---
-                    table_data = []
-                    for class_info in display_classes:
-                        # Format Venue
-                        venue_text = class_info.get("Venue", "-")
-                        if "POSTPONED" in venue_text.upper():
-                            venue_display = "POSTPONED"
-                        elif class_info.get('is_venue_override', False):
-                            venue_display = f"{venue_text} (Changed)"
-                        else:
-                            venue_display = venue_text
-                        
-                        table_data.append({
-                            "Date": class_info['Date'].strftime("%Y-%m-%d"),
-                            "Day": class_info['Day'],
-                            "Time": class_info['Time'],
-                            "Subject": class_info['Subject'],
-                            "Faculty": class_info['Faculty'],
-                            "Venue": venue_display
-                        })
-                    
-                    if table_data:
-                        df = pd.DataFrame(table_data)
-                        st.dataframe(df, use_container_width=True, hide_index=True)
-
-                else:
-                    # --- DEFAULT CARD VIEW ---
-                    # We need to group the filtered classes by date again
+                                # We need to group the filtered classes by date again
                     cards_by_date = defaultdict(list)
                     for class_info in display_classes:
                         cards_by_date[class_info['Date']].append(class_info)
