@@ -539,7 +539,7 @@ if not master_schedule_df.empty and student_data_map:
                 # --- SEARCH BAR (using st_keyup) ---
                 # We use a dynamic key based on the counter to force a reset
                 search_query = st_keyup(
-                    "Search any subject:", 
+                    "Subject Specific Timetable:", 
                     placeholder="e.g., DRM, SMKT, LSS, etc", # <-- Placeholder changed
                     debounce=300, # Waits 300ms after you stop typing
                     key=f"search_bar_{st.session_state.search_clear_counter}" # <-- Dynamic key
