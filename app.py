@@ -528,7 +528,7 @@ if not master_schedule_df.empty and student_data_map:
                 # --- *** SEARCH BAR MOVED HERE *** ---
                 search_query = st.text_input(
                     "Search any subject:", # <-- Text changed
-                    placeholder="e.g., SCM, P Ganesh, or T3"
+                    placeholder="e.g., DRM, INB, SMKT, etc."
                 ).lower()
                 
                 if search_query:
