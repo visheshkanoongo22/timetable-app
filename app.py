@@ -479,7 +479,7 @@ if not master_schedule_df.empty and student_data_map:
                 search_query = st_keyup(
                     " ", # <-- Set label to an empty space
                     placeholder="e.g., DRM, Himanshu Chauhan, T5, etc", # <-- Placeholder changed
-                    debounce=300, 
+                    debounce=100, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
                 st.caption("Search by any Subject/Faculty/Classroom") # <-- Label moved to caption below
