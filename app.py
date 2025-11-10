@@ -566,7 +566,7 @@ if not master_schedule_df.empty and student_data_map:
                     
                     st.markdown('</div>', unsafe_allow_html=True)
 
-                # --- AUTO-SCROLL SCRIPT ---
+                 # --- AUTO-SCROLL SCRIPT ---
                 if not st.session_state.scrolled_to_search:
                     components.html(f"""
                     <script>
@@ -591,6 +591,7 @@ if not master_schedule_df.empty and student_data_map:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
                 else:
                     st.warning("No classes found for your registered sections in the master schedule.")
+
 
                 
         # Handle invalid roll number
