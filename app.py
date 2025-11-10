@@ -539,7 +539,7 @@ if not master_schedule_df.empty and student_data_map:
                 # --- SEARCH BAR (using st_keyup) ---
                 # We use a dynamic key based on the counter to force a reset
                 search_query = st_keyup(
-                    "Subject Specific Timetable:", 
+                    "Search any subject:", 
                     placeholder="e.g., DRM, SMKT, LSS, etc", # <-- Placeholder changed
                     debounce=300, # Waits 300ms after you stop typing
                     key=f"search_bar_{st.session_state.search_clear_counter}" # <-- Dynamic key
@@ -648,36 +648,22 @@ if not master_schedule_df.empty and student_data_map:
                 if not st.session_state.scrolled_to_search:
                     components.html(f"""
                     <script>
-                        let attempts = 0;
-                        const scrollInterval = setInterval(() => {{
-                            attempts++;
+                        function scrollToSearch() {{
                             const searchAnchor = window.parent.document.getElementById('search-anchor-div');
-                            
                             if (searchAnchor) {{
-                                // Element is found, clear the interval
-                                clearInterval(scrollInterval);
-                                
-                                const rect = searchAnchor.getBoundingClientRect();
-                                const currentScrollY = window.parent.scrollY;
-                                // Calculate target, subtracting 85px for the Streamlit header
-                                const targetY = rect.top + currentScrollY - 85; 
-
-                                window.parent.scrollTo({{
-                                    top: targetY,
-                                    behavior: 'smooth'
-                                }});
+                                searchAnchor.scrollIntoView({{behavior: 'smooth', block: 'start'}});
+                                return true;
                             }}
-
-                            if (attempts > 20) {{
-                                // Stop trying after 5 seconds (20 * 250ms)
-                                clearInterval(scrollInterval);
-                            }}
-                        }}, 250); // Check every 250ms
+                            return false;
+                        }}
+                        
+                        if (!scrollToSearch()) {{
+                            setTimeout(scrollToSearch, 500);
+                        }}
                     </script>
                     """, height=0)
-                    st.session_state.scrolled_to_search = True
-
-              
+                    st.session_state.scrolled_to_search = True 
+                
             else:
                 if search_query:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
