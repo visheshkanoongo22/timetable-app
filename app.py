@@ -10,8 +10,6 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
-from streamlit_javascript import st_javascript
-
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -27,7 +25,7 @@ COURSE_DETAILS_MAP = {
     'DM(B)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'}, "DRM('C)": {'Faculty': 'Pankaj Agrawal', 'Venue': 'T5'},
     'DRM(A)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'}, 'DRM(B)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'},
     "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'E2'}, 'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
-    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'T5'},
+    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'E2'},
     'IMC(A)': {'Faculty': 'Sanjay Jain', 'Venue': 'T1'}, 'IMC(B)': {'Faculty': 'Riddhi Ambavale', 'Venue': 'T7'},
     'INB(A)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'INB(B)': {'Faculty': 'M C Gupta', 'Venue': 'T7'},
     'INB(C)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'LSS(A)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'},
@@ -43,16 +41,16 @@ COURSE_DETAILS_MAP = {
 }
 
 # --- DAY-SPECIFIC OVERRIDES & ADDITIONS ---
-# Used to override default venues/faculties for a specific date
 # IMPORTANT: The subject keys must be the NORMALIZED version (all caps, no spaces/symbols)
 DAY_SPECIFIC_OVERRIDES = {
-    # Date: {Normalized_Subject: {Venue: 'New Venue', Faculty: 'New Faculty'}}
+    # Previous changes for Nov 8
     date(2025, 11, 8): {
         'DC': {'Venue': '216'},
         'VALUC': {'Venue': '216'},  # From VALU('C)
         'VALUD': {'Venue': '216'},
         'IMCB': {'Venue': '216'},
     },
+    # Previous changes for Nov 10
     date(2025, 11, 10): {
         'B2BB': {'Venue': 'E1'},
         'B2BC': {'Venue': 'E1'},  # From B2B('C)
@@ -60,13 +58,18 @@ DAY_SPECIFIC_OVERRIDES = {
         'DMB': {'Venue': '214'},
         'DMA': {'Venue': '214'},
         'OMSD': {'Venue': '214'},
+    },
+    # *** NEW CHANGES FOR NOV 11 ***
+    date(2025, 11, 11): {
+        'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # From SMKT(B)
+        'IMCA': {'Venue': 'T3'}  # From IMC(A)
     }
 }
 
 # Used to add new classes not present in the master schedule
 # IMPORTANT: The 'Subject' name must be the ORIGINAL version (e.g., "SCM('C)")
 ADDITIONAL_CLASSES = [
-    # {'Date': date(YYYY, M, D), 'Time': '...', 'Subject': '...', 'Faculty': '...', 'Venue': '...'}
+    # Previous changes for Nov 8
     {
         'Date': date(2025, 11, 8), 
         'Time': '10:20-11:20AM', 
@@ -151,6 +154,11 @@ def generate_ics_content(found_classes):
             full_start_str, full_end_str = f"{start_str_part}{start_am_pm}", end_str_part
             start_dt = local_tz.localize(pd.to_datetime(f"{class_info['Date'].strftime('%Y-%m-%d')} {full_start_str}"))
             end_dt = local_tz.localize(pd.to_datetime(f"{class_info['Date'].strftime('%Y-%m-%d')} {full_end_str}"))
+            
+            # Don't add postponed classes to the .ics file
+            if "POSTPONED" in class_info.get('Venue', '').upper() or "POSTPONED" in class_info.get('Faculty', '').upper():
+                continue
+                
             e.name, e.begin, e.end = f"{class_info['Subject']}", start_dt.astimezone(pytz.utc), end_dt.astimezone(pytz.utc)
             e.location, e.description = class_info['Venue'], f"Faculty: {class_info['Faculty']}"
             e.uid = hashlib.md5(f"{start_dt.isoformat()}-{e.name}".encode('utf-8')).hexdigest() + "@timetable.app"
@@ -423,18 +431,11 @@ st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingerti
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
-
-# --- INITIALIZE SESSION STATE WITH PERSISTENT LOCAL STORAGE ---
-from streamlit_javascript import st_javascript
-
-# Try to load any previously saved roll number from browser localStorage
-saved_roll = st_javascript("JSON.parse(localStorage.getItem('saved_roll') || '\"\"')")
-
-if "roll_number" not in st.session_state:
-    st.session_state.roll_number = saved_roll or ""
-if "submitted" not in st.session_state:
-    st.session_state.submitted = bool(saved_roll)
-
+# --- INITIALIZE SESSION STATE ---
+if 'submitted' not in st.session_state:
+    st.session_state.submitted = False
+if 'roll_number' not in st.session_state:
+    st.session_state.roll_number = ""
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
     
@@ -456,14 +457,7 @@ if not master_schedule_df.empty and student_data_map:
             if submitted_button:
                 st.session_state.roll_number = roll_number_input
                 st.session_state.submitted = True
-            
-                # Save roll number to browser localStorage (persists across refreshes)
-                st_javascript(f"""
-                    localStorage.setItem('saved_roll', JSON.stringify('{roll_number_input}'));
-                """)
-            
                 st.rerun()
-
     # --- PROCESS AND DISPLAY SCHEDULE IF SUBMITTED ---
     if st.session_state.submitted:
         roll_to_process = st.session_state.roll_number
@@ -485,13 +479,8 @@ if not master_schedule_df.empty and student_data_map:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
                     st.session_state.roll_number = ""
-                    
-                    # Remove saved roll number from browser localStorage
-                    st_javascript("localStorage.removeItem('saved_roll');")
-                    
                     st.rerun()
-
-           
+            
             with st.spinner(f'Compiling classes for {student_name}...'):
                 NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
                 normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
@@ -509,14 +498,14 @@ if not master_schedule_df.empty and student_data_map:
                                 if norm_sec in normalized_cell:
                                     # 1. Get default details
                                     details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'}).copy()
-                                    is_venue_override = False # <-- NEW: Initialize flag
+                                    is_venue_override = False # <-- Initialize flag
                                     
                                     # 2. Check for and apply day-specific overrides
                                     if date in DAY_SPECIFIC_OVERRIDES:
                                         if norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
-                                            # NEW: Check if 'Venue' is part of the override
+                                            # Check if 'Venue' is part of the override
                                             if 'Venue' in DAY_SPECIFIC_OVERRIDES[date][norm_sec]:
-                                                is_venue_override = True # <-- NEW: Set flag
+                                                is_venue_override = True # <-- Set flag
                                             
                                             details.update(DAY_SPECIFIC_OVERRIDES[date][norm_sec])
                                             
@@ -525,7 +514,7 @@ if not master_schedule_df.empty and student_data_map:
                                         "Date": date, "Day": day, "Time": time, "Subject": orig_sec,
                                         "Faculty": details.get('Faculty', 'N/A'),
                                         "Venue": details.get('Venue', '-'),
-                                        "is_venue_override": is_venue_override # <-- NEW: Add flag
+                                        "is_venue_override": is_venue_override # <-- Add flag
                                     })
                 
                 # --- ADD ADDITIONAL CLASSES (e.g., Guest Sessions) ---
@@ -542,7 +531,7 @@ if not master_schedule_df.empty and student_data_map:
                             "Subject": added_class['Subject'], # Use the original name
                             "Faculty": added_class.get('Faculty', 'N/A'),
                             "Venue": added_class.get('Venue', '-'),
-                            "is_venue_override": False # <-- NEW: Added classes are not "overrides"
+                            "is_venue_override": False # <-- Added classes are not "overrides"
                         })
                 # --- END OF ADDITIONS ---
 
@@ -550,7 +539,7 @@ if not master_schedule_df.empty and student_data_map:
             # --- ORGANIZED RESULTS SECTION ---
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
-                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
+                sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
                 
                 with st.container():
                     st.markdown('<div class="results-container">', unsafe_allow_html=True)
@@ -636,7 +625,7 @@ if not master_schedule_df.empty and student_data_map:
                         ''', unsafe_allow_html=True)
                     else:
                         for class_info in classes_today:
-                            # --- NEW: Logic for conditional venue display ---
+                            # --- Logic for conditional venue display ---
                             venue_display = ""
                             if class_info.get('is_venue_override', False):
                                 venue_display = f'<span class="venue venue-changed">Venue changed to {class_info["Venue"]}</span>'
