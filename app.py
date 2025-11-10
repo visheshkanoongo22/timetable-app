@@ -602,9 +602,6 @@ if not master_schedule_df.empty and student_data_map:
                     st.warning("No classes found for your registered sections in the master schedule.")
 
                 
-            else:
-                st.warning("No classes found for your registered sections in the master schedule.")
-                
         # Handle invalid roll number
         else:
             st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
