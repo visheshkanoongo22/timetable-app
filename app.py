@@ -172,6 +172,7 @@ st.markdown("""
 # --- CSS STYLING ---
 local_css_string = """
 <style>
+    /* ... (your existing CSS from root to @media) ... */
     * { color-scheme: dark !important; }
     [data-testid="stAppViewContainer"], [data-testid="stHeader"], section[data-testid="stSidebar"] {
         background-color: var(--bg) !important; color: #ffffff !important;
@@ -198,6 +199,8 @@ local_css_string = """
         border-radius: 14px; margin-bottom: 1.5rem; color: var(--muted); font-size: 0.95rem;
     }
     .welcome-box strong { color: #ffffff; font-weight: 600; }
+    
+    /* --- "WHAT'S NEXT" CARD CSS (REMOVED) --- */
 
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
@@ -467,9 +470,14 @@ if not master_schedule_df.empty and student_data_map:
                 
                 # --- 2. RENDER UPCOMING CLASSES ---
                 
+                # --- "WHAT'S NEXT" CARD REMOVED ---
+                
+                # --- SEARCH ANCHOR ---
+                st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
+
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
-                    "", 
+                    "", # <-- Set label to an empty string
                     placeholder="Search by any Subject Code/Faculty/Classroom",
                     debounce=0, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
@@ -483,6 +491,8 @@ if not master_schedule_df.empty and student_data_map:
                     if st.button("Clear Search"):
                         st.session_state.search_clear_counter += 1
                         st.rerun()
+                
+                # --- COMPACT VIEW TOGGLE (REMOVED) ---
                 
                 if search_query:
                     st.subheader(f"Search Results for '{search_query}'")
@@ -566,47 +576,28 @@ if not master_schedule_df.empty and student_data_map:
                     
                     st.markdown('</div>', unsafe_allow_html=True)
 
-                # --- AUTO-SCROLL SCRIPT (with retry logic) ---
+                # --- AUTO-SCROLL SCRIPT ---
                 if not st.session_state.scrolled_to_search:
                     components.html(f"""
                     <script>
-                        let attempts = 0;
-                        const scrollInterval = setInterval(() => {{
-                            attempts++;
-                            // Find the anchor element within the parent Streamlit window
+                        function scrollToSearch() {{
                             const searchAnchor = window.parent.document.getElementById('search-anchor-div');
-                            
                             if (searchAnchor) {{
-                                // Element is found, clear the interval
-                                clearInterval(scrollInterval);
-                                
-                                const rect = searchAnchor.getBoundingClientRect();
-                                const currentScrollY = window.parent.scrollY;
-                                // Calculate target, subtracting 85px for the Streamlit header
-                                const targetY = rect.top + currentScrollY - 85; 
-
-                                window.parent.scrollTo({{
-                                    top: targetY,
-                                    behavior: 'smooth'
-                                }});
+                                searchAnchor.scrollIntoView({{behavior: 'smooth', block: 'start'}});
+                                return true;
                             }}
-
-                            if (attempts > 20) {{
-                                // Stop trying after 5 seconds (20 * 250ms)
-                                clearInterval(scrollInterval);
-                            }}
-                        }}, 250); // Check every 250ms
+                            return false;
+                        }}
+                        
+                        if (!scrollToSearch()) {{
+                            setTimeout(scrollToSearch, 500);
+                        }}
                     </script>
                     """, height=0)
-                    st.session_state.scrolled_to_search = True
+                    st.session_state.scrolled_to_search = True 
                 
             else:
-                if search_query:
-                    st.warning(f"No classes found matching your search for '{search_query}'.")
-                else:
-                    st.warning("No classes found for your registered sections in the master schedule.")
-
-
+                st.warning("No classes found for your registered sections in the master schedule.")
                 
         # Handle invalid roll number
         else:
