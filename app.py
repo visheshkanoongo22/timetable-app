@@ -537,7 +537,7 @@ if not master_schedule_df.empty and student_data_map:
                 # --- NEW: SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
                     "Search any subject:", 
-                    placeholder="e.g., SCM, P Ganesh, or T3",
+                    placeholder="e.g., DRM, SMKT, INB, etc.",
                     debounce=300, # Waits 300ms after you stop typing
                 )
                 search_query = search_query.lower() if search_query else ""
