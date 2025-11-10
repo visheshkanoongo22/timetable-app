@@ -645,25 +645,43 @@ if not master_schedule_df.empty and student_data_map:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
 
                 # --- AUTO-SCROLL SCRIPT ---
+                # --- AUTO-SCROLL SCRIPT (with offset) ---
                 if not st.session_state.scrolled_to_search:
                     components.html(f"""
                     <script>
                         function scrollToSearch() {{
+                            // Find the anchor element within the parent Streamlit window
                             const searchAnchor = window.parent.document.getElementById('search-anchor-div');
+                            
                             if (searchAnchor) {{
-                                searchAnchor.scrollIntoView({{behavior: 'smooth', block: 'start'}});
+                                // Get the element's position relative to the viewport
+                                const rect = searchAnchor.getBoundingClientRect();
+                                
+                                // Get the parent window's current scroll position
+                                const currentScrollY = window.parent.scrollY;
+                                
+                                // Calculate the target position:
+                                // rect.top + currentScrollY = element's absolute position on the page
+                                // We subtract 85px to add padding for the sticky Streamlit header
+                                const targetY = rect.top + currentScrollY - 85; 
+
+                                window.parent.scrollTo({{
+                                    top: targetY,
+                                    behavior: 'smooth'
+                                }});
                                 return true;
                             }}
                             return false;
                         }}
                         
+                        // Try to scroll immediately, and again after 500ms
                         if (!scrollToSearch()) {{
                             setTimeout(scrollToSearch, 500);
                         }}
                     </script>
                     """, height=0)
-                    st.session_state.scrolled_to_search = True 
-                
+                    st.session_state.scrolled_to_search = True
+              
             else:
                 if search_query:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
