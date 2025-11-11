@@ -52,12 +52,18 @@ DAY_SPECIFIC_OVERRIDES = {
     },
     date(2025, 11, 11): {
         'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 'IMCA': {'Venue': 'T3'}
+    },
+    # --- NEW CHANGE ---
+    date(2025, 11, 12): {
+        'INBA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}
     }
 }
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': "SCM('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    # --- NEW CHANGE ---
+    {'Date': date(2025, 11, 13), 'Time': '6:10-7:10PM', 'Subject': 'INB(A)', 'Faculty': 'M C Gupta', 'Venue': 'T7'}
 ]
 
 # 3. FUNCTIONS
@@ -477,13 +483,11 @@ if not master_schedule_df.empty and student_data_map:
 
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
-                    "", # <-- Set label to an empty string
-                    placeholder="Search by any Subject Code/Faculty/Classroom",
+                    "Search by any Subject/Faculty/Classroom:", 
+                    placeholder="e.g., DRM, Himanshu Chauhan, T5, etc", 
                     debounce=0, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
-                st.caption("")
-                st.caption("")
                 search_query = search_query.lower() if search_query else ""
                 
                 # --- CLEAR SEARCH BUTTON ---
@@ -580,18 +584,22 @@ if not master_schedule_df.empty and student_data_map:
                 if not st.session_state.scrolled_to_search:
                     components.html(f"""
                     <script>
-                        function scrollToSearch() {{
+                        let attempts = 0;
+                        const scrollInterval = setInterval(() => {{
+                            attempts++;
                             const searchAnchor = window.parent.document.getElementById('search-anchor-div');
+                            
                             if (searchAnchor) {{
-                                searchAnchor.scrollIntoView({{behavior: 'smooth', block: 'start'}});
-                                return true;
+                                clearInterval(scrollInterval);
+                                const rect = searchAnchor.getBoundingClientRect();
+                                const currentScrollY = window.parent.scrollY;
+                                const targetY = rect.top + currentScrollY - 85; 
+                                window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
                             }}
-                            return false;
-                        }}
-                        
-                        if (!scrollToSearch()) {{
-                            setTimeout(scrollToSearch, 500);
-                        }}
+                            if (attempts > 20) {{
+                                clearInterval(scrollInterval);
+                            }}
+                        }}, 250);
                     </script>
                     """, height=0)
                     st.session_state.scrolled_to_search = True 
