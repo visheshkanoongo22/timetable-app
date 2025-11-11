@@ -52,12 +52,19 @@ DAY_SPECIFIC_OVERRIDES = {
     },
     date(2025, 11, 11): {
         'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 'IMCA': {'Venue': 'T3'}
+    },
+    # --- NEW CHANGES ---
+    date(2025, 11, 12): {
+        'INBA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'} # From INB(A)
     }
 }
+
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': "SCM('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    # --- NEW CHANGES ---
+    {'Date': date(2025, 11, 13), 'Time': '6:10-7:10PM', 'Subject': 'INB(A)', 'Faculty': 'M C Gupta', 'Venue': 'T7 (Rescheduled)'}
 ]
 
 # 3. FUNCTIONS
