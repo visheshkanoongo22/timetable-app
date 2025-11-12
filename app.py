@@ -508,7 +508,13 @@ if not master_schedule_df.empty and student_data_map:
                 # --- "WHAT'S NEXT" CARD REMOVED ---
                 
                 # --- SEARCH ANCHOR ---
-                st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
+                if search_changed:  # When a new search happens
+                    js_scroll_to_anchor = """
+                        <script>
+                        window.location.hash = "#search-anchor-div";
+                        </script>
+                    """
+                    st.markdown(js_scroll_to_anchor, unsafe_allow_html=True)
 
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
