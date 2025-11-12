@@ -253,8 +253,14 @@ local_css_string = """
         letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 4px 15px var(--today-glow-shadow); z-index: 10;
     }
     @keyframes pulse-glow {
-        0%, 100% { box-shadow: 0 0 35px var(--today-glow-shadow), 0 0 60px rgba(56, 189, 248, 0.2), 0 8px 30px rgba(0,0,0,0.4); }
-        50% { box-shadow: 0 0 45px rgba(56, 189, 248, 0.6), 0 0 80px rgba(56, 189, 248, 0.3), 0 8px 30px rgba(0,0,0,0.4); }
+        0%, 100% {
+            box-shadow: 0 0 35px var(--today-glow-shadow), 
+                        0 0 60px rgba(56, 189, 248, 0.2);
+        }
+        50% {
+            box-shadow: 0 0 45px rgba(56, 189, 248, 0.6), /* Muted blue glow */
+                        0 0 80px rgba(56, 189, 248, 0.3);
+        }
     }
     .day-header { font-size: 1.15rem; font-weight: 700; color: #E2E8F0; margin-bottom: 0.5rem; }
     .class-entry {
