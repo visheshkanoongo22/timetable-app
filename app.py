@@ -399,7 +399,7 @@ if not master_schedule_df.empty and student_data_map:
                     display_name = words[1].title() # Get second word
                 else:
                     display_name = words[0].title() # Get first word
-                st.markdown(f"### Welcome, {display_name}!") # Use the new display_name
+                st.markdown(f"### Welcome, {display_name}") # Use the new display_name
             with col2:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
@@ -554,7 +554,7 @@ if not master_schedule_df.empty and student_data_map:
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
                     "Search by any Subject Code/Faculty/Classroom:", # <-- Label fixed
-                    placeholder="e.g., DRM, Himanshu Chauhan, E1, etc", 
+                    placeholder="e.g., DRM, SMKT, LSS, etc", 
                     debounce=300, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
