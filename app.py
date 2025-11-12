@@ -112,7 +112,7 @@ def load_and_clean_schedule(file_path, is_stats_file=False):
             st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
         return pd.DataFrame()
 
-# --- NEW: Function to load ALL schedules ---
+# --- (FIXED) Function to load ALL schedules ---
 @st.cache_data
 def load_all_schedules(file_list):
     all_dfs = []
@@ -126,12 +126,11 @@ def load_all_schedules(file_list):
         return pd.DataFrame()
         
     combined_df = pd.concat(all_dfs)
-    # Remove duplicate dates, keeping the LATEST entry (from the last files in the list)
-    combined_df = combined_df.drop_duplicates(subset=[0], keep='last')
+    # --- REMOVED: drop_duplicates. We now sum all entries from all files.
     combined_df = combined_df.sort_values(by=[0]) # Sort by date
     return combined_df
 
-# --- NEW: Function to calculate and display stats ---
+# --- (FIXED) Function to calculate and display stats ---
 def calculate_and_display_stats():
     st.markdown("---") # Separator
     with st.expander("Show Course Session Statistics"):
@@ -142,26 +141,50 @@ def calculate_and_display_stats():
                 st.warning("Could not load schedule files to calculate stats. Please check file names.")
                 return
 
-            today = datetime.now(pytz.timezone(TIMEZONE)).date()
+            local_tz = pytz.timezone(TIMEZONE)
+            now_dt = datetime.now(local_tz)
+            today_date = now_dt.date()
+            
             class_counts = defaultdict(int)
-            time_slots_cols = list(range(2, 14)) # Columns 2 through 13
+            
+            # Time slots mapping columns to end times for comparison
+            time_slot_end_times = {
+                2: "9:00AM", 3: "10:10AM", 4: "11:20AM", 5: "12:30PM",
+                6: "1:30PM", 7: "2:30PM", 8: "3:40PM", 9: "4:50PM",
+                10: "6:00PM", 11: "7:10PM", 12: "8:20PM", 13: "9:30PM"
+            }
             
             # Create a normalized map of all known courses
             normalized_course_map = {normalize_string(k): k for k in COURSE_DETAILS_MAP.keys()}
             
-            # Filter schedule for past dates only
-            past_schedule = all_schedules_df[all_schedules_df[0] < today]
-            
-            for _, row in past_schedule.iterrows():
-                for col_idx in time_slots_cols:
-                    cell_value = str(row[col_idx])
-                    if cell_value and cell_value != 'nan':
-                        normalized_cell = normalize_string(cell_value)
-                        
-                        # Check every known class against the cell
-                        for norm_name, orig_name in normalized_course_map.items():
-                            if norm_name in normalized_cell:
-                                class_counts[orig_name] += 1
+            for _, row in all_schedules_df.iterrows():
+                class_date = row[0]
+                
+                if class_date > today_date:
+                    continue # Skip all future dates
+
+                for col_idx, end_time_str in time_slot_end_times.items():
+                    # Check if the class has already happened
+                    if class_date < today_date:
+                        # This class was on a previous day, so it definitely happened.
+                        is_in_past = True
+                    else:
+                        # This class is today. We must check the time.
+                        try:
+                            class_end_dt = local_tz.localize(pd.to_datetime(f"{class_date.strftime('%Y-%m-%d')} {end_time_str}"))
+                            is_in_past = class_end_dt < now_dt
+                        except Exception:
+                            is_in_past = False # Error parsing, skip
+                    
+                    if is_in_past:
+                        cell_value = str(row[col_idx])
+                        if cell_value and cell_value != 'nan':
+                            normalized_cell = normalize_string(cell_value)
+                            
+                            # Check every known class against the cell
+                            for norm_name, orig_name in normalized_course_map.items():
+                                if norm_name in normalized_cell:
+                                    class_counts[orig_name] += 1
             
             if not class_counts:
                 st.info("No past classes were found to calculate statistics.")
