@@ -199,13 +199,11 @@ st.set_page_config(
 st.markdown("""
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0F172A">
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 """, unsafe_allow_html=True)
 # --- CSS STYLING ---
 local_css_string = """
 <style>
-    /* ... (your existing CSS from root to .results-container) ... */
+    /* ... (your existing CSS from root to @media) ... */
     * { color-scheme: dark !important; }
     [data-testid="stAppViewContainer"], [data-testid="stHeader"], section[data-testid="stSidebar"] {
         background-color: var(--bg) !important; color: #ffffff !important;
@@ -233,8 +231,17 @@ local_css_string = """
     }
     .welcome-box strong { color: #ffffff; font-weight: 600; }
     
-    /* --- "WHAT'S NEXT" CARD CSS (REMOVED) --- */
-
+    /* --- NEW WELCOME MESSAGE --- */
+    .welcome-message {
+        margin-top: -2rem; /* Pulls it up */
+        margin-bottom: 1rem; /* Adds space before the next element */
+        font-size: 1.1rem; /* Smaller than h3, larger than caption */
+        color: var(--muted); /* Use the muted color */
+    }
+    .welcome-message strong {
+        color: #ffffff; /* Make the roll number white */
+    }
+    
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
         border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
@@ -295,64 +302,26 @@ local_css_string = """
     }
     .results-container h3 { color: #E2E8F0; margin-top: 0; margin-bottom: 1rem; font-size: 1.3rem; }
     .results-container h3:not(:first-child) { margin-top: 1.5rem; }
-    
-    /* --- MODIFIED: Mobile View Adjustments --- */
-    @media (max-width: 600px) {
-        /* Reduce padding on cards */
-        .day-card {
-            padding: 0.8rem; /* Further reduced padding */
-            margin-bottom: 1rem;
-        }
-        .results-container {
-            padding: 0.8rem;
-        }
-        /* Reduce font sizes */
-        .main-header { font-size: 1.6rem; } /* Further reduced */
-        .header-sub { font-size: 0.8rem; margin-bottom: 1.5rem; } /* Further reduced */
-        .day-header { font-size: 0.9rem; } /* Further reduced */
-        .subject-name { font-size: 0.9rem; } /* Further reduced */
-        .meta .time { font-size: 0.85rem; } /* Further reduced */
-        .meta .venue, .meta .faculty { font-size: 0.75rem; } /* Further reduced */
-        /* Reduce padding on class entries */
-        .class-entry {
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
-        }
-        .meta { 
-            min-width: 120px; 
-            font-size: 0.85rem; /* Further reduced */
-        }
-        /* Make buttons slightly smaller */
-        .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.9rem;
-        }
-    }
+    @media (max-width: 600px) { .meta { min-width: 120px; font-size:0.9rem; } .main-header { font-size: 1.8rem; } }
 </style>
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
+# --- APP HEADER ---
+st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
+# --- LOAD DATA ---
+master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
+student_data_map = get_all_student_data()
 
-# --- *** MOVED THIS BLOCK UP *** ---
 # --- INITIALIZE SESSION STATE ---
 if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
-if 'search_clear_counter' not in st.session_state:
+if 'scrolled_to_search' not in st.session_state: # For one-time scroll
+    st.session_state.scrolled_to_search = False
+if 'search_clear_counter' not in st.session_state: # For clearing search
     st.session_state.search_clear_counter = 0
-if 'just_submitted' not in st.session_state: # <-- For one-time scroll
-    st.session_state.just_submitted = False
-# --- *** END MOVED BLOCK *** ---
-
-
-# --- APP HEADER (WILL ONLY SHOW ON LOGIN PAGE) ---
-if not st.session_state.submitted:
-    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
-
-# --- LOAD DATA ---
-master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
-student_data_map = get_all_student_data()
 
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
@@ -362,7 +331,8 @@ if not master_schedule_df.empty and student_data_map:
         st.markdown(
             """
             <div class="welcome-box">
-                Welcome! Enter your roll number to get started!</strong>.
+                Welcome! This application helps you generate your personalized class schedule and export it as a <strong>.ics calendar file</strong>.
+                Simply enter your roll number below to get started.
             </div>
             """,
             unsafe_allow_html=True
@@ -374,7 +344,6 @@ if not master_schedule_df.empty and student_data_map:
             if submitted_button:
                 st.session_state.roll_number = roll_number_input
                 st.session_state.submitted = True
-                st.session_state.just_submitted = True # <-- Set scroll flag
                 st.rerun()
     # --- PROCESS AND DISPLAY SCHEDULE IF SUBMITTED ---
     if st.session_state.submitted:
@@ -389,33 +358,28 @@ if not master_schedule_df.empty and student_data_map:
             student_info = student_data_map[roll_to_process]
             student_name, student_sections = student_info['name'], student_info['sections']
             
-            # Display header with "Change" button
+            # --- MODIFIED: Display header with "Change" button ---
             col1, col2 = st.columns([3, 1])
             with col1:
-                # --- "Success" bar REMOVED ---
-                # --- NEW NAME LOGIC ---
-                words = student_name.split()
-                num_words = len(words)
-                if num_words >= 3:
-                    display_name = words[1].title() # Get second word
-                else:
-                    display_name = words[0].title() # Get first word
-                st.markdown(f"### Welcome, {display_name}!") # Use the new display_name
+                st.markdown(f"""
+                <div class="welcome-message">
+                    Displaying schedule for: <strong>{roll_to_process}</strong>
+                </div>
+                """, unsafe_allow_html=True)
             with col2:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
                     st.session_state.roll_number = ""
+                    st.session_state.scrolled_to_search = False # Reset scroll flag
                     st.session_state.search_clear_counter = 0 # Reset search
-                    st.session_state.just_submitted = False # Reset scroll flag
                     st.rerun()
             
             with st.spinner(f'Compiling classes for {student_name}...'):
                 NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
                 normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
-                # --- FIXED: Corrected 8:30-9:3App-c typo ---
                 time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
                               6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
-                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
+                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"} # <-- Corrected 9:3App-c
                 found_classes = []
                 for index, row in master_schedule_df.iterrows():
                     date, day = row[0], row[1]
@@ -458,23 +422,29 @@ if not master_schedule_df.empty and student_data_map:
                 ics_content = generate_ics_content(found_classes)
                 sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
                 
-                # --- NEW: Combined Download & Import Expander ---
-                with st.expander("Download & Import to Calendar"):
+                # --- DOWNLOAD AND IMPORT SECTION (MOVED UP) ---
+                with st.container():
+                    st.markdown('<div class="results-container">', unsafe_allow_html=True)
+                    st.markdown("### 1. Download Calendar File")
                     st.download_button(
                         label="Download .ics Calendar File",
                         data=ics_content,
                         file_name=f"{sanitized_name}_Timetable.ics",
                         mime='text/calendar'
                     )
-                    st.markdown(f"""
-                    **How to Import to Google Calendar:**
-                    1. Click the 'Download .ics' button above.
-                    2. Go to [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).
-                    3. Under 'Import from computer', click 'Select file...'.
-                    4. Choose the `.ics` file you just downloaded and click 'Import'.
-                    """)
+                    
+                    st.markdown("### 2. How to Import to Google Calendar")
+                    with st.expander("Click to view import instructions", expanded=False):
+                        st.markdown(f"""
+                        1. Click the **'Download .ics Calendar File'** button above to save your schedule.  
+                        2. Navigate to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
+                        3. Under 'Import from computer', click **'Select file from your computer'**.  
+                        4. Choose the `.ics` file you just downloaded.  
+                        5. Click **'Import'** to add the events to your calendar.
+                        """)
+                    st.markdown('</div>', unsafe_allow_html=True)
                 
-                # --- Divider REMOVED ---
+                st.markdown("---")
                 
                 schedule_by_date = defaultdict(list)
                 for class_info in found_classes:
@@ -550,16 +520,18 @@ if not master_schedule_df.empty and student_data_map:
                 
                 # --- "WHAT'S NEXT" CARD REMOVED ---
                 
-                # --- SEARCH ANCHOR (REMOVED) ---
-                
+                # --- SEARCH ANCHOR ---
+                st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
+
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
-                    "  Search by any Subject/Faculty/Classroom:", # <-- Label fixed
-                    placeholder="e.g., DRM, Himanshu Chauhan, T3, etc", 
-                    debounce=300, 
+                    " ", # <-- Set label to an empty space
+                    placeholder="Search by any Subject Code/Faculty/Classroom",
+                    debounce=0, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
-                # --- Empty captions REMOVED ---
+                st.caption("") # <-- Removed label text
+                st.caption("") # <-- Removed label text
                 search_query = search_query.lower() if search_query else ""
                 
                 # --- CLEAR SEARCH BUTTON ---
@@ -572,7 +544,8 @@ if not master_schedule_df.empty and student_data_map:
                 
                 if search_query:
                     st.subheader(f"Search Results for '{search_query}'")
-                # --- "Upcoming Classes" subheader REMOVED ---
+                else:
+                    st.subheader("Upcoming Classes")
 
                 if not upcoming_dates and not search_query:
                      st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
@@ -665,31 +638,29 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query and not found_search_results:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
 
-                # --- AUTO-SCROLL SCRIPT (Hard-coded pixel scroll) ---
-                if st.session_state.just_submitted:
+                # --- AUTO-SCROLL SCRIPT (Replaced with robust retry logic) ---
+                if not st.session_state.scrolled_to_search:
                     components.html(f"""
                     <script>
                         let attempts = 0;
                         const scrollInterval = setInterval(() => {{
                             attempts++;
-                            // Check if the parent document is ready
-                            if (window.parent.document.readyState === 'complete' || window.parent.document.readyState === 'interactive') {{
-                                
+                            const searchAnchor = window.parent.document.getElementById('search-anchor-div');
+                            
+                            if (searchAnchor) {{
                                 clearInterval(scrollInterval);
-                                
-                                window.parent.scrollTo({{
-                                    top: 200,
-                                    behavior: 'smooth'
-                                }});
+                                const rect = searchAnchor.getBoundingClientRect();
+                                const currentScrollY = window.parent.scrollY;
+                                const targetY = rect.top + currentScrollY - 85; 
+                                window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
                             }}
                             if (attempts > 20) {{
-                                // Stop trying after 5 seconds (20 * 250ms)
                                 clearInterval(scrollInterval);
                             }}
-                        }}, 250); // Check every 250ms
+                        }}, 250);
                     </script>
                     """, height=0)
-                    st.session_state.just_submitted = False # Unset the flag
+                    st.session_state.scrolled_to_search = True 
                 
             else:
                 if search_query:
@@ -704,9 +675,6 @@ if not master_schedule_df.empty and student_data_map:
             st.session_state.roll_number = ""
             st.rerun()
 elif master_schedule_df.empty or not student_data_map:
-    # --- Show headers on the error page too ---
-    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
