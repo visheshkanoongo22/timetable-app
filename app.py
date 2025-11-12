@@ -297,9 +297,7 @@ local_css_string = """
 </style>
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
-# --- APP HEADER ---
-st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
+
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
@@ -311,8 +309,7 @@ if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
 if 'search_clear_counter' not in st.session_state:
     st.session_state.search_clear_counter = 0
-# --- NEW: Replaced scroll flag with 'just_submitted' for one-time scroll ---
-if 'just_submitted' not in st.session_state:
+if 'just_submitted' not in st.session_state: # <-- For one-time scroll
     st.session_state.just_submitted = False
 
 
@@ -321,6 +318,9 @@ if not master_schedule_df.empty and student_data_map:
     
     # --- DISPLAY FORM IF NOT SUBMITTED ---
     if not st.session_state.submitted:
+        # --- HEADERS MOVED INSIDE HERE ---
+        st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+        st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
         st.markdown(
             """
             <div class="welcome-box">
@@ -337,7 +337,7 @@ if not master_schedule_df.empty and student_data_map:
             if submitted_button:
                 st.session_state.roll_number = roll_number_input
                 st.session_state.submitted = True
-                st.session_state.just_submitted = True # <-- NEW: Set scroll flag
+                st.session_state.just_submitted = True # <-- Set scroll flag
                 st.rerun()
     # --- PROCESS AND DISPLAY SCHEDULE IF SUBMITTED ---
     if st.session_state.submitted:
@@ -355,7 +355,8 @@ if not master_schedule_df.empty and student_data_map:
             # Display header with "Change" button
             col1, col2 = st.columns([3, 1])
             with col1:
-                st.success(f"Displaying schedule for {student_name}")
+                # --- "Success" bar REMOVED ---
+                st.markdown(f"### Welcome, {student_name.title()}") # Added a simple welcome
             with col2:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
@@ -413,27 +414,21 @@ if not master_schedule_df.empty and student_data_map:
                 ics_content = generate_ics_content(found_classes)
                 sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                 
-                # --- DOWNLOAD AND IMPORT SECTION (MOVED UP) ---
-                with st.container():
-                    st.markdown('<div class="results-container">', unsafe_allow_html=True)
-                    st.markdown("### 1. Download Calendar File")
+                # --- NEW: Combined Download & Import Expander ---
+                with st.expander("Download & Import to Calendar"):
                     st.download_button(
                         label="Download .ics Calendar File",
                         data=ics_content,
                         file_name=f"{sanitized_name}_Timetable.ics",
                         mime='text/calendar'
                     )
-                    
-                    st.markdown("### 2. How to Import to Google Calendar")
-                    with st.expander("Click to view import instructions", expanded=False):
-                        st.markdown(f"""
-                        1. Click the **'Download .ics Calendar File'** button above to save your schedule.  
-                        2. Navigate to the [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).  
-                        3. Under 'Import from computer', click **'Select file from your computer'**.  
-                        4. Choose the `.ics` file you just downloaded.  
-                        5. Click **'Import'** to add the events to your calendar.
-                        """)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown(f"""
+                    **How to Import to Google Calendar:**
+                    1. Click the 'Download .ics' button above.
+                    2. Go to [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).
+                    3. Under 'Import from computer', click 'Select file...'.
+                    4. Choose the `.ics` file you just downloaded and click 'Import'.
+                    """)
                 
                 st.markdown("---")
                 
@@ -511,9 +506,6 @@ if not master_schedule_df.empty and student_data_map:
                 
                 # --- "WHAT'S NEXT" CARD REMOVED ---
                 
-                # --- SEARCH ANCHOR ---
-                st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
-
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
                     " ", # <-- Set label to an empty space
@@ -536,7 +528,8 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query:
                     st.subheader(f"Search Results for '{search_query}'")
                 else:
-                    st.subheader("Upcoming Classes")
+                    # --- "Upcoming Classes" subheader REMOVED ---
+                    pass
 
                 if not upcoming_dates and not search_query:
                      st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
@@ -629,7 +622,7 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query and not found_search_results:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
 
-                # --- AUTO-SCROLL SCRIPT (FIXED: Using robust polling script) ---
+                # --- NEW: AUTO-SCROLL SCRIPT (Hard-coded pixel scroll) ---
                 if st.session_state.just_submitted:
                     components.html(f"""
                     <script>
@@ -668,6 +661,9 @@ if not master_schedule_df.empty and student_data_map:
             st.session_state.roll_number = ""
             st.rerun()
 elif master_schedule_df.empty or not student_data_map:
+    # --- Show headers on the error page too ---
+    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
