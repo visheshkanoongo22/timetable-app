@@ -196,16 +196,28 @@ st.set_page_config(
     layout="centered", 
     initial_sidebar_state="collapsed"
 )
+
+# --- *** MOVED THIS BLOCK UP *** ---
+# --- INITIALIZE SESSION STATE ---
+if 'submitted' not in st.session_state:
+    st.session_state.submitted = False
+if 'roll_number' not in st.session_state:
+    st.session_state.roll_number = ""
+if 'search_clear_counter' not in st.session_state:
+    st.session_state.search_clear_counter = 0
+if 'just_submitted' not in st.session_state: # <-- For one-time scroll
+    st.session_state.just_submitted = False
+# --- *** END MOVED BLOCK *** ---
+
+
 st.markdown("""
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0F172A">
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 """, unsafe_allow_html=True)
 # --- CSS STYLING ---
 local_css_string = """
 <style>
-    /* ... (your existing CSS from root to .results-container) ... */
+    /* ... (your existing CSS from root to @media) ... */
     * { color-scheme: dark !important; }
     [data-testid="stAppViewContainer"], [data-testid="stHeader"], section[data-testid="stSidebar"] {
         background-color: var(--bg) !important; color: #ffffff !important;
@@ -233,6 +245,8 @@ local_css_string = """
     }
     .welcome-box strong { color: #ffffff; font-weight: 600; }
     
+    /* --- "WHAT'S NEXT" CARD CSS (REMOVED) --- */
+
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
         border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
@@ -293,62 +307,17 @@ local_css_string = """
     }
     .results-container h3 { color: #E2E8F0; margin-top: 0; margin-bottom: 1rem; font-size: 1.3rem; }
     .results-container h3:not(:first-child) { margin-top: 1.5rem; }
-
-    /* --- MODIFIED: Mobile View Adjustments --- */
-    @media (max-width: 600px) {
-        /* Reduce padding on cards */
-        .day-card {
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        .results-container {
-            padding: 1rem;
-        }
-        /* Reduce font sizes */
-        .main-header { font-size: 1.8rem; }
-        .header-sub { font-size: 0.9rem; margin-bottom: 1.5rem; }
-        .day-header { font-size: 1.0rem; }
-        .subject-name { font-size: 0.95rem; }
-        .meta .time { font-size: 0.9rem; }
-        .meta .venue, .meta .faculty { font-size: 0.8rem; }
-        /* Reduce padding on class entries */
-        .class-entry {
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
-        }
-        .meta { 
-            min-width: 120px; 
-            font-size:0.9rem; 
-        }
-        /* Make buttons slightly smaller */
-        .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.9rem;
-        }
-    }
+    @media (max-width: 600px) { .meta { min-width: 120px; font-size:0.9rem; } .main-header { font-size: 1.8rem; } }
 </style>
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
-
 # --- APP HEADER (WILL ONLY SHOW ON LOGIN PAGE) ---
 if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
-
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
-
-# --- INITIALIZE SESSION STATE ---
-if 'submitted' not in st.session_state:
-    st.session_state.submitted = False
-if 'roll_number' not in st.session_state:
-    st.session_state.roll_number = ""
-if 'search_clear_counter' not in st.session_state:
-    st.session_state.search_clear_counter = 0
-if 'just_submitted' not in st.session_state: # <-- For one-time scroll
-    st.session_state.just_submitted = False
-
 
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
@@ -539,6 +508,8 @@ if not master_schedule_df.empty and student_data_map:
                 # --- 2. RENDER UPCOMING CLASSES ---
                 
                 # --- "WHAT'S NEXT" CARD REMOVED ---
+                
+                # --- SEARCH ANCHOR (REMOVED) ---
                 
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
