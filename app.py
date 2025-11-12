@@ -41,6 +41,7 @@ COURSE_DETAILS_MAP = {
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
 
+
 # --- DAY-SPECIFIC OVERRIDES & ADDITIONS ---
 DAY_SPECIFIC_OVERRIDES = {
     date(2025, 11, 8): {
@@ -56,7 +57,7 @@ DAY_SPECIFIC_OVERRIDES = {
     date(2025, 11, 12): {
         'INBA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'} # From INB(A)
     },
-    # --- NEW CHANGES ---
+    # --- MODIFIED & NEW CHANGES ---
     date(2025, 11, 13): {
         'SMKTA': {'Venue': 'T7'},
         'BS':    {'Venue': 'T7'},
@@ -66,16 +67,30 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BA':  {'Venue': 'E1'},
         'DVVSC': {'Venue': 'E2'},
         'OMSD':  {'Venue': 'T3'},
+        'B2BB':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # <-- Change 1
+        'B2BC':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # <-- Change 1
+    },
+    date(2025, 11, 14): {
+        'B2BB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- Change 2
+        'B2BC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- Change 2
+    },
+    date(2025, 12, 15): {
+        'DRMC': {'Venue': 'PREPONED', 'Faculty': 'Session Preponed'}, # <-- Change 3
     }
 }
+
 
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': "SCM('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    # --- MODIFIED ---
-    {'Date': date(2025, 11, 13), 'Time': '6:10-7:10PM', 'Subject': 'INB(A)', 'Faculty': 'M C Gupta', 'Venue': 'T6 (Rescheduled)'}
+    {'Date': date(2025, 11, 13), 'Time': '6:10-7:10PM', 'Subject': 'INB(A)', 'Faculty': 'M C Gupta', 'Venue': 'T6 (Rescheduled)'},
+    # --- NEW CHANGES ---
+    {'Date': date(2025, 11, 29), 'Time': '8:30-9:30PM', 'Subject': "DRM('C)", 'Faculty': 'Pankaj Agrawal', 'Venue': 'T5 (Preponed)'}, # <-- Change 3
+    {'Date': date(2025, 12, 6), 'Time': '6:10-7:10PM', 'Subject': 'B2B(B)', 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, # <-- Change 1
+    {'Date': date(2025, 12, 6), 'Time': '7:20-8:20PM', 'Subject': "B2B('C)", 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, # <-- Change 1
 ]
+
 
 
 # 3. FUNCTIONS
