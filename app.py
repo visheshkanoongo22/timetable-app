@@ -41,7 +41,6 @@ COURSE_DETAILS_MAP = {
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
 
-
 # --- DAY-SPECIFIC OVERRIDES & ADDITIONS ---
 DAY_SPECIFIC_OVERRIDES = {
     date(2025, 11, 8): {
@@ -55,9 +54,8 @@ DAY_SPECIFIC_OVERRIDES = {
         'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 'IMCA': {'Venue': 'T3'}
     },
     date(2025, 11, 12): {
-        'INBA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'} # From INB(A)
+        'INBA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}
     },
-    # --- MODIFIED & NEW CHANGES ---
     date(2025, 11, 13): {
         'SMKTA': {'Venue': 'T7'},
         'BS':    {'Venue': 'T7'},
@@ -67,31 +65,26 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BA':  {'Venue': 'E1'},
         'DVVSC': {'Venue': 'E2'},
         'OMSD':  {'Venue': 'T3'},
-        'B2BB':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # <-- Change 1
-        'B2BC':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # <-- Change 1
+        'B2BB':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'B2BC':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
     },
     date(2025, 11, 14): {
-        'B2BB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- Change 2
-        'B2BC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- Change 2
+        'B2BB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, 
+        'B2BC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, 
     },
     date(2025, 12, 15): {
-        'DRMC': {'Venue': 'PREPONED', 'Faculty': 'Session Preponed'}, # <-- Change 3
+        'DRMC': {'Venue': 'PREPONED', 'Faculty': 'Session Preponed'}, 
     }
 }
-
-
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': "SCM('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 13), 'Time': '6:10-7:10PM', 'Subject': 'INB(A)', 'Faculty': 'M C Gupta', 'Venue': 'T6 (Rescheduled)'},
-    # --- NEW CHANGES ---
-    {'Date': date(2025, 11, 29), 'Time': '8:30-9:30PM', 'Subject': "DRM('C)", 'Faculty': 'Pankaj Agrawal', 'Venue': 'T5 (Preponed)'}, # <-- Change 3
-    {'Date': date(2025, 12, 6), 'Time': '6:10-7:10PM', 'Subject': 'B2B(B)', 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, # <-- Change 1
-    {'Date': date(2025, 12, 6), 'Time': '7:20-8:20PM', 'Subject': "B2B('C)", 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, # <-- Change 1
+    {'Date': date(2025, 11, 29), 'Time': '8:30-9:30PM', 'Subject': "DRM('C)", 'Faculty': 'Pankaj Agrawal', 'Venue': 'T5 (Preponed)'}, 
+    {'Date': date(2025, 12, 6), 'Time': '6:10-7:10PM', 'Subject': 'B2B(B)', 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, 
+    {'Date': date(2025, 12, 6), 'Time': '7:20-8:20PM', 'Subject': "B2B('C)", 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, 
 ]
-
-
 
 # 3. FUNCTIONS
 def normalize_string(text):
@@ -367,7 +360,7 @@ if not master_schedule_df.empty and student_data_map:
                 normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
                 time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
                               6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
-                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
+                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"} # <-- Corrected 9:3App-c
                 found_classes = []
                 for index, row in master_schedule_df.iterrows():
                     date, day = row[0], row[1]
@@ -510,13 +503,13 @@ if not master_schedule_df.empty and student_data_map:
 
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
-                    "", # <-- Set label to an empty string
+                    " ", # <-- Set label to an empty space
                     placeholder="Search by any Subject Code/Faculty/Classroom",
                     debounce=0, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
-                st.caption("")
-                st.caption("")
+                st.caption("") # <-- Removed label text
+                st.caption("") # <-- Removed label text
                 search_query = search_query.lower() if search_query else ""
                 
                 # --- CLEAR SEARCH BUTTON ---
@@ -613,18 +606,22 @@ if not master_schedule_df.empty and student_data_map:
                 if not st.session_state.scrolled_to_search:
                     components.html(f"""
                     <script>
-                        function scrollToSearch() {{
+                        let attempts = 0;
+                        const scrollInterval = setInterval(() => {{
+                            attempts++;
                             const searchAnchor = window.parent.document.getElementById('search-anchor-div');
+                            
                             if (searchAnchor) {{
-                                searchAnchor.scrollIntoView({{behavior: 'smooth', block: 'start'}});
-                                return true;
+                                clearInterval(scrollInterval);
+                                const rect = searchAnchor.getBoundingClientRect();
+                                const currentScrollY = window.parent.scrollY;
+                                const targetY = rect.top + currentScrollY - 85; 
+                                window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
                             }}
-                            return false;
-                        }}
-                        
-                        if (!scrollToSearch()) {{
-                            setTimeout(scrollToSearch, 500);
-                        }}
+                            if (attempts > 20) {{
+                                clearInterval(scrollInterval);
+                            }}
+                        }}, 250);
                     </script>
                     """, height=0)
                     st.session_state.scrolled_to_search = True 
