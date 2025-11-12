@@ -574,7 +574,8 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query:
                     st.subheader(f"Search Results for '{search_query}'")
                 else:
-                    st.subheader("Upcoming Classes")
+                    # st.subheader("Upcoming Classes") <-- This line is now removed
+                    pass
 
                 if not upcoming_dates and not search_query:
                      st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
