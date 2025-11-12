@@ -14,7 +14,7 @@ from streamlit_extras.st_keyup import st_keyup # For live search
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
-# --- NEW: List of all schedule files, from oldest to newest ---
+# --- List of all schedule files, from oldest to newest ---
 SCHEDULE_FILES = ['schedule1.xlsx', 'schedule2.xlsx', 'schedule3.xlsx', 'schedule.xlsx'] 
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
@@ -126,7 +126,8 @@ def load_all_schedules(file_list):
         return pd.DataFrame()
         
     combined_df = pd.concat(all_dfs)
-    # --- MODIFIED: Do not drop duplicates, just sort
+    # Remove duplicate dates, keeping the LATEST entry (from the last files in the list)
+    combined_df = combined_df.drop_duplicates(subset=[0], keep='last')
     combined_df = combined_df.sort_values(by=[0]) # Sort by date
     return combined_df
 
@@ -149,8 +150,7 @@ def calculate_and_display_stats():
             normalized_course_map = {normalize_string(k): k for k in COURSE_DETAILS_MAP.keys()}
             
             # Filter schedule for past dates only
-            # --- FIXED INDENTATION ERROR WAS HERE ---
-            past_schedule = all_schedules_df[all_schedules_df[0] <= today]
+            past_schedule = all_schedules_df[all_schedules_df[0] < today]
             
             for _, row in past_schedule.iterrows():
                 for col_idx in time_slots_cols:
@@ -160,7 +160,7 @@ def calculate_and_display_stats():
                         
                         # Check every known class against the cell
                         for norm_name, orig_name in normalized_course_map.items():
-                            if normalized_cell.startswith(norm_name) or norm_name in normalized_cell:
+                            if norm_name in normalized_cell:
                                 class_counts[orig_name] += 1
             
             if not class_counts:
@@ -444,26 +444,21 @@ if 'search_clear_counter' not in st.session_state:
 if 'just_submitted' not in st.session_state: # <-- For one-time scroll
     st.session_state.just_submitted = False
 
-
-# --- APP HEADER ---
-st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-if not st.session_state.submitted:
-    st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
-else:
-    st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
-
-
 # --- MAIN APP LOGIC ---
 # Load student data (needed for both login and stats)
 student_data_map = get_all_student_data()
 
-# --- This is the new, correct structure ---
 if not student_data_map:
     # Fatal error, can't even show stats
+    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
     st.error("FATAL ERROR: Could not load any student data. Please check your Excel files.")
 else:
     # --- DISPLAY LOGIN PAGE ---
     if not st.session_state.submitted:
+        st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+        st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
+        
         st.markdown(
             """
             <div class="welcome-box">
