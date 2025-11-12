@@ -253,14 +253,8 @@ local_css_string = """
         letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 4px 15px var(--today-glow-shadow); z-index: 10;
     }
     @keyframes pulse-glow {
-        0%, 100% {
-            box-shadow: 0 0 35px var(--today-glow-shadow), 
-                        0 0 60px rgba(56, 189, 248, 0.2);
-        }
-        50% {
-            box-shadow: 0 0 45px rgba(56, 189, 248, 0.6), /* Muted blue glow */
-                        0 0 80px rgba(56, 189, 248, 0.3);
-        }
+        0%, 100% { box-shadow: 0 0 35px var(--today-glow-shadow), 0 0 60px rgba(56, 189, 248, 0.2), 0 8px 30px rgba(0,0,0,0.4); }
+        50% { box-shadow: 0 0 45px rgba(56, 189, 248, 0.6), 0 0 80px rgba(56, 189, 248, 0.3), 0 8px 30px rgba(0,0,0,0.4); }
     }
     .day-header { font-size: 1.15rem; font-weight: 700; color: #E2E8F0; margin-bottom: 0.5rem; }
     .class-entry {
@@ -560,7 +554,7 @@ if not master_schedule_df.empty and student_data_map:
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
                     "Search by any Subject Code/Faculty/Classroom:", # <-- Label fixed
-                    placeholder="e.g., DRM, SMKT, LSS, etc", 
+                    placeholder="e.g., DRM, Himanshu Chauhan, E1, etc", 
                     debounce=300, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
