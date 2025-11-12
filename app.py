@@ -199,11 +199,13 @@ st.set_page_config(
 st.markdown("""
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0F172A">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 """, unsafe_allow_html=True)
 # --- CSS STYLING ---
 local_css_string = """
 <style>
-    /* ... (your existing CSS from root to @media) ... */
+    /* ... (your existing CSS from root to .results-container) ... */
     * { color-scheme: dark !important; }
     [data-testid="stAppViewContainer"], [data-testid="stHeader"], section[data-testid="stSidebar"] {
         background-color: var(--bg) !important; color: #ffffff !important;
@@ -231,8 +233,6 @@ local_css_string = """
     }
     .welcome-box strong { color: #ffffff; font-weight: 600; }
     
-    /* --- "WHAT'S NEXT" CARD CSS (REMOVED) --- */
-
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
         border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
@@ -293,10 +293,47 @@ local_css_string = """
     }
     .results-container h3 { color: #E2E8F0; margin-top: 0; margin-bottom: 1rem; font-size: 1.3rem; }
     .results-container h3:not(:first-child) { margin-top: 1.5rem; }
-    @media (max-width: 600px) { .meta { min-width: 120px; font-size:0.9rem; } .main-header { font-size: 1.8rem; } }
+
+    /* --- MODIFIED: Mobile View Adjustments --- */
+    @media (max-width: 600px) {
+        /* Reduce padding on cards */
+        .day-card {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .results-container {
+            padding: 1rem;
+        }
+        /* Reduce font sizes */
+        .main-header { font-size: 1.8rem; }
+        .header-sub { font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .day-header { font-size: 1.0rem; }
+        .subject-name { font-size: 0.95rem; }
+        .meta .time { font-size: 0.9rem; }
+        .meta .venue, .meta .faculty { font-size: 0.8rem; }
+        /* Reduce padding on class entries */
+        .class-entry {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        .meta { 
+            min-width: 120px; 
+            font-size:0.9rem; 
+        }
+        /* Make buttons slightly smaller */
+        .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+        }
+    }
 </style>
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
+
+# --- APP HEADER (WILL ONLY SHOW ON LOGIN PAGE) ---
+if not st.session_state.submitted:
+    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
 
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
@@ -318,9 +355,6 @@ if not master_schedule_df.empty and student_data_map:
     
     # --- DISPLAY FORM IF NOT SUBMITTED ---
     if not st.session_state.submitted:
-        # --- HEADERS MOVED INSIDE HERE ---
-        st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-        st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
         st.markdown(
             """
             <div class="welcome-box">
@@ -412,7 +446,7 @@ if not master_schedule_df.empty and student_data_map:
             # --- ORGANIZED RESULTS SECTION ---
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
-                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
+                sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
                 
                 # --- NEW: Combined Download & Import Expander ---
                 with st.expander("Download & Import to Calendar"):
@@ -622,7 +656,7 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query and not found_search_results:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
 
-                # --- NEW: AUTO-SCROLL SCRIPT (Hard-coded pixel scroll) ---
+                # --- AUTO-SCROLL SCRIPT (Hard-coded pixel scroll) ---
                 if st.session_state.just_submitted:
                     components.html(f"""
                     <script>
