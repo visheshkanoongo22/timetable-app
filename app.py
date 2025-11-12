@@ -52,38 +52,12 @@ DAY_SPECIFIC_OVERRIDES = {
     },
     date(2025, 11, 11): {
         'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 'IMCA': {'Venue': 'T3'}
-    },
-    date(2025, 11, 12): {
-        'INBA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}
-    },
-    date(2025, 11, 13): {
-        'SMKTA': {'Venue': 'T7'},
-        'BS':    {'Venue': 'T7'},
-        'ANA':   {'Venue': 'T7'},
-        'ANB':   {'Venue': 'T7'},
-        'LSSA':  {'Venue': 'T1'},
-        'B2BA':  {'Venue': 'E1'},
-        'DVVSC': {'Venue': 'E2'},
-        'OMSD':  {'Venue': 'T3'},
-        'B2BB':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'B2BC':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-    },
-    date(2025, 11, 14): {
-        'B2BB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, 
-        'B2BC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, 
-    },
-    date(2025, 12, 15): {
-        'DRMC': {'Venue': 'PREPONED', 'Faculty': 'Session Preponed'}, 
     }
 }
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': "SCM('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 13), 'Time': '6:10-7:10PM', 'Subject': 'INB(A)', 'Faculty': 'M C Gupta', 'Venue': 'T6 (Rescheduled)'},
-    {'Date': date(2025, 11, 29), 'Time': '8:30-9:30PM', 'Subject': "DRM('C)", 'Faculty': 'Pankaj Agrawal', 'Venue': 'T5 (Preponed)'}, 
-    {'Date': date(2025, 12, 6), 'Time': '6:10-7:10PM', 'Subject': 'B2B(B)', 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, 
-    {'Date': date(2025, 12, 6), 'Time': '7:20-8:20PM', 'Subject': "B2B('C)", 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, 
 ]
 
 # 3. FUNCTIONS
@@ -156,12 +130,7 @@ def generate_ics_content(found_classes):
     c = Calendar(creator="-//Student Timetable Script//EN")
     local_tz = pytz.timezone(TIMEZONE)
     for class_info in found_classes:
-        # --- MODIFIED: Skip all special status classes ---
-        venue_text = class_info.get('Venue', '').upper()
-        faculty_text = class_info.get('Faculty', '').upper()
-        if ("POSTPONED" in venue_text or "POSTPONED" in faculty_text or
-            "CANCELLED" in venue_text or "CANCELLED" in faculty_text or
-            "PREPONED" in venue_text or "PREPONED" in faculty_text):
+        if "POSTPONED" in class_info.get('Venue', '').upper() or "POSTPONED" in class_info.get('Faculty', '').upper():
             continue
             
         end_dt = get_class_end_datetime(class_info, local_tz)
@@ -308,10 +277,10 @@ if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
+if 'scrolled_to_search' not in st.session_state: # For one-time scroll
+    st.session_state.scrolled_to_search = False
 if 'search_clear_counter' not in st.session_state: # For clearing search
     st.session_state.search_clear_counter = 0
-if 'just_submitted' not in st.session_state: # <-- NEW: For one-time scroll
-    st.session_state.just_submitted = False
 
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
@@ -334,28 +303,9 @@ if not master_schedule_df.empty and student_data_map:
             if submitted_button:
                 st.session_state.roll_number = roll_number_input
                 st.session_state.submitted = True
-                st.session_state.just_submitted = True # <-- NEW: Set scroll flag
                 st.rerun()
     # --- PROCESS AND DISPLAY SCHEDULE IF SUBMITTED ---
     if st.session_state.submitted:
-        
-        # --- FIXED AUTO-SCROLL LOGIC ---
-        if st.session_state.just_submitted:
-            components.html(
-                """
-                <script>
-                    var container = window.parent.document.querySelector('[data-testid="stAppViewContainer"]');
-                    if (container) {
-                        container.scrollBy({top: 200, behavior: 'smooth'});
-                    }
-                </script>
-                """,
-                height=0,
-                width=0
-            )
-            st.session_state.just_submitted = False
-        # -------------------------------
-
         roll_to_process = st.session_state.roll_number
         
         # Handle empty submission
@@ -375,8 +325,8 @@ if not master_schedule_df.empty and student_data_map:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
                     st.session_state.roll_number = ""
+                    st.session_state.scrolled_to_search = False # Reset scroll flag
                     st.session_state.search_clear_counter = 0 # Reset search
-                    st.session_state.just_submitted = False # Reset scroll flag
                     st.rerun()
             
             with st.spinner(f'Compiling classes for {student_name}...'):
@@ -384,7 +334,7 @@ if not master_schedule_df.empty and student_data_map:
                 normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
                 time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
                               6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
-                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
+                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:3App-c"}
                 found_classes = []
                 for index, row in master_schedule_df.iterrows():
                     date, day = row[0], row[1]
@@ -472,6 +422,7 @@ if not master_schedule_df.empty and student_data_map:
                 local_tz = pytz.timezone(TIMEZONE)
                 today_dt = datetime.now(local_tz)
                 today = today_dt.date()
+                today_anchor_id = None
                 
                 past_dates = sorted([d for d in all_dates if d < today], reverse=True)
                 upcoming_dates = sorted([d for d in all_dates if d >= today])
@@ -499,13 +450,10 @@ if not master_schedule_df.empty and student_data_map:
                             ''', unsafe_allow_html=True)
                         else:
                             for class_info in classes_today:
-                                # --- MODIFIED: Handle all status keywords ---
                                 venue_display = ""
                                 venue_text = class_info.get("Venue", "-")
-                                venue_text_upper = venue_text.upper()
-                                
-                                if "POSTPONED" in venue_text_upper or "CANCELLED" in venue_text_upper or "PREPONED" in venue_text_upper:
-                                    venue_display = f'<span class="venue venue-changed">{venue_text.title()}</span>'
+                                if "POSTPONED" in venue_text.upper():
+                                    venue_display = f'<span class="venue venue-changed">{venue_text}</span>'
                                 elif class_info.get('is_venue_override', False):
                                     venue_display = f'<span class="venue venue-changed">Venue changed to {venue_text}</span>'
                                 else:
@@ -522,15 +470,20 @@ if not master_schedule_df.empty and student_data_map:
                 
                 # --- 2. RENDER UPCOMING CLASSES ---
                 
+                # --- "WHAT'S NEXT" CARD REMOVED ---
+                
+                # --- SEARCH ANCHOR ---
+                st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
+
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
-                    " ", # <-- Set label to an empty space
+                    "", # <-- Set label to an empty string
                     placeholder="Search by any Subject Code/Faculty/Classroom",
                     debounce=0, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
-                st.caption("") 
-                st.caption("") 
+                st.caption("")
+                st.caption("")
                 search_query = search_query.lower() if search_query else ""
                 
                 # --- CLEAR SEARCH BUTTON ---
@@ -539,106 +492,112 @@ if not master_schedule_df.empty and student_data_map:
                         st.session_state.search_clear_counter += 1
                         st.rerun()
                 
+                # --- COMPACT VIEW TOGGLE (REMOVED) ---
+                
                 if search_query:
                     st.subheader(f"Search Results for '{search_query}'")
                 else:
                     st.subheader("Upcoming Classes")
 
-                if not upcoming_dates and not search_query:
-                     st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
+                # --- Filter classes for display ---
+                display_classes = []
+                if search_query:
+                    # If searching, filter all upcoming classes
+                    for date_obj in upcoming_dates:
+                        for c in schedule_by_date.get(date_obj, []):
+                             if (search_query in c['Subject'].lower() or
+                                 search_query in c['Faculty'].lower() or
+                                 search_query in c['Venue'].lower()):
+                                display_classes.append(c)
+                else:
+                    # Not searching, just get all upcoming classes in order
+                    for date_obj in upcoming_dates:
+                        display_classes.extend(schedule_by_date.get(date_obj, []))
 
-                found_search_results = False
+                if not display_classes:
+                     if search_query:
+                         st.warning(f"No classes found matching your search for '{search_query}'.")
+                     else:
+                         st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
                 
-                # --- MODIFIED: "Holiday" fix. Iterate over all upcoming dates first ---
-                for idx, date_obj in enumerate(upcoming_dates):
+                # --- DEFAULT CARD VIEW ---
+                # We need to group the filtered classes by date again
+                cards_by_date = defaultdict(list)
+                for class_info in display_classes:
+                    cards_by_date[class_info['Date']].append(class_info)
+                
+                for idx, date_obj in enumerate(sorted(cards_by_date.keys())):
                     is_today = (date_obj == today)
                     today_class = "today" if is_today else ""
                     card_id = f"date-card-{idx}"
                     
-                    classes_today = schedule_by_date.get(date_obj, [])
+                    if is_today and not search_query: 
+                        today_anchor_id = card_id
                     
-                    if search_query:
-                        classes_today = [
-                            c for c in classes_today if
-                            (search_query in c['Subject'].lower() or
-                             search_query in c['Faculty'].lower() or
-                             search_query in c['Venue'].lower())
-                        ]
-                        if classes_today:
-                            found_search_results = True
+                    classes_today = cards_by_date[date_obj]
                     
-                    if not classes_today:
-                        if search_query:
-                            continue # Don't show the day card if no classes match search
-                        else:
-                            # This is the "No classes scheduled" card for holidays/weekends
-                            st.markdown(f'''
-                                <div class="day-card {today_class}" id="{card_id}">
-                                    <div class="day-header">
-                                        {date_obj.strftime("%A, %d %B %Y")}
-                                    </div>
-                                    <div class="class-entry">
-                                        <div class="left">
-                                            <div class="subject-name" style="color: var(--muted); font-style: italic;">No classes scheduled</div>
-                                        </div>
-                                        <div class="meta"><span class="time" style="color: var(--muted);">—</span></div>
-                                    </div>
+                    if is_today:
+                        st.markdown(f'''
+                            <div class="day-card {today_class}" id="{card_id}">
+                                <div class="today-badge">TODAY</div>
+                                <div class="day-header">
+                                    {date_obj.strftime("%A, %d %B %Y")}
                                 </div>
-                            ''', unsafe_allow_html=True)
+                        ''', unsafe_allow_html=True)
                     else:
-                        # Render the day card with classes
-                        if is_today:
-                            st.markdown(f'''
-                                <div class="day-card {today_class}" id="{card_id}">
-                                    <div class="today-badge">TODAY</div>
-                                    <div class="day-header">
-                                        {date_obj.strftime("%A, %d %B %Y")}
-                                    </div>
-                            ''', unsafe_allow_html=True)
-                        else:
-                            st.markdown(f'''
-                                <div class="day-card {today_class}" id="{card_id}">
-                                    <div class="day-header">
-                                        {date_obj.strftime("%A, %d %B %Y")}
-                                    </div>
-                            ''', unsafe_allow_html=True)
-
-                        for class_info in classes_today:
-                            # --- MODIFIED: Handle all status keywords ---
-                            venue_display = ""
-                            venue_text = class_info.get("Venue", "-")
-                            venue_text_upper = venue_text.upper()
-
-                            if "POSTPONED" in venue_text_upper or "CANCELLED" in venue_text_upper or "PREPONED" in venue_text_upper:
-                                venue_display = f'<span class="venue venue-changed">{venue_text.title()}</span>'
-                            elif class_info.get('is_venue_override', False):
-                                venue_display = f'<span class="venue venue-changed">Venue changed to {venue_text}</span>'
-                            else:
-                                venue_display = f'<span class="venue">{venue_text}</span>'
-
-                            meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span>{venue_display}<span class="faculty">{class_info["Faculty"]}</span></div>'
-                            
-                            st.markdown(f'''
-                                <div class="class-entry">
-                                    <div class="left">
-                                        <div class="subject-name">{class_info["Subject"]}</div>
-                                    </div>
-                                    {meta_html}
+                        st.markdown(f'''
+                            <div class="day-card {today_class}" id="{card_id}">
+                                <div class="day-header">
+                                    {date_obj.strftime("%A, %d %B %Y")}
                                 </div>
-                            ''', unsafe_allow_html=True)
-                        
-                        st.markdown('</div>', unsafe_allow_html=True)
-                
-                if search_query and not found_search_results:
-                    st.warning(f"No classes found matching your search for '{search_query}'.")
+                        ''', unsafe_allow_html=True)
 
-                # --- REMOVED THE OLD COMPLEX POLLING SCRIPT FROM HERE ---
+                    for class_info in classes_today:
+                        venue_display = ""
+                        venue_text = class_info.get("Venue", "-")
+                        
+                        if "POSTPONED" in venue_text.upper():
+                            venue_display = f'<span class="venue venue-changed">{venue_text}</span>'
+                        elif class_info.get('is_venue_override', False):
+                            venue_display = f'<span class="venue venue-changed">Venue changed to {venue_text}</span>'
+                        else:
+                            venue_display = f'<span class="venue">{venue_text}</span>'
+
+                        meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span>{venue_display}<span class="faculty">{class_info["Faculty"]}</span></div>'
+                        
+                        st.markdown(f'''
+                            <div class="class-entry">
+                                <div class="left">
+                                    <div class="subject-name">{class_info["Subject"]}</div>
+                                </div>
+                                {meta_html}
+                            </div>
+                        ''', unsafe_allow_html=True)
+                    
+                    st.markdown('</div>', unsafe_allow_html=True)
+
+                # --- AUTO-SCROLL SCRIPT ---
+                if not st.session_state.scrolled_to_search:
+                    components.html(f"""
+                    <script>
+                        function scrollToSearch() {{
+                            const searchAnchor = window.parent.document.getElementById('search-anchor-div');
+                            if (searchAnchor) {{
+                                searchAnchor.scrollIntoView({{behavior: 'smooth', block: 'start'}});
+                                return true;
+                            }}
+                            return false;
+                        }}
+                        
+                        if (!scrollToSearch()) {{
+                            setTimeout(scrollToSearch, 500);
+                        }}
+                    </script>
+                    """, height=0)
+                    st.session_state.scrolled_to_search = True 
                 
             else:
-                if search_query:
-                    st.warning(f"No classes found matching your search for '{search_query}'.")
-                else:
-                    st.warning("No classes found for your registered sections in the master schedule.")
+                st.warning("No classes found for your registered sections in the master schedule.")
                 
         # Handle invalid roll number
         else:
