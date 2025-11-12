@@ -394,10 +394,10 @@ if not master_schedule_df.empty and student_data_map:
             student_info = student_data_map[roll_to_process]
             student_name, student_sections = student_info['name'], student_info['sections']
             
-            # --- MODIFIED: Display header with "Change" button ---
+            # Display header with "Change" button
             col1, col2 = st.columns([3, 1])
             with col1:
-                # --- NEW WELCOME MESSAGE ---
+                # --- MODIFIED: Welcome message uses roll number ---
                 st.markdown(f"""
                 <div class="welcome-message">
                     Displaying schedule for: <strong>{roll_to_process}</strong>
@@ -552,17 +552,19 @@ if not master_schedule_df.empty and student_data_map:
                 
                 # --- "WHAT'S NEXT" CARD REMOVED ---
                 
-                # --- SEARCH ANCHOR (REMOVED, NO LONGER NEEDED) ---
-                
+                # --- SEARCH ANCHOR ---
+                st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
+
                 # --- SEARCH BAR (using st_keyup) ---
-                # --- SEARCH BAR (using st_keyup) ---
-                search_query = st_keyup(
-                    label=None, # <-- Completely removes the label
-                    placeholder="Search by Subject, Faculty, or Classroom...",
-                    debounce=0, 
-                    key=f"search_bar_{st.session_state.search_clear_counter}" 
-                )
-                search_query = search_query.lower() if search_query else ""
+                search_query = st_keyup(
+                    "", # <-- Set label to an empty string
+                    placeholder="Search by any Subject Code/Faculty/Classroom",
+                    debounce=0, 
+                    key=f"search_bar_{st.session_state.search_clear_counter}" 
+                )
+                st.caption("") # <-- Removed label text
+                st.caption("") # <-- Removed label text
+                search_query = search_query.lower() if search_query else ""
                 
                 # --- CLEAR SEARCH BUTTON ---
                 if search_query: 
@@ -575,8 +577,7 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query:
                     st.subheader(f"Search Results for '{search_query}'")
                 else:
-                    # st.subheader("Upcoming Classes") <-- This line is now removed
-                    pass
+                    st.subheader("Upcoming Classes") # <-- "Upcoming Classes" header REMOVED
 
                 if not upcoming_dates and not search_query:
                      st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
@@ -669,7 +670,7 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query and not found_search_results:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
 
-                # --- AUTO-SCROLL SCRIPT (Hard-coded pixel scroll) ---
+                # --- AUTO-SCROLL SCRIPT ---
                 if st.session_state.just_submitted:
                     components.html(f"""
                     <script>
@@ -681,10 +682,15 @@ if not master_schedule_df.empty and student_data_map:
                                 
                                 clearInterval(scrollInterval);
                                 
-                                window.parent.scrollTo({{
-                                    top: 200,
-                                    behavior: 'smooth'
-                                }});
+                                // Find the anchor element
+                                const searchAnchor = window.parent.document.getElementById('search-anchor-div');
+                                if (searchAnchor) {{
+                                    const rect = searchAnchor.getBoundingClientRect();
+                                    const currentScrollY = window.parent.scrollY;
+                                    // Calculate target, subtracting 85px for the Streamlit header
+                                    const targetY = rect.top + currentScrollY - 85; 
+                                    window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
+                                }}
                             }}
                             if (attempts > 20) {{
                                 // Stop trying after 5 seconds (20 * 250ms)
