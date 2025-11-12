@@ -313,6 +313,8 @@ if 'search_clear_counter' not in st.session_state:
     st.session_state.search_clear_counter = 0
 if 'previous_search' not in st.session_state:  # NEW: Track previous search
     st.session_state.previous_search = ""
+if 'auto_scrolled' not in st.session_state:
+    st.session_state.auto_scrolled = False
 
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
@@ -335,7 +337,9 @@ if not master_schedule_df.empty and student_data_map:
             if submitted_button:
                 st.session_state.roll_number = roll_number_input
                 st.session_state.submitted = True
+                st.session_state.auto_scrolled = False  # reset scroll flag
                 st.rerun()
+
     # --- PROCESS AND DISPLAY SCHEDULE IF SUBMITTED ---
     if st.session_state.submitted:
         roll_to_process = st.session_state.roll_number
@@ -508,13 +512,7 @@ if not master_schedule_df.empty and student_data_map:
                 # --- "WHAT'S NEXT" CARD REMOVED ---
                 
                 # --- SEARCH ANCHOR ---
-                if search_changed:  # When a new search happens
-                    js_scroll_to_anchor = """
-                        <script>
-                        window.location.hash = "#search-anchor-div";
-                        </script>
-                    """
-                    st.markdown(js_scroll_to_anchor, unsafe_allow_html=True)
+                st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
 
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
@@ -636,32 +634,34 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query and not found_search_results:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
 
-                # --- AUTO-SCROLL SCRIPT ---
-                if not st.session_state.scrolled_to_search:
+                # --- AUTO-SCROLL SCRIPT (Triggers on any search change) ---
+                if search_changed or not st.session_state.submitted:
                     components.html(f"""
                     <script>
-                        function scrollToSearch() {{
+                        let attempts = 0;
+                        const scrollInterval = setInterval(() => {{
+                            attempts++;
                             const searchAnchor = window.parent.document.getElementById('search-anchor-div');
+                            
                             if (searchAnchor) {{
-                                searchAnchor.scrollIntoView({{behavior: 'smooth', block: 'start'}});
-                                return true;
+                                clearInterval(scrollInterval);
+                                const rect = searchAnchor.getBoundingClientRect();
+                                const currentScrollY = window.parent.scrollY;
+                                const targetY = rect.top + currentScrollY - 85; 
+                                window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
                             }}
-                            return false;
-                        }}
-                        
-                        if (!scrollToSearch()) {{
-                            setTimeout(scrollToSearch, 500);
-                        }}
+                            if (attempts > 20) {{
+                                clearInterval(scrollInterval);
+                            }}
+                        }}, 250);
                     </script>
                     """, height=0)
-                    st.session_state.scrolled_to_search = True  
                 
             else:
                 if search_query:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
                 else:
                     st.warning("No classes found for your registered sections in the master schedule.")
-                
                 
         # Handle invalid roll number
         else:
@@ -671,6 +671,26 @@ if not master_schedule_df.empty and student_data_map:
             st.rerun()
 elif master_schedule_df.empty or not student_data_map:
     st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
+
+# --- AUTO SCROLL TO TIMETABLE ONCE AFTER SUBMISSION ---
+# Create an invisible anchor at the start of the timetable section
+st.markdown('<div id="schedule-start"></div>', unsafe_allow_html=True)
+
+# Scroll to that anchor smoothly, but only once (immediately after submission)
+if not st.session_state.auto_scrolled:
+    st.markdown("""
+        <script>
+        const el = document.getElementById('schedule-start');
+        if (el) {
+            // Wait briefly to ensure DOM is ready before scrolling
+            setTimeout(() => {
+                el.scrollIntoView({behavior: 'smooth', block: 'start'});
+            }, 500);
+        }
+        </script>
+    """, unsafe_allow_html=True)
+    st.session_state.auto_scrolled = True
+
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("_Made by Vishesh_")
