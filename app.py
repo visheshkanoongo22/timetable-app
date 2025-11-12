@@ -473,12 +473,16 @@ if not master_schedule_df.empty and student_data_map:
                                     <div class="meta"><span class="time" style="color: var(--muted);">—</span></div>
                                 </div>
                             ''', unsafe_allow_html=True)
-                        else:
+                        
+                           else:
                             for class_info in classes_today:
+                                # --- MODIFIED: Handle all status keywords ---
                                 venue_display = ""
                                 venue_text = class_info.get("Venue", "-")
-                                if "POSTPONED" in venue_text.upper():
-                                    venue_display = f'<span class="venue venue-changed">{venue_text}</span>'
+                                venue_text_upper = venue_text.upper()
+                                
+                                if "POSTPONED" in venue_text_upper or "CANCELLED" in venue_text_upper or "PREPONED" in venue_text_upper:
+                                    venue_display = f'<span class="venue venue-changed">{venue_text.title()}</span>'
                                 elif class_info.get('is_venue_override', False):
                                     venue_display = f'<span class="venue venue-changed">Venue changed to {venue_text}</span>'
                                 else:
