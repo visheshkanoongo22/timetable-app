@@ -303,15 +303,16 @@ st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingerti
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
+
 # --- INITIALIZE SESSION STATE ---
 if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
-if 'scrolled_to_search' not in st.session_state: # For one-time scroll
-    st.session_state.scrolled_to_search = False
-if 'search_clear_counter' not in st.session_state: # For clearing search
+if 'search_clear_counter' not in st.session_state:
     st.session_state.search_clear_counter = 0
+if 'previous_search' not in st.session_state:  # NEW: Track previous search
+    st.session_state.previous_search = ""
 
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
@@ -356,8 +357,8 @@ if not master_schedule_df.empty and student_data_map:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
                     st.session_state.roll_number = ""
-                    st.session_state.scrolled_to_search = False # Reset scroll flag
                     st.session_state.search_clear_counter = 0 # Reset search
+                    st.session_state.previous_search = ""
                     st.rerun()
             
             with st.spinner(f'Compiling classes for {student_name}...'):
@@ -516,14 +517,19 @@ if not master_schedule_df.empty and student_data_map:
                     debounce=0, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
-                st.caption("") 
-                st.caption("") 
+                st.caption("") # <-- Removed label text
+                st.caption("") # <-- Removed label text
                 search_query = search_query.lower() if search_query else ""
+
+                # NEW: Detect if search changed (including when user presses Enter)
+                search_changed = (search_query != st.session_state.previous_search)
+                st.session_state.previous_search = search_query
                 
                 # --- CLEAR SEARCH BUTTON ---
                 if search_query: 
                     if st.button("Clear Search"):
                         st.session_state.search_clear_counter += 1
+                        st.session_state.previous_search = ""  # Reset previous search
                         st.rerun()
                 
                 # --- COMPACT VIEW TOGGLE (REMOVED) ---
@@ -624,8 +630,8 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query and not found_search_results:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
 
-                # --- AUTO-SCROLL SCRIPT (Replaced with robust retry logic) ---
-                if not st.session_state.scrolled_to_search:
+                # --- AUTO-SCROLL SCRIPT (Triggers on any search change) ---
+                if search_changed or not st.session_state.submitted:
                     components.html(f"""
                     <script>
                         let attempts = 0;
@@ -646,10 +652,12 @@ if not master_schedule_df.empty and student_data_map:
                         }}, 250);
                     </script>
                     """, height=0)
-                    st.session_state.scrolled_to_search = True 
                 
             else:
-                st.warning("No classes found for your registered sections in the master schedule.")
+                if search_query:
+                    st.warning(f"No classes found matching your search for '{search_query}'.")
+                else:
+                    st.warning("No classes found for your registered sections in the master schedule.")
                 
         # Handle invalid roll number
         else:
