@@ -223,8 +223,6 @@ local_css_string = """
     }
     .main-header {
         font-size: 2.4rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem;
-        background: -webkit-linear-gradient(90deg, var(--accent-start), var(--accent-end));
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 0.2px;
     }
     .header-sub { text-align:center; color:var(--muted); margin-top:0rem; margin-bottom:2rem; font-size:1.0rem; }
     .welcome-box {
@@ -233,7 +231,16 @@ local_css_string = """
     }
     .welcome-box strong { color: #ffffff; font-weight: 600; }
     
-    /* --- "WHAT'S NEXT" CARD CSS (REMOVED) --- */
+    /* --- NEW WELCOME MESSAGE --- */
+    .welcome-message {
+        margin-top: -2rem; /* Pulls it up */
+        margin-bottom: 1rem; /* Adds space before the next element */
+        font-size: 1.1rem; /* Smaller than h3, larger than caption */
+        color: var(--muted); /* Use the muted color */
+    }
+    .welcome-message strong {
+        color: #ffffff; /* Make the roll number white */
+    }
 
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
@@ -332,7 +339,6 @@ local_css_string = """
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
-# --- *** MOVED THIS BLOCK UP *** ---
 # --- INITIALIZE SESSION STATE ---
 if 'submitted' not in st.session_state:
     st.session_state.submitted = False
@@ -342,7 +348,6 @@ if 'search_clear_counter' not in st.session_state:
     st.session_state.search_clear_counter = 0
 if 'just_submitted' not in st.session_state: # <-- For one-time scroll
     st.session_state.just_submitted = False
-# --- *** END MOVED BLOCK *** ---
 
 
 # --- APP HEADER (WILL ONLY SHOW ON LOGIN PAGE) ---
@@ -389,18 +394,15 @@ if not master_schedule_df.empty and student_data_map:
             student_info = student_data_map[roll_to_process]
             student_name, student_sections = student_info['name'], student_info['sections']
             
-            # Display header with "Change" button
+            # --- MODIFIED: Display header with "Change" button ---
             col1, col2 = st.columns([3, 1])
             with col1:
-                # --- "Success" bar REMOVED ---
-                # --- NEW NAME LOGIC ---
-                words = student_name.split()
-                num_words = len(words)
-                if num_words >= 3:
-                    display_name = words[1].title() # Get second word
-                else:
-                    display_name = words[0].title() # Get first word
-                st.markdown(f"### Welcome, {display_name}!") # Use the new display_name
+                # --- NEW WELCOME MESSAGE ---
+                st.markdown(f"""
+                <div class="welcome-message">
+                    Displaying schedule for: <strong>{roll_to_process}</strong>
+                </div>
+                """, unsafe_allow_html=True)
             with col2:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
@@ -550,16 +552,15 @@ if not master_schedule_df.empty and student_data_map:
                 
                 # --- "WHAT'S NEXT" CARD REMOVED ---
                 
-                # --- SEARCH ANCHOR (REMOVED) ---
+                # --- SEARCH ANCHOR (REMOVED, NO LONGER NEEDED) ---
                 
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
-                    "  Search by any Subject/Faculty/Classroom:", # <-- Label fixed
+                    " Search by any Subject/Faculty/Classroom:",
                     placeholder="e.g., DRM, Himanshu Chauhan, T3, etc", 
                     debounce=300, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
-                # --- Empty captions REMOVED ---
                 search_query = search_query.lower() if search_query else ""
                 
                 # --- CLEAR SEARCH BUTTON ---
@@ -572,7 +573,8 @@ if not master_schedule_df.empty and student_data_map:
                 
                 if search_query:
                     st.subheader(f"Search Results for '{search_query}'")
-                # --- "Upcoming Classes" subheader REMOVED ---
+                else:
+                    st.subheader("Upcoming Classes")
 
                 if not upcoming_dates and not search_query:
                      st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
