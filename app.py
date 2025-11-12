@@ -1,3 +1,4 @@
+
 # 1. IMPORTS
 import pandas as pd
 import os
@@ -14,8 +15,6 @@ from streamlit_extras.st_keyup import st_keyup # For live search
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
-# --- NEW: List of all schedule files, from oldest to newest ---
-SCHEDULE_FILES = ['schedule1.xlsx', 'schedule2.xlsx', 'schedule3.xlsx', 'schedule.xlsx'] 
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
 COURSE_DETAILS_MAP = {
@@ -69,7 +68,7 @@ DAY_SPECIFIC_OVERRIDES = {
         'OMSD':  {'Venue': 'T3'},
         'B2BB':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
         'B2BC':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'IMCA':  {'Venue': 'T3'},
+        'IMCA':  {'Venue': 'T3'}, # <-- NEW CHANGE HERE
     },
     date(2025, 11, 14): {
         'B2BB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, 
@@ -94,9 +93,8 @@ def normalize_string(text):
     if isinstance(text, str):
         return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").upper()
     return ""
-
 @st.cache_data
-def load_and_clean_schedule(file_path, is_stats_file=False):
+def load_and_clean_schedule(file_path):
     try:
         df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3)
         schedule_df = df.iloc[:, 0:14].copy()
@@ -104,83 +102,11 @@ def load_and_clean_schedule(file_path, is_stats_file=False):
         schedule_df.dropna(subset=[0], inplace=True)
         return schedule_df
     except FileNotFoundError:
-        if not is_stats_file: # Only show error for the main schedule file
-            st.error(f"FATAL ERROR: The main schedule file '{file_path}' was not found. Please make sure it's in the same folder as the app.")
+        st.error(f"FATAL ERROR: The main schedule file '{file_path}' was not found. Please make sure it's in the same folder as the app.")
         return pd.DataFrame()
     except Exception as e:
-        if not is_stats_file:
-            st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
+        st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
         return pd.DataFrame()
-
-# --- NEW: Function to load ALL schedules ---
-@st.cache_data
-def load_all_schedules(file_list):
-    all_dfs = []
-    for file_path in file_list:
-        # Use the existing function, but suppress errors for old files
-        df = load_and_clean_schedule(file_path, is_stats_file=True) 
-        if not df.empty:
-            all_dfs.append(df)
-            
-    if not all_dfs:
-        return pd.DataFrame()
-        
-    combined_df = pd.concat(all_dfs)
-    # Keep all rows across all schedules (don't drop older ones)
-    combined_df = combined_df.sort_values(by=[0])  # Sort by date
-    return combined_df
-
-# --- NEW: Function to calculate and display stats ---
-def calculate_and_display_stats():
-    st.markdown("---") # Separator
-    with st.expander("Show Course Session Statistics"):
-        with st.spinner("Calculating session statistics..."):
-            all_schedules_df = load_all_schedules(SCHEDULE_FILES)
-            
-            if all_schedules_df.empty:
-                st.warning("Could not load schedule files to calculate stats. Please check file names.")
-                return
-
-            today = datetime.now(pytz.timezone(TIMEZONE)).date()
-            class_counts = defaultdict(int)
-            time_slots_cols = list(range(2, 14)) # Columns 2 through 13
-            
-            # Create a normalized map of all known courses
-            normalized_course_map = {normalize_string(k): k for k in COURSE_DETAILS_MAP.keys()}
-            
-            # Filter schedule for past dates only
-           past_schedule = all_schedules_df[all_schedules_df[0] <= today]
-            
-            for _, row in past_schedule.iterrows():
-                for col_idx in time_slots_cols:
-                    cell_value = str(row[col_idx])
-                    if cell_value and cell_value != 'nan':
-                        normalized_cell = normalize_string(cell_value)
-                        
-                        # Check every known class against the cell
-                        for norm_name, orig_name in normalized_course_map.items():
-                            if normalized_cell.startswith(norm_name) or norm_name in normalized_cell:
-                                class_counts[orig_name] += 1
-
-            
-            if not class_counts:
-                st.info("No past classes were found to calculate statistics.")
-                return
-
-            # Display the stats in two columns
-            st.markdown("This shows the total number of sessions held *to date*, compiled from all past and current schedule files.")
-            sorted_counts = sorted(class_counts.items())
-            midpoint = len(sorted_counts) // 2 + (len(sorted_counts) % 2)
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                for subject, count in sorted_counts[:midpoint]:
-                    st.markdown(f"**{subject}:** {count} sessions")
-            
-            with col2:
-                for subject, count in sorted_counts[midpoint:]:
-                    st.markdown(f"**{subject}:** {count} sessions")
-
 @st.cache_data
 def get_all_student_data(folder_path='.'):
     student_data_map = {}
@@ -445,67 +371,50 @@ if 'just_submitted' not in st.session_state: # <-- For one-time scroll
     st.session_state.just_submitted = False
 
 
-# --- APP HEADER ---
-st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+# --- APP HEADER (WILL ONLY SHOW ON LOGIN PAGE) ---
 if not st.session_state.submitted:
-    st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
-else:
+    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
 
-
-# --- MAIN APP LOGIC ---
-# Load data needed for both stats and app
+# --- LOAD DATA ---
+master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
 
-if not st.session_state.submitted:
-    # --- DISPLAY LOGIN PAGE ---
-    st.markdown(
-        """
-        <div class="welcome-box">
-            Welcome! Enter your roll number to get started!</strong>.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    with st.form("roll_number_form"):
-        roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
-        submitted_button = st.form_submit_button("Generate Timetable")
+# --- MAIN APP LOGIC ---
+if not master_schedule_df.empty and student_data_map:
+    
+    # --- DISPLAY FORM IF NOT SUBMITTED ---
+    if not st.session_state.submitted:
+        st.markdown(
+            """
+            <div class="welcome-box">
+                Welcome! Enter your roll number to get started!</strong>.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        with st.form("roll_number_form"):
+            roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
+            submitted_button = st.form_submit_button("Generate Timetable")
+            
+            if submitted_button:
+                st.session_state.roll_number = roll_number_input
+                st.session_state.submitted = True
+                st.session_state.just_submitted = True # <-- Set scroll flag
+                st.rerun()
+    # --- PROCESS AND DISPLAY SCHEDULE IF SUBMITTED ---
+    if st.session_state.submitted:
+        roll_to_process = st.session_state.roll_number
         
-        if submitted_button:
-            st.session_state.roll_number = roll_number_input
-            st.session_state.submitted = True
-            st.session_state.just_submitted = True # <-- Set scroll flag
+        # Handle empty submission
+        if not roll_to_process:
+            st.session_state.submitted = False
             st.rerun()
-    
-    # --- DISPLAY STATS ON LOGIN PAGE ---
-    calculate_and_display_stats()
-
-else:
-    # --- DISPLAY TIMETABLE PAGE ---
-    roll_to_process = st.session_state.roll_number
-    
-    # Handle empty submission
-    if not roll_to_process:
-        st.session_state.submitted = False
-        st.rerun()
-    # Handle invalid roll number
-    elif roll_to_process not in student_data_map:
-        st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
-        st.session_state.submitted = False
-        st.session_state.roll_number = ""
-        st.rerun()
-    # Handle valid roll number
-    else:
-        student_info = student_data_map[roll_to_process]
-        student_name, student_sections = student_info['name'], student_info['sections']
-        
-        # Load the main schedule file *only after* login
-        master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
-        
-        if master_schedule_df.empty:
-            # Error is already handled by load_and_clean_schedule
-            pass
-        else:
+        # Handle valid roll number
+        elif roll_to_process in student_data_map:
+            student_info = student_data_map[roll_to_process]
+            student_name, student_sections = student_info['name'], student_info['sections']
+            
             # Display header with "Change" button
             col1, col2 = st.columns([3, 1])
             with col1:
@@ -526,6 +435,7 @@ else:
             with st.spinner(f'Compiling classes for {student_name}...'):
                 NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
                 normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
+                # --- FIXED: Corrected 8:30-9:3App-c typo ---
                 time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
                               6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
                               10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
@@ -587,6 +497,8 @@ else:
                     4. Choose the `.ics` file you just downloaded and click 'Import'.
                     """)
                 
+                # --- Divider REMOVED ---
+                
                 schedule_by_date = defaultdict(list)
                 for class_info in found_classes:
                     schedule_by_date[class_info['Date']].append(class_info)
@@ -616,36 +528,38 @@ else:
                 # --- 1. RENDER PAST CLASSES (IN AN EXPANDER) ---
                 with st.expander("Show Previous Classes"):
                     # --- SEARCH BAR MOVED HERE ---
-                    search_query = st_keyup(
-                        label=None, # <-- Label removed
+                    search_query_past = st_keyup(
+                        " ", # <-- Set label to an empty space
                         placeholder="Search past classes...",
                         debounce=0, 
                         key=f"search_bar_past_{st.session_state.search_clear_counter}" 
                     )
-                    search_query = search_query.lower() if search_query else ""
+                    st.caption("")
+                    st.caption("")
+                    search_query_past = search_query_past.lower() if search_query_past else ""
                     
-                    if search_query: 
+                    if search_query_past: 
                         if st.button("Clear Search"):
                             st.session_state.search_clear_counter += 1
                             st.rerun()
 
-                    if search_query:
-                        st.subheader(f"Search Results for '{search_query}'")
+                    if search_query_past:
+                        st.subheader(f"Search Results for '{search_query_past}'")
                     
                     found_past_search = False
-                    if not past_dates and not search_query:
+                    if not past_dates and not search_query_past:
                         st.markdown('<p style="color: var(--muted); font-style: italic;">No previous classes found.</p>', unsafe_allow_html=True)
                     
                     for date_obj in past_dates:
                         classes_today = schedule_by_date.get(date_obj, [])
                         
                         # --- Filter logic for past classes ---
-                        if search_query:
+                        if search_query_past:
                             classes_today = [
                                 c for c in classes_today if
-                                (search_query in c['Subject'].lower() or
-                                 search_query in c['Faculty'].lower() or
-                                 search_query in c['Venue'].lower())
+                                (search_query_past in c['Subject'].lower() or
+                                 search_query_past in c['Faculty'].lower() or
+                                 search_query_past in c['Venue'].lower())
                             ]
                             if classes_today:
                                 found_past_search = True
@@ -721,15 +635,19 @@ else:
                             ''', unsafe_allow_html=True)
                         st.markdown('</div>', unsafe_allow_html=True)
                     
-                    if search_query and not found_past_search:
-                        st.warning(f"No past classes found matching your search for '{search_query}'.")
+                    if search_query_past and not found_past_search:
+                        st.warning(f"No past classes found matching your search for '{search_query_past}'.")
 
                 
                 # --- 2. RENDER UPCOMING CLASSES ---
                 
+                # --- "WHAT'S NEXT" CARD REMOVED ---
+                
                 # --- SEARCH ANCHOR ---
                 st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
 
+                # --- SEARCH BAR REMOVED FROM HERE ---
+                
                 st.subheader("Upcoming Classes")
 
                 if not upcoming_dates:
@@ -870,8 +788,17 @@ else:
             else:
                 st.warning("No classes found for your registered sections in the master schedule.")
                 
-
-
+        # Handle invalid roll number
+        else:
+            st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
+            st.session_state.submitted = False
+            st.session_state.roll_number = ""
+            st.rerun()
+elif master_schedule_df.empty or not student_data_map:
+    # --- Show headers on the error page too ---
+    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
+    st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("_Made by Vishesh_")
