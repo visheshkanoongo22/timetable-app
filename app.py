@@ -175,7 +175,7 @@ def calculate_and_display_stats():
                 st.info("No past classes were found to calculate statistics.")
                 return
 
-            st.markdown("This shows the total number of sessions held *to date*.")
+            st.markdown("This shows the total number of sessions held *to date* (May not be fully accurate).")
             
             # --- NEW: Grouping Logic ---
             grouped_counts = defaultdict(dict)
