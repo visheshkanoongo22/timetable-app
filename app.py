@@ -116,7 +116,7 @@ def load_and_clean_schedule(file_path): # <-- Removed is_stats_file
 
 # --- (FIXED) Function to calculate and display stats ---
 def calculate_and_display_stats():
-    st.markdown("---") # Separator
+    # st.markdown("---") # Separator <-- THIS LINE IS NOW REMOVED
     with st.expander("Sessions Taken till Now"):
         with st.spinner("Calculating session statistics..."):
             all_schedules_df = load_and_clean_schedule(SCHEDULE_FILE_NAME) 
@@ -175,7 +175,7 @@ def calculate_and_display_stats():
                 st.info("No past classes were found to calculate statistics.")
                 return
 
-            st.markdown("This shows the total number of sessions held *to date* (May not be fully accurate).")
+            st.markdown("This shows the total number of sessions held *to date*.")
             
             # --- NEW: Grouping Logic ---
             grouped_counts = defaultdict(dict)
