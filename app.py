@@ -870,13 +870,6 @@ else:
             else:
                 st.warning("No classes found for your registered sections in the master schedule.")
                 
-# --- This is the corrected 'else' block ---
-else:
-    # --- Show headers on the error page too ---
-    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
-    if not student_data_map:
-        st.error("FATAL ERROR: Could not load any student data. Please check your Excel files.")
     else:
         st.warning("Application is initializing or required data files are missing. Please wait or check the folder.")
 
