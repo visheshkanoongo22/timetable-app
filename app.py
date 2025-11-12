@@ -276,6 +276,13 @@ local_css_string = """
     .meta .time { display:block; font-weight:600; color:#fff; font-size:0.97rem; }
     .meta .venue, .meta .faculty { display:block; font-size:0.85rem; color:var(--muted); }
     .venue-changed { color: var(--venue-change-color) !important; font-weight: 600; }
+    
+    /* --- NEW: Strikethrough Class --- */
+    .strikethrough {
+        text-decoration: line-through;
+        opacity: 0.6;
+    }
+    
     .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
         background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); color: var(--bg);
         font-weight:700; padding: 0.5rem 0.9rem; border-radius:10px; border:none;
@@ -285,11 +292,18 @@ local_css_string = """
     .stDownloadButton>button:hover, div[data-testid="stForm"] button[kind="primary"]:hover, .stButton>button:hover {
         transform: translateY(-3px); box-shadow: 0 14px 30px rgba(96,165,250,0.15);
     }
+    
+    /* --- MODIFIED: Smaller Change Button --- */
     .stButton>button {
-        width: auto; padding: 0.4rem 0.8rem; font-size: 0.9rem; background: var(--card);
-        color: var(--muted); border: 1px solid var(--glass-border);
+        width: auto; 
+        padding: 0.25rem 0.6rem; /* Smaller padding */
+        font-size: 0.8rem; /* Smaller font */
+        background: var(--card);
+        color: var(--muted); 
+        border: 1px solid var(--glass-border);
     }
     .stButton>button:hover { color: var(--accent-start); border-color: var(--accent-start); }
+    
     a { color: var(--accent-start); font-weight:600; }
     .css-1d391kg, .css-1v3fvcr, .css-18ni7ap { color: #ffffff; }
     .stTextInput>div>div>input, .stTextInput>div>div>textarea {
@@ -333,6 +347,11 @@ local_css_string = """
         .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
             padding: 0.4rem 0.8rem;
             font-size: 0.9rem;
+        }
+        /* Make change button even smaller on mobile */
+        .stButton>button {
+            padding: 0.25rem 0.6rem;
+            font-size: 0.8rem;
         }
     }
 </style>
@@ -458,7 +477,7 @@ if not master_schedule_df.empty and student_data_map:
             # --- ORGANIZED RESULTS SECTION ---
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
-                sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
+                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                 
                 # --- NEW: Combined Download & Import Expander ---
                 with st.expander("Download & Import to Calendar"):
@@ -527,22 +546,54 @@ if not master_schedule_df.empty and student_data_map:
                             ''', unsafe_allow_html=True)
                         else:
                             for class_info in classes_today:
-                                # --- MODIFIED: Handle all status keywords ---
-                                venue_display = ""
+                                # --- *** NEW STRIKETHROUGH LOGIC *** ---
                                 venue_text = class_info.get("Venue", "-")
+                                faculty_text = class_info.get("Faculty", "-")
                                 venue_text_upper = venue_text.upper()
+                                faculty_text_upper = faculty_text.upper()
+
+                                is_postponed = "POSTPONED" in venue_text_upper or "POSTPONED" in faculty_text_upper
+                                is_cancelled = "CANCELLED" in venue_text_upper or "CANCELLED" in faculty_text_upper
+                                is_preponed = "PREPONED" in venue_text_upper or "PREPONED" in faculty_text_upper
                                 
-                                if "POSTPONED" in venue_text_upper or "CANCELLED" in venue_text_upper or "PREPONED" in venue_text_upper:
-                                    venue_display = f'<span class="venue venue-changed">{venue_text.title()}</span>'
+                                status_class = ""
+                                venue_display = ""
+                                faculty_display = f'<span class="faculty">{faculty_text}</span>' # Default
+
+                                if is_postponed:
+                                    status_class = "strikethrough"
+                                    venue_display = f'<span class="venue venue-changed">Postponed</span>'
+                                    faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
+                                elif is_cancelled:
+                                    status_class = "strikethrough"
+                                    venue_display = f'<span class="venue venue-changed">Cancelled</span>'
+                                    faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
+                                elif is_preponed:
+                                    status_class = "strikethrough"
+                                    venue_display = f'<span class="venue venue-changed">Preponed</span>'
+                                    faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
                                 elif class_info.get('is_venue_override', False):
                                     venue_display = f'<span class="venue venue-changed">Venue changed to {venue_text}</span>'
                                 else:
                                     venue_display = f'<span class="venue">{venue_text}</span>'
-
-                                meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span>{venue_display}<span class="faculty">{class_info["Faculty"]}</span></div>'
+                                
+                                # Handle special faculty text
+                                if "POSTPONED" in faculty_text_upper or "CANCELLED" in faculty_text_upper or "PREPONED" in faculty_text_upper:
+                                    faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>'
+                                
+                                meta_html = f'''
+                                    <div class="meta">
+                                        <span class="time {status_class}">{class_info["Time"]}</span>
+                                        {venue_display}
+                                        {faculty_display}
+                                    </div>
+                                '''
+                                
                                 st.markdown(f'''
                                     <div class="class-entry">
-                                        <div class="left"><div class="subject-name">{class_info["Subject"]}</div></div>
+                                        <div class="left">
+                                             <div class="subject-name {status_class}">{class_info["Subject"]}</div>
+                                        </div>
                                         {meta_html}
                                     </div>
                                 ''', unsafe_allow_html=True)
@@ -557,7 +608,7 @@ if not master_schedule_df.empty and student_data_map:
 
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
-                    "", # <-- Set label to an empty string
+                    " ", # <-- Set label to an empty space
                     placeholder="Search by any Subject Code/Faculty/Classroom",
                     debounce=0, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
@@ -577,7 +628,8 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query:
                     st.subheader(f"Search Results for '{search_query}'")
                 else:
-                    st.subheader("Upcoming Classes") # <-- "Upcoming Classes" header REMOVED
+                    # --- "Upcoming Classes" subheader REMOVED ---
+                    pass 
 
                 if not upcoming_dates and not search_query:
                      st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
@@ -642,24 +694,61 @@ if not master_schedule_df.empty and student_data_map:
                             ''', unsafe_allow_html=True)
 
                         for class_info in classes_today:
-                            # --- MODIFIED: Handle all status keywords ---
-                            venue_display = ""
+                            # --- *** NEW STRIKETHROUGH LOGIC *** ---
                             venue_text = class_info.get("Venue", "-")
+                            faculty_text = class_info.get("Faculty", "-")
                             venue_text_upper = venue_text.upper()
+                            faculty_text_upper = faculty_text.upper()
 
-                            if "POSTPONED" in venue_text_upper or "CANCELLED" in venue_text_upper or "PREPONED" in venue_text_upper:
-                                venue_display = f'<span class="venue venue-changed">{venue_text.title()}</span>'
+                            is_postponed = "POSTPONED" in venue_text_upper or "POSTPONED" in faculty_text_upper
+                            is_cancelled = "CANCELLED" in venue_text_upper or "CANCELLED" in faculty_text_upper
+                            is_preponed = "PREPONED" in venue_text_upper or "PREPONED" in faculty_text_upper
+                            
+                            status_class = ""
+                            venue_display = ""
+                            faculty_display = f'<span class="faculty">{faculty_text}</span>' # Default
+
+                            if is_postponed:
+                                status_class = "strikethrough"
+                                venue_display = f'<span class="venue venue-changed">Postponed</span>'
+                                # Check if faculty text is generic, if not, strike it
+                                if "POSTPONED" not in faculty_text_upper:
+                                     faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
+                                else:
+                                     faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>' # Make "Session Postponed" red
+                            elif is_cancelled:
+                                status_class = "strikethrough"
+                                venue_display = f'<span class="venue venue-changed">Cancelled</span>'
+                                if "CANCELLED" not in faculty_text_upper:
+                                     faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
+                                else:
+                                     faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>' # Make "Session Cancelled" red
+                            elif is_preponed:
+                                status_class = "strikethrough"
+                                venue_display = f'<span class="venue venue-changed">Preponed</span>'
+                                if "PREPONED" not in faculty_text_upper:
+                                     faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
+                                else:
+                                     faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>' # Make "Session Preponed" red
                             elif class_info.get('is_venue_override', False):
                                 venue_display = f'<span class="venue venue-changed">Venue changed to {venue_text}</span>'
+                                faculty_display = f'<span class="faculty">{faculty_text}</span>'
                             else:
                                 venue_display = f'<span class="venue">{venue_text}</span>'
-
-                            meta_html = f'<div class="meta"><span class="time">{class_info["Time"]}</span>{venue_display}<span class="faculty">{class_info["Faculty"]}</span></div>'
+                                faculty_display = f'<span class="faculty">{faculty_text}</span>'
+                            
+                            meta_html = f'''
+                                <div class="meta">
+                                    <span class="time {status_class}">{class_info["Time"]}</span>
+                                    {venue_display}
+                                    {faculty_display}
+                                </div>
+                            '''
                             
                             st.markdown(f'''
                                 <div class="class-entry">
                                     <div class="left">
-                                        <div class="subject-name">{class_info["Subject"]}</div>
+                                        <div class="subject-name {status_class}">{class_info["Subject"]}</div>
                                     </div>
                                     {meta_html}
                                 </div>
@@ -670,33 +759,26 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query and not found_search_results:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
 
-                # --- AUTO-SCROLL SCRIPT ---
+                # --- AUTO-SCROLL SCRIPT (Replaced with robust retry logic) ---
                 if st.session_state.just_submitted:
                     components.html(f"""
                     <script>
                         let attempts = 0;
                         const scrollInterval = setInterval(() => {{
                             attempts++;
-                            // Check if the parent document is ready
-                            if (window.parent.document.readyState === 'complete' || window.parent.document.readyState === 'interactive') {{
-                                
+                            const searchAnchor = window.parent.document.getElementById('search-anchor-div');
+                            
+                            if (searchAnchor) {{
                                 clearInterval(scrollInterval);
-                                
-                                // Find the anchor element
-                                const searchAnchor = window.parent.document.getElementById('search-anchor-div');
-                                if (searchAnchor) {{
-                                    const rect = searchAnchor.getBoundingClientRect();
-                                    const currentScrollY = window.parent.scrollY;
-                                    // Calculate target, subtracting 85px for the Streamlit header
-                                    const targetY = rect.top + currentScrollY - 85; 
-                                    window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
-                                }}
+                                const rect = searchAnchor.getBoundingClientRect();
+                                const currentScrollY = window.parent.scrollY;
+                                const targetY = rect.top + currentScrollY - 85; 
+                                window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
                             }}
                             if (attempts > 20) {{
-                                // Stop trying after 5 seconds (20 * 250ms)
                                 clearInterval(scrollInterval);
                             }}
-                        }}, 250); // Check every 250ms
+                        }}, 250);
                     </script>
                     """, height=0)
                     st.session_state.just_submitted = False # Unset the flag
