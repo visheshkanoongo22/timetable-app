@@ -734,6 +734,8 @@ else:
 
                         if search_query:
                             st.subheader(f"Search Results for '{search_query}'")
+                        else:
+                            pass
                         
                         found_past_search = False
                         if not past_dates and not search_query:
