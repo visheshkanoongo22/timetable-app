@@ -126,12 +126,10 @@ def load_all_schedules(file_list):
         return pd.DataFrame()
         
     combined_df = pd.concat(all_dfs)
-    # --- THIS IS THE FIX ---
-    # Remove duplicate dates, keeping the LATEST entry (from the last files in the list)
-    combined_df = combined_df.drop_duplicates(subset=[0], keep='last')
+    # --- THIS IS THE FIX: We DO NOT drop duplicates. We sum from all files.
     combined_df = combined_df.sort_values(by=[0]) # Sort by date
     return combined_df
-    
+
 # --- (FIXED) Function to calculate and display stats ---
 def calculate_and_display_stats():
     st.markdown("---") # Separator
@@ -159,6 +157,8 @@ def calculate_and_display_stats():
             # Create a normalized map of all known courses
             normalized_course_map = {normalize_string(k): k for k in COURSE_DETAILS_MAP.keys()}
             
+            # --- THIS IS THE START OF THE FIXED LOGIC ---
+            # We iterate over the full concatenated dataframe
             for _, row in all_schedules_df.iterrows():
                 class_date = row[0]
                 
@@ -185,9 +185,11 @@ def calculate_and_display_stats():
                             
                             # Check every known class against the cell
                             for norm_name, orig_name in normalized_course_map.items():
+                                # Use 'in' to catch combined classes like 'DRM(A)/B2B(A)'
                                 if norm_name in normalized_cell:
                                     class_counts[orig_name] += 1
-            
+            # --- THIS IS THE END OF THE FIXED LOGIC ---
+
             if not class_counts:
                 st.info("No past classes were found to calculate statistics.")
                 return
@@ -469,21 +471,26 @@ if 'search_clear_counter' not in st.session_state:
 if 'just_submitted' not in st.session_state: # <-- For one-time scroll
     st.session_state.just_submitted = False
 
+
+# --- APP HEADER ---
+st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+if not st.session_state.submitted:
+    st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
+else:
+    # This subheader is hidden on the main app page by the .welcome-message CSS
+    st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
+
+
 # --- MAIN APP LOGIC ---
 # Load student data (needed for both login and stats)
 student_data_map = get_all_student_data()
 
 if not student_data_map:
     # Fatal error, can't even show stats
-    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
     st.error("FATAL ERROR: Could not load any student data. Please check your Excel files.")
 else:
     # --- DISPLAY LOGIN PAGE ---
     if not st.session_state.submitted:
-        st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-        st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
-        
         st.markdown(
             """
             <div class="welcome-box">
@@ -594,7 +601,7 @@ else:
                 # --- ORGANIZED RESULTS SECTION ---
                 if found_classes:
                     ics_content = generate_ics_content(found_classes)
-                    sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
+                    sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
                     
                     # --- NEW: Combined Download & Import Expander ---
                     with st.expander("Download & Import to Calendar"):
