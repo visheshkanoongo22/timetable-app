@@ -835,7 +835,6 @@ else:
                     # --- SEARCH ANCHOR ---
                     st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
 
-                    st.subheader("Upcoming Classes")
 
                     if not upcoming_dates:
                          st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
