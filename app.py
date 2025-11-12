@@ -85,6 +85,7 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 12, 6), 'Time': '6:10-7:10PM', 'Subject': 'B2B(B)', 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, 
     {'Date': date(2025, 12, 6), 'Time': '7:20-8:20PM', 'Subject': "B2B('C)", 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, 
 ]
+
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
@@ -155,7 +156,12 @@ def generate_ics_content(found_classes):
     c = Calendar(creator="-//Student Timetable Script//EN")
     local_tz = pytz.timezone(TIMEZONE)
     for class_info in found_classes:
-        if "POSTPONED" in class_info.get('Venue', '').upper() or "POSTPONED" in class_info.get('Faculty', '').upper():
+        # --- MODIFIED: Skip all special status classes ---
+        venue_text = class_info.get('Venue', '').upper()
+        faculty_text = class_info.get('Faculty', '').upper()
+        if ("POSTPONED" in venue_text or "POSTPONED" in faculty_text or
+            "CANCELLED" in venue_text or "CANCELLED" in faculty_text or
+            "PREPONED" in venue_text or "PREPONED" in faculty_text):
             continue
             
         end_dt = get_class_end_datetime(class_info, local_tz)
@@ -297,15 +303,17 @@ st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingerti
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
+
 # --- INITIALIZE SESSION STATE ---
 if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
-if 'scrolled_to_search' not in st.session_state: # For one-time scroll
-    st.session_state.scrolled_to_search = False
-if 'search_clear_counter' not in st.session_state: # For clearing search
+if 'search_clear_counter' not in st.session_state:
     st.session_state.search_clear_counter = 0
+if 'just_submitted' not in st.session_state: # <-- NEW: For one-time scroll
+    st.session_state.just_submitted = False
+
 
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
@@ -328,6 +336,7 @@ if not master_schedule_df.empty and student_data_map:
             if submitted_button:
                 st.session_state.roll_number = roll_number_input
                 st.session_state.submitted = True
+                st.session_state.just_submitted = True # <-- NEW: Set scroll flag
                 st.rerun()
     # --- PROCESS AND DISPLAY SCHEDULE IF SUBMITTED ---
     if st.session_state.submitted:
@@ -350,16 +359,17 @@ if not master_schedule_df.empty and student_data_map:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
                     st.session_state.roll_number = ""
-                    st.session_state.scrolled_to_search = False # Reset scroll flag
                     st.session_state.search_clear_counter = 0 # Reset search
+                    st.session_state.just_submitted = False # Reset scroll flag
                     st.rerun()
             
             with st.spinner(f'Compiling classes for {student_name}...'):
                 NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
                 normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
+                # --- FIXED: Corrected 8:30-9:3App-c typo ---
                 time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
                               6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
-                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:3App-c"}
+                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
                 found_classes = []
                 for index, row in master_schedule_df.iterrows():
                     date, day = row[0], row[1]
@@ -473,8 +483,7 @@ if not master_schedule_df.empty and student_data_map:
                                     <div class="meta"><span class="time" style="color: var(--muted);">—</span></div>
                                 </div>
                             ''', unsafe_allow_html=True)
-                        
-                           else:
+                        else:
                             for class_info in classes_today:
                                 # --- MODIFIED: Handle all status keywords ---
                                 venue_display = ""
@@ -506,13 +515,13 @@ if not master_schedule_df.empty and student_data_map:
 
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
-                    "", # <-- Set label to an empty string
+                    " ", # <-- Set label to an empty space
                     placeholder="Search by any Subject Code/Faculty/Classroom",
                     debounce=0, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
-                st.caption("")
-                st.caption("")
+                st.caption("") # <-- Removed label text
+                st.caption("") # <-- Removed label text
                 search_query = search_query.lower() if search_query else ""
                 
                 # --- CLEAR SEARCH BUTTON ---
@@ -617,29 +626,39 @@ if not master_schedule_df.empty and student_data_map:
                         st.markdown('</div>', unsafe_allow_html=True)
                 
                 if search_query and not found_search_results:
-                    st.warning(f"No classes found matching your search for '{search_query}'."
-                # --- AUTO-SCROLL SCRIPT ---
-                if not st.session_state.scrolled_to_search:
+                    st.warning(f"No classes found matching your search for '{search_query}'.")
+
+                # --- AUTO-SCROLL SCRIPT (FIXED: Using robust polling script) ---
+                if st.session_state.just_submitted:
                     components.html(f"""
                     <script>
-                        function scrollToSearch() {{
-                            const searchAnchor = window.parent.document.getElementById('search-anchor-div');
-                            if (searchAnchor) {{
-                                searchAnchor.scrollIntoView({{behavior: 'smooth', block: 'start'}});
-                                return true;
+                        let attempts = 0;
+                        const scrollInterval = setInterval(() => {{
+                            attempts++;
+                            // Check if the parent document is ready
+                            if (window.parent.document.readyState === 'complete' || window.parent.document.readyState === 'interactive') {{
+                                
+                                clearInterval(scrollInterval);
+                                
+                                window.parent.scrollTo({{
+                                    top: 200,
+                                    behavior: 'smooth'
+                                }});
                             }}
-                            return false;
-                        }}
-                        
-                        if (!scrollToSearch()) {{
-                            setTimeout(scrollToSearch, 500);
-                        }}
+                            if (attempts > 20) {{
+                                // Stop trying after 5 seconds (20 * 250ms)
+                                clearInterval(scrollInterval);
+                            }}
+                        }}, 250); // Check every 250ms
                     </script>
                     """, height=0)
-                    st.session_state.scrolled_to_search = True 
+                    st.session_state.just_submitted = False # Unset the flag
                 
             else:
-                st.warning("No classes found for your registered sections in the master schedule.")
+                if search_query:
+                    st.warning(f"No classes found matching your search for '{search_query}'.")
+                else:
+                    st.warning("No classes found for your registered sections in the master schedule.")
                 
         # Handle invalid roll number
         else:
