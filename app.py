@@ -362,8 +362,7 @@ if not master_schedule_df.empty and student_data_map:
         st.markdown(
             """
             <div class="welcome-box">
-                Welcome! This application helps you generate your personalized class schedule and export it as a <strong>.ics calendar file</strong>.
-                Simply enter your roll number below to get started.
+                Welcome! Enter your roll number to get started!</strong>.
             </div>
             """,
             unsafe_allow_html=True
