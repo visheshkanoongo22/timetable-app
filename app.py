@@ -126,9 +126,8 @@ def load_all_schedules(file_list):
         return pd.DataFrame()
         
     combined_df = pd.concat(all_dfs)
-    # Remove duplicate dates, keeping the LATEST entry (from the last files in the list)
-    combined_df = combined_df.drop_duplicates(subset=[0], keep='last')
-    combined_df = combined_df.sort_values(by=[0]) # Sort by date
+    # Keep all rows across all schedules (don't drop older ones)
+    combined_df = combined_df.sort_values(by=[0])  # Sort by date
     return combined_df
 
 # --- NEW: Function to calculate and display stats ---
@@ -150,7 +149,7 @@ def calculate_and_display_stats():
             normalized_course_map = {normalize_string(k): k for k in COURSE_DETAILS_MAP.keys()}
             
             # Filter schedule for past dates only
-            past_schedule = all_schedules_df[all_schedules_df[0] < today]
+           past_schedule = all_schedules_df[all_schedules_df[0] <= today]
             
             for _, row in past_schedule.iterrows():
                 for col_idx in time_slots_cols:
@@ -160,8 +159,9 @@ def calculate_and_display_stats():
                         
                         # Check every known class against the cell
                         for norm_name, orig_name in normalized_course_map.items():
-                            if norm_name in normalized_cell:
+                            if normalized_cell.startswith(norm_name) or norm_name in normalized_cell:
                                 class_counts[orig_name] += 1
+
             
             if not class_counts:
                 st.info("No past classes were found to calculate statistics.")
