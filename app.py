@@ -455,12 +455,14 @@ if 'just_submitted' not in st.session_state: # <-- For one-time scroll
 
 
 # --- APP HEADER ---
-st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
 if not st.session_state.submitted:
+    # Only show headers on the login page
+    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
 else:
-    # This subheader is hidden on the main app page by the .welcome-message CSS
-    st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
+    # On the main app page, show nothing here.
+    # The "welcome-message" div will be the first thing shown.
+    pass
 
 
 # --- MAIN APP LOGIC ---
