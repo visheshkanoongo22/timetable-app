@@ -117,7 +117,7 @@ def load_and_clean_schedule(file_path): # <-- Removed is_stats_file
 # --- (FIXED) Function to calculate and display stats ---
 def calculate_and_display_stats():
     st.markdown("---") # Separator
-    with st.expander("Show Course Session Statistics"):
+    with st.expander("Sessions Taken till Now"):
         with st.spinner("Calculating session statistics..."):
             all_schedules_df = load_and_clean_schedule(SCHEDULE_FILE_NAME) 
             
@@ -488,7 +488,7 @@ if 'just_submitted' not in st.session_state: # <-- For one-time scroll
 if not st.session_state.submitted:
     # Only show headers on the login page
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub">TimeTable & Course Details</div>', unsafe_allow_html=True)
 else:
     # On the main app page, show nothing here.
     # The "welcome-message" div will be the first thing shown.
