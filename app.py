@@ -355,11 +355,17 @@ if not master_schedule_df.empty and student_data_map:
             student_info = student_data_map[roll_to_process]
             student_name, student_sections = student_info['name'], student_info['sections']
             
-            # Display header with "Change" button
+           # Display header with "Change" button
             col1, col2 = st.columns([3, 1])
             with col1:
-                # --- "Success" bar REMOVED ---
-                st.markdown(f"### Welcome, {student_name.title()}") # Added a simple welcome
+                # --- NEW NAME LOGIC ---
+                words = student_name.split()
+                num_words = len(words)
+                if num_words >= 3:
+                    display_name = words[1].title() # Get second word
+                else:
+                    display_name = words[0].title() # Get first word
+                st.markdown(f"### Welcome, {display_name}") # Use the new display_name
             with col2:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
