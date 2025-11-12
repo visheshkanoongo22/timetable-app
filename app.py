@@ -332,15 +332,7 @@ local_css_string = """
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
-# --- APP HEADER (WILL ONLY SHOW ON LOGIN PAGE) ---
-if not st.session_state.submitted:
-    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
-
-# --- LOAD DATA ---
-master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
-student_data_map = get_all_student_data()
-
+# --- *** MOVED THIS BLOCK UP *** ---
 # --- INITIALIZE SESSION STATE ---
 if 'submitted' not in st.session_state:
     st.session_state.submitted = False
@@ -350,7 +342,17 @@ if 'search_clear_counter' not in st.session_state:
     st.session_state.search_clear_counter = 0
 if 'just_submitted' not in st.session_state: # <-- For one-time scroll
     st.session_state.just_submitted = False
+# --- *** END MOVED BLOCK *** ---
 
+
+# --- APP HEADER (WILL ONLY SHOW ON LOGIN PAGE) ---
+if not st.session_state.submitted:
+    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
+
+# --- LOAD DATA ---
+master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
+student_data_map = get_all_student_data()
 
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
@@ -455,7 +457,7 @@ if not master_schedule_df.empty and student_data_map:
             # --- ORGANIZED RESULTS SECTION ---
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
-                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
+                sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
                 
                 # --- NEW: Combined Download & Import Expander ---
                 with st.expander("Download & Import to Calendar"):
