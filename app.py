@@ -52,14 +52,39 @@ DAY_SPECIFIC_OVERRIDES = {
     },
     date(2025, 11, 11): {
         'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 'IMCA': {'Venue': 'T3'}
+    },
+    date(2025, 11, 12): {
+        'INBA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}
+    },
+    date(2025, 11, 13): {
+        'SMKTA': {'Venue': 'T7'},
+        'BS':    {'Venue': 'T7'},
+        'ANA':   {'Venue': 'T7'},
+        'ANB':   {'Venue': 'T7'},
+        'LSSA':  {'Venue': 'T1'},
+        'B2BA':  {'Venue': 'E1'},
+        'DVVSC': {'Venue': 'E2'},
+        'OMSD':  {'Venue': 'T3'},
+        'B2BB':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'B2BC':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+    },
+    date(2025, 11, 14): {
+        'B2BB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, 
+        'B2BC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, 
+    },
+    date(2025, 12, 15): {
+        'DRMC': {'Venue': 'PREPONED', 'Faculty': 'Session Preponed'}, 
     }
 }
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': "SCM('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 13), 'Time': '6:10-7:10PM', 'Subject': 'INB(A)', 'Faculty': 'M C Gupta', 'Venue': 'T6 (Rescheduled)'},
+    {'Date': date(2025, 11, 29), 'Time': '8:30-9:30PM', 'Subject': "DRM('C)", 'Faculty': 'Pankaj Agrawal', 'Venue': 'T5 (Preponed)'}, 
+    {'Date': date(2025, 12, 6), 'Time': '6:10-7:10PM', 'Subject': 'B2B(B)', 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, 
+    {'Date': date(2025, 12, 6), 'Time': '7:20-8:20PM', 'Subject': "B2B('C)", 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, 
 ]
-
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
