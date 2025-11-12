@@ -311,7 +311,8 @@ if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
 if 'search_clear_counter' not in st.session_state:
     st.session_state.search_clear_counter = 0
-if 'just_submitted' not in st.session_state: # <-- NEW: For one-time scroll
+# --- NEW: Replaced scroll flag with 'just_submitted' for one-time scroll ---
+if 'just_submitted' not in st.session_state:
     st.session_state.just_submitted = False
 
 
@@ -410,7 +411,7 @@ if not master_schedule_df.empty and student_data_map:
             # --- ORGANIZED RESULTS SECTION ---
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
-                sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
+                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                 
                 # --- DOWNLOAD AND IMPORT SECTION (MOVED UP) ---
                 with st.container():
