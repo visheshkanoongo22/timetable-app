@@ -196,28 +196,16 @@ st.set_page_config(
     layout="centered", 
     initial_sidebar_state="collapsed"
 )
-
-# --- *** MOVED THIS BLOCK UP *** ---
-# --- INITIALIZE SESSION STATE ---
-if 'submitted' not in st.session_state:
-    st.session_state.submitted = False
-if 'roll_number' not in st.session_state:
-    st.session_state.roll_number = ""
-if 'search_clear_counter' not in st.session_state:
-    st.session_state.search_clear_counter = 0
-if 'just_submitted' not in st.session_state: # <-- For one-time scroll
-    st.session_state.just_submitted = False
-# --- *** END MOVED BLOCK *** ---
-
-
 st.markdown("""
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0F172A">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 """, unsafe_allow_html=True)
 # --- CSS STYLING ---
 local_css_string = """
 <style>
-    /* ... (your existing CSS from root to @media) ... */
+    /* ... (your existing CSS from root to .results-container) ... */
     * { color-scheme: dark !important; }
     [data-testid="stAppViewContainer"], [data-testid="stHeader"], section[data-testid="stSidebar"] {
         background-color: var(--bg) !important; color: #ffffff !important;
@@ -307,17 +295,62 @@ local_css_string = """
     }
     .results-container h3 { color: #E2E8F0; margin-top: 0; margin-bottom: 1rem; font-size: 1.3rem; }
     .results-container h3:not(:first-child) { margin-top: 1.5rem; }
-    @media (max-width: 600px) { .meta { min-width: 120px; font-size:0.9rem; } .main-header { font-size: 1.8rem; } }
+    
+    /* --- MODIFIED: Mobile View Adjustments --- */
+    @media (max-width: 600px) {
+        /* Reduce padding on cards */
+        .day-card {
+            padding: 0.8rem; /* Further reduced padding */
+            margin-bottom: 1rem;
+        }
+        .results-container {
+            padding: 0.8rem;
+        }
+        /* Reduce font sizes */
+        .main-header { font-size: 1.6rem; } /* Further reduced */
+        .header-sub { font-size: 0.8rem; margin-bottom: 1.5rem; } /* Further reduced */
+        .day-header { font-size: 0.9rem; } /* Further reduced */
+        .subject-name { font-size: 0.9rem; } /* Further reduced */
+        .meta .time { font-size: 0.85rem; } /* Further reduced */
+        .meta .venue, .meta .faculty { font-size: 0.75rem; } /* Further reduced */
+        /* Reduce padding on class entries */
+        .class-entry {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        .meta { 
+            min-width: 120px; 
+            font-size: 0.85rem; /* Further reduced */
+        }
+        /* Make buttons slightly smaller */
+        .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+        }
+    }
 </style>
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
+
 # --- APP HEADER (WILL ONLY SHOW ON LOGIN PAGE) ---
 if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingertips.</div>', unsafe_allow_html=True)
+
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
+
+# --- INITIALIZE SESSION STATE ---
+if 'submitted' not in st.session_state:
+    st.session_state.submitted = False
+if 'roll_number' not in st.session_state:
+    st.session_state.roll_number = ""
+if 'search_clear_counter' not in st.session_state:
+    st.session_state.search_clear_counter = 0
+if 'just_submitted' not in st.session_state: # <-- For one-time scroll
+    st.session_state.just_submitted = False
+
 
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
@@ -355,9 +388,10 @@ if not master_schedule_df.empty and student_data_map:
             student_info = student_data_map[roll_to_process]
             student_name, student_sections = student_info['name'], student_info['sections']
             
-           # Display header with "Change" button
+            # Display header with "Change" button
             col1, col2 = st.columns([3, 1])
             with col1:
+                # --- "Success" bar REMOVED ---
                 # --- NEW NAME LOGIC ---
                 words = student_name.split()
                 num_words = len(words)
@@ -365,7 +399,7 @@ if not master_schedule_df.empty and student_data_map:
                     display_name = words[1].title() # Get second word
                 else:
                     display_name = words[0].title() # Get first word
-                st.markdown(f"### Welcome, {display_name}") # Use the new display_name
+                st.markdown(f"### Welcome, {display_name}!") # Use the new display_name
             with col2:
                 if st.button("Change Roll Number"):
                     st.session_state.submitted = False
@@ -421,7 +455,7 @@ if not master_schedule_df.empty and student_data_map:
             # --- ORGANIZED RESULTS SECTION ---
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
-                sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
+                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                 
                 # --- NEW: Combined Download & Import Expander ---
                 with st.expander("Download & Import to Calendar"):
@@ -439,7 +473,7 @@ if not master_schedule_df.empty and student_data_map:
                     4. Choose the `.ics` file you just downloaded and click 'Import'.
                     """)
                 
-                st.markdown("---")
+                # --- Divider REMOVED ---
                 
                 schedule_by_date = defaultdict(list)
                 for class_info in found_classes:
@@ -519,13 +553,12 @@ if not master_schedule_df.empty and student_data_map:
                 
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
-                    " ", # <-- Set label to an empty space
-                    placeholder="Search by any Subject Code/Faculty/Classroom",
-                    debounce=0, 
+                    "Search by any Subject Code/Faculty/Classroom:", # <-- Label fixed
+                    placeholder="e.g., DRM, SMKT, LSS, etc", 
+                    debounce=300, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
-                st.caption("") # <-- Removed label text
-                st.caption("") # <-- Removed label text
+                # --- Empty captions REMOVED ---
                 search_query = search_query.lower() if search_query else ""
                 
                 # --- CLEAR SEARCH BUTTON ---
@@ -538,9 +571,7 @@ if not master_schedule_df.empty and student_data_map:
                 
                 if search_query:
                     st.subheader(f"Search Results for '{search_query}'")
-                else:
-                    # --- "Upcoming Classes" subheader REMOVED ---
-                    pass
+                # --- "Upcoming Classes" subheader REMOVED ---
 
                 if not upcoming_dates and not search_query:
                      st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
