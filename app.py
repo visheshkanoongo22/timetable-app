@@ -126,10 +126,12 @@ def load_all_schedules(file_list):
         return pd.DataFrame()
         
     combined_df = pd.concat(all_dfs)
-    # --- REMOVED: drop_duplicates. We now sum all entries from all files.
+    # --- THIS IS THE FIX ---
+    # Remove duplicate dates, keeping the LATEST entry (from the last files in the list)
+    combined_df = combined_df.drop_duplicates(subset=[0], keep='last')
     combined_df = combined_df.sort_values(by=[0]) # Sort by date
     return combined_df
-
+    
 # --- (FIXED) Function to calculate and display stats ---
 def calculate_and_display_stats():
     st.markdown("---") # Separator
