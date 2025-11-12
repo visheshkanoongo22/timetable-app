@@ -630,34 +630,32 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query and not found_search_results:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
 
-                # --- AUTO-SCROLL SCRIPT (Triggers on any search change) ---
-                if search_changed or not st.session_state.submitted:
+                # --- AUTO-SCROLL SCRIPT ---
+                if not st.session_state.scrolled_to_search:
                     components.html(f"""
                     <script>
-                        let attempts = 0;
-                        const scrollInterval = setInterval(() => {{
-                            attempts++;
+                        function scrollToSearch() {{
                             const searchAnchor = window.parent.document.getElementById('search-anchor-div');
-                            
                             if (searchAnchor) {{
-                                clearInterval(scrollInterval);
-                                const rect = searchAnchor.getBoundingClientRect();
-                                const currentScrollY = window.parent.scrollY;
-                                const targetY = rect.top + currentScrollY - 85; 
-                                window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
+                                searchAnchor.scrollIntoView({{behavior: 'smooth', block: 'start'}});
+                                return true;
                             }}
-                            if (attempts > 20) {{
-                                clearInterval(scrollInterval);
-                            }}
-                        }}, 250);
+                            return false;
+                        }}
+                        
+                        if (!scrollToSearch()) {{
+                            setTimeout(scrollToSearch, 500);
+                        }}
                     </script>
                     """, height=0)
+                    st.session_state.scrolled_to_search = True  
                 
             else:
                 if search_query:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
                 else:
                     st.warning("No classes found for your registered sections in the master schedule.")
+                
                 
         # Handle invalid roll number
         else:
