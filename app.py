@@ -119,7 +119,6 @@ def calculate_and_display_stats():
     st.markdown("---") # Separator
     with st.expander("Show Course Session Statistics"):
         with st.spinner("Calculating session statistics..."):
-            # --- MODIFIED: Load only the main schedule file ---
             all_schedules_df = load_and_clean_schedule(SCHEDULE_FILE_NAME) 
             
             if all_schedules_df.empty:
@@ -176,19 +175,50 @@ def calculate_and_display_stats():
                 st.info("No past classes were found to calculate statistics.")
                 return
 
-            # Display the stats in two columns
             st.markdown("This shows the total number of sessions held *to date*.")
-            sorted_counts = sorted(class_counts.items())
-            midpoint = len(sorted_counts) // 2 + (len(sorted_counts) % 2)
+            
+            # --- NEW: Grouping Logic ---
+            grouped_counts = defaultdict(dict)
+            for full_name, count in class_counts.items():
+                # Find the course and section
+                match = re.match(r"(.*?)\((.*)\)", full_name)
+                if match:
+                    course_name = match.group(1)
+                    section_name = match.group(2).replace("'", "") # Clean up 'C -> C
+                else:
+                    course_name = full_name
+                    section_name = "Main" # For subjects like 'BS'
+                
+                grouped_counts[course_name][section_name] = count
+            
+            # --- NEW: Display Logic ---
+            sorted_courses = sorted(grouped_counts.keys())
+            midpoint = len(sorted_courses) // 2 + (len(sorted_courses) % 2)
             col1, col2 = st.columns(2)
-            
+
             with col1:
-                for subject, count in sorted_counts[:midpoint]:
-                    st.markdown(f"**{subject}:** {count} sessions")
-            
+                for course_name in sorted_courses[:midpoint]:
+                    st.markdown(f"**{course_name}**")
+                    sections = grouped_counts[course_name]
+                    for section_name in sorted(sections.keys()):
+                        count = sections[section_name]
+                        if section_name == "Main":
+                            st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Total Sessions: {count}")
+                        else:
+                            st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
+                    st.markdown("") # Add a little space
+
             with col2:
-                for subject, count in sorted_counts[midpoint:]:
-                    st.markdown(f"**{subject}:** {count} sessions")
+                for course_name in sorted_courses[midpoint:]:
+                    st.markdown(f"**{course_name}**")
+                    sections = grouped_counts[course_name]
+                    for section_name in sorted(sections.keys()):
+                        count = sections[section_name]
+                        if section_name == "Main":
+                            st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Total Sessions: {count}")
+                        else:
+                            st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
+                    st.markdown("") # Add a little space
 
 @st.cache_data
 def get_all_student_data(folder_path='.'):
