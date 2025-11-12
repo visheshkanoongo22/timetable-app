@@ -303,20 +303,15 @@ st.markdown('<div class="header-sub">Your Trimester V schedule, at your fingerti
 # --- LOAD DATA ---
 master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
 student_data_map = get_all_student_data()
-
 # --- INITIALIZE SESSION STATE ---
 if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
-if 'search_clear_counter' not in st.session_state:
+if 'search_clear_counter' not in st.session_state: # For clearing search
     st.session_state.search_clear_counter = 0
-if 'previous_search' not in st.session_state:  # NEW: Track previous search
-    st.session_state.previous_search = ""
-# --- This is the new/different flag for the new scroll script ---
-if 'auto_scrolled' not in st.session_state:
-    st.session_state.auto_scrolled = False
-
+if 'just_submitted' not in st.session_state: # <-- NEW: For one-time scroll
+    st.session_state.just_submitted = False
 
 # --- MAIN APP LOGIC ---
 if not master_schedule_df.empty and student_data_map:
@@ -339,9 +334,28 @@ if not master_schedule_df.empty and student_data_map:
             if submitted_button:
                 st.session_state.roll_number = roll_number_input
                 st.session_state.submitted = True
+                st.session_state.just_submitted = True # <-- NEW: Set scroll flag
                 st.rerun()
     # --- PROCESS AND DISPLAY SCHEDULE IF SUBMITTED ---
     if st.session_state.submitted:
+        
+        # --- FIXED AUTO-SCROLL LOGIC ---
+        if st.session_state.just_submitted:
+            components.html(
+                """
+                <script>
+                    var container = window.parent.document.querySelector('[data-testid="stAppViewContainer"]');
+                    if (container) {
+                        container.scrollBy({top: 200, behavior: 'smooth'});
+                    }
+                </script>
+                """,
+                height=0,
+                width=0
+            )
+            st.session_state.just_submitted = False
+        # -------------------------------
+
         roll_to_process = st.session_state.roll_number
         
         # Handle empty submission
@@ -362,8 +376,7 @@ if not master_schedule_df.empty and student_data_map:
                     st.session_state.submitted = False
                     st.session_state.roll_number = ""
                     st.session_state.search_clear_counter = 0 # Reset search
-                    st.session_state.previous_search = ""
-                    st.session_state.auto_scrolled = False # Reset scroll flag
+                    st.session_state.just_submitted = False # Reset scroll flag
                     st.rerun()
             
             with st.spinner(f'Compiling classes for {student_name}...'):
@@ -371,7 +384,7 @@ if not master_schedule_df.empty and student_data_map:
                 normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
                 time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
                               6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
-                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"} # <-- Corrected 9:3App-c
+                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
                 found_classes = []
                 for index, row in master_schedule_df.iterrows():
                     date, day = row[0], row[1]
@@ -412,7 +425,7 @@ if not master_schedule_df.empty and student_data_map:
             # --- ORGANIZED RESULTS SECTION ---
             if found_classes:
                 ics_content = generate_ics_content(found_classes)
-                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
+                sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
                 
                 # --- DOWNLOAD AND IMPORT SECTION (MOVED UP) ---
                 with st.container():
@@ -459,7 +472,6 @@ if not master_schedule_df.empty and student_data_map:
                 local_tz = pytz.timezone(TIMEZONE)
                 today_dt = datetime.now(local_tz)
                 today = today_dt.date()
-                today_anchor_id = None
                 
                 past_dates = sorted([d for d in all_dates if d < today], reverse=True)
                 upcoming_dates = sorted([d for d in all_dates if d >= today])
@@ -510,11 +522,6 @@ if not master_schedule_df.empty and student_data_map:
                 
                 # --- 2. RENDER UPCOMING CLASSES ---
                 
-                # --- "WHAT'S NEXT" CARD REMOVED ---
-                
-                # --- SEARCH ANCHOR ---
-                st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
-
                 # --- SEARCH BAR (using st_keyup) ---
                 search_query = st_keyup(
                     " ", # <-- Set label to an empty space
@@ -522,22 +529,15 @@ if not master_schedule_df.empty and student_data_map:
                     debounce=0, 
                     key=f"search_bar_{st.session_state.search_clear_counter}" 
                 )
-                st.caption("") # <-- Removed label text
-                st.caption("") # <-- Removed label text
+                st.caption("") 
+                st.caption("") 
                 search_query = search_query.lower() if search_query else ""
-
-                # NEW: Detect if search changed (including when user presses Enter)
-                search_changed = (search_query != st.session_state.previous_search)
-                st.session_state.previous_search = search_query
                 
                 # --- CLEAR SEARCH BUTTON ---
                 if search_query: 
                     if st.button("Clear Search"):
                         st.session_state.search_clear_counter += 1
-                        st.session_state.previous_search = ""  # Reset previous search
                         st.rerun()
-                
-                # --- COMPACT VIEW TOGGLE (REMOVED) ---
                 
                 if search_query:
                     st.subheader(f"Search Results for '{search_query}'")
@@ -554,9 +554,6 @@ if not master_schedule_df.empty and student_data_map:
                     is_today = (date_obj == today)
                     today_class = "today" if is_today else ""
                     card_id = f"date-card-{idx}"
-                    
-                    if is_today and not search_query: 
-                        today_anchor_id = card_id
                     
                     classes_today = schedule_by_date.get(date_obj, [])
                     
@@ -635,28 +632,7 @@ if not master_schedule_df.empty and student_data_map:
                 if search_query and not found_search_results:
                     st.warning(f"No classes found matching your search for '{search_query}'.")
 
-                # --- AUTO-SCROLL SCRIPT (Triggers on any search change) ---
-                if search_changed or not st.session_state.submitted:
-                    components.html(f"""
-                    <script>
-                        let attempts = 0;
-                        const scrollInterval = setInterval(() => {{
-                            attempts++;
-                            const searchAnchor = window.parent.document.getElementById('search-anchor-div');
-                            
-                            if (searchAnchor) {{
-                                clearInterval(scrollInterval);
-                                const rect = searchAnchor.getBoundingClientRect();
-                                const currentScrollY = window.parent.scrollY;
-                                const targetY = rect.top + currentScrollY - 85; 
-                                window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
-                            }}
-                            if (attempts > 20) {{
-                                clearInterval(scrollInterval);
-                            }}
-                        }}, 250);
-                    </script>
-                    """, height=0)
+                # --- REMOVED THE OLD COMPLEX POLLING SCRIPT FROM HERE ---
                 
             else:
                 if search_query:
