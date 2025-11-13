@@ -73,12 +73,15 @@ DAY_SPECIFIC_OVERRIDES = {
     },
     date(2025, 11, 14): {
         'B2BB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, 
-        'B2BC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, 
+        'B2BC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'SCMB': {'Venue': 'T4'}, # <-- NEW CHANGE HERE
     },
     date(2025, 12, 15): {
         'DRMC': {'Venue': 'PREPONED', 'Faculty': 'Session Preponed'}, 
     }
 }
+
+
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
