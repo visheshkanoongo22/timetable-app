@@ -11,17 +11,28 @@ import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
 from streamlit_extras.st_keyup import st_keyup # For live search
-import gc # <-- NEW: For cache clearing
-import streamlit.runtime.caching as st_cache # <-- NEW: For cache clearing
+import gc # <-- ADD THIS
+import streamlit.runtime.caching as st_cache # <-- ADD THIS
+import time # <-- ADD THIS
 
-# --- NEW: Cache Clearing Logic ---
-if "run_counter" not in st.session_state:
-    st.session_state.run_counter = 0
-st.session_state.run_counter += 1
+# --- NEW: AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
+AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
 
-if st.session_state.run_counter % 100 == 0:
-    st_cache.clear_cache()
-    gc.collect()
+# Store the start time in session_state
+if "start_time" not in st.session_state:
+    st.session_state.start_time = time.time()
+
+elapsed = time.time() - st.session_state.start_time
+
+if elapsed > AUTO_REFRESH_INTERVAL:
+    with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
+        st_cache.clear_cache()
+        gc.collect()
+        st.session_state.clear()  # Clears all stored state (logs user out)
+        time.sleep(2)  # short pause for smooth refresh
+        st.experimental_rerun()
+# --- END NEW BLOCK ---
+
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
