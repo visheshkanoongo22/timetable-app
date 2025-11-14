@@ -11,10 +11,30 @@ import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
 from streamlit_extras.st_keyup import st_keyup # For live search
-import gc # <-- NEW: For cache clearing
-import streamlit.runtime.caching as st_cache # <-- NEW: For cache clearing
+import gc 
+import streamlit.runtime.caching as st_cache
+import time # <-- IMPORT ADDED
 
-# --- NEW: Cache Clearing Logic ---
+# --- NEW: AUTO REFRESH EVERY 25 MINUTES (HARD REBOOT) ---
+AUTO_REFRESH_INTERVAL = 25 * 60  # 25 minutes in seconds
+
+# Store the start time in session_state
+if "start_time" not in st.session_state:
+    st.session_state.start_time = time.time()
+
+elapsed = time.time() - st.session_state.start_time
+
+if elapsed > AUTO_REFRESH_INTERVAL:
+    with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
+        st_cache.clear_cache()
+        gc.collect()
+        st.session_state.clear()  # Clears all stored state (logs user out)
+        time.sleep(2)  # short pause for smooth refresh
+        st.experimental_rerun()
+# --- END NEW BLOCK ---
+
+
+# --- Cache Clearing Logic ---
 if "run_counter" not in st.session_state:
     st.session_state.run_counter = 0
 st.session_state.run_counter += 1
@@ -155,7 +175,7 @@ def load_and_clean_schedule(file_path, is_stats_file=False):
             st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
         return pd.DataFrame()
 
-# --- MODIFIED: Use @st.cache_resource ---
+# --- (FIXED) Function to load ALL schedules ---
 @st.cache_resource
 def load_all_schedules(file_list):
     all_dfs = []
@@ -320,7 +340,6 @@ def calculate_and_display_stats():
                             st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
                     st.markdown("") # Add a little space
 
-# --- MODIFIED: Kept @st.cache_data ---
 @st.cache_data
 def get_all_student_data(folder_path='.'):
     student_data_map = {}
@@ -602,6 +621,9 @@ student_data_map = get_all_student_data()
 
 if not student_data_map:
     # Fatal error, can't even show stats
+    # Show headers even on error
+    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
     st.error("FATAL ERROR: Could not load any student data. Please check your Excel files.")
 else:
     # --- DISPLAY LOGIN PAGE ---
@@ -716,7 +738,7 @@ else:
                 # --- ORGANIZED RESULTS SECTION ---
                 if found_classes:
                     ics_content = generate_ics_content(found_classes)
-                    sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
+                    sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
                     
                     # --- NEW: Combined Download & Import Expander ---
                     with st.expander("Download & Import to Calendar"):
@@ -921,7 +943,7 @@ else:
                                 ''', unsafe_allow_html=True)
                             else:
                                 st.markdown(f'''
-                                    <div class="day-card {today_class}" id="{card_id}">
+                                    <div classa="day-card {today_class}" id="{card_id}">
                                         <div class="day-header">
                                             {date_obj.strftime("%A, %d %B %Y")}
                                         </div>
