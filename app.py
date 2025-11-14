@@ -73,7 +73,6 @@ COURSE_DETAILS_MAP = {
     'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
-
 # --- DAY-SPECIFIC OVERRIDES & ADDITIONS ---
 DAY_SPECIFIC_OVERRIDES = {
     date(2025, 11, 8): {
@@ -105,7 +104,8 @@ DAY_SPECIFIC_OVERRIDES = {
     date(2025, 11, 14): {
         'B2BB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, 
         'B2BC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'SCMB': {'Venue': 'T4'}, 
+        'SCMB': {'Venue': 'T4'},
+        'DADM': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # <-- NEW CHANGE HERE
     },
     date(2025, 11, 15): {
         'DADM': {'Venue': 'E2'},
@@ -151,6 +151,7 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     }
 }
+
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
