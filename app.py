@@ -140,6 +140,7 @@ DAY_SPECIFIC_OVERRIDES = {
     }
 }
 
+
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
@@ -185,7 +186,6 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 12, 5), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
     {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
 ]
-
 
 # 3. FUNCTIONS
 def normalize_string(text):
