@@ -13,7 +13,7 @@ import streamlit.components.v1 as components
 from streamlit_extras.st_keyup import st_keyup # For live search
 import gc 
 import streamlit.runtime.caching as st_cache
-import time # <-- IMPORT ADDED
+import time 
 
 # --- NEW: AUTO REFRESH EVERY 25 MINUTES (HARD REBOOT) ---
 AUTO_REFRESH_INTERVAL = 25 * 60  # 25 minutes in seconds
@@ -189,7 +189,7 @@ def load_all_schedules(file_list):
         return pd.DataFrame()
         
     combined_df = pd.concat(all_dfs)
-    # --- THIS IS THE FIX: We DO NOT drop duplicates. We sum from all files.
+    # --- We DO NOT drop duplicates. We sum from all files.
     combined_df = combined_df.sort_values(by=[0]) # Sort by date
     return combined_df
 
@@ -340,6 +340,7 @@ def calculate_and_display_stats():
                             st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
                     st.markdown("") # Add a little space
 
+# --- MODIFIED: Kept @st.cache_data ---
 @st.cache_data
 def get_all_student_data(folder_path='.'):
     student_data_map = {}
@@ -738,7 +739,7 @@ else:
                 # --- ORGANIZED RESULTS SECTION ---
                 if found_classes:
                     ics_content = generate_ics_content(found_classes)
-                    sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
+                    sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                     
                     # --- NEW: Combined Download & Import Expander ---
                     with st.expander("Download & Import to Calendar"):
@@ -995,7 +996,7 @@ else:
                                 
                                 meta_html = f'''
                                     <div class="meta">
-                                        <span class="time {status_class}">{class_info["Time"]}</span>
+                                        <span classD="time {status_class}">{class_info["Time"]}</span>
                                         {venue_display}
                                         {faculty_display}
                                     </div>
