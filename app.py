@@ -773,11 +773,30 @@ else:
                     for added_class in ADDITIONAL_CLASSES:
                         norm_added_subject = normalize_string(added_class['Subject'])
                         if norm_added_subject in normalized_student_section_map:
+                            
+                            # --- THIS IS THE FIX ---
+                            # Check for special status. If found, we still add the class
+                            # so the strikethrough logic can display it correctly.
+                            # We just need to mark it as an "override".
+                            
+                            venue_text = added_class.get('Venue', '').upper()
+                            faculty_text = added_class.get('Faculty', '').upper()
+                            is_override = False # Default
+                            
+                            if ("POSTPONED" in venue_text or "POSTPONED" in faculty_text or
+                                "CANCELLED" in venue_text or "CANCELLED" in faculty_text or
+                                "PREPONED" in venue_text or "PREPONED" in faculty_text or
+                                "(RESCHEDULED)" in venue_text or "(PREPONED)" in venue_text):
+                                is_override = True
+                            # --- END OF FIX ---
+
                             day_of_week = added_class['Date'].strftime('%A')
                             found_classes.append({
                                 "Date": added_class['Date'], "Day": day_of_week, "Time": added_class['Time'],
-                                "Subject": added_class['Subject'], "Faculty": added_class.get('Faculty', 'N/A'),
-                                "Venue": added_class.get('Venue', '-'), "is_venue_override": False
+                                "Subject": added_class['Subject'], 
+                                "Faculty": added_class.get('Faculty', 'N/A'),
+                                "Venue": added_class.get('Venue', '-'), 
+                                "is_venue_override": is_override # <-- Use the new flag
                             })
 
                     found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
