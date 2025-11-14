@@ -11,9 +11,9 @@ import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
 from streamlit_extras.st_keyup import st_keyup # For live search
-import gc # <-- ADD THIS
-import streamlit.runtime.caching as st_cache # <-- ADD THIS
-import time # <-- ADD THIS
+import gc 
+import streamlit.runtime.caching as st_cache
+import time 
 
 # --- NEW: AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
 AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
@@ -33,6 +33,15 @@ if elapsed > AUTO_REFRESH_INTERVAL:
         st.experimental_rerun()
 # --- END NEW BLOCK ---
 
+
+# --- Cache Clearing Logic ---
+if "run_counter" not in st.session_state:
+    st.session_state.run_counter = 0
+st.session_state.run_counter += 1
+
+if st.session_state.run_counter % 100 == 0:
+    st_cache.clear_cache()
+    gc.collect()
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -98,10 +107,13 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'SCMB': {'Venue': 'T4'}, 
     },
-    # --- NEW CHANGES START HERE ---
     date(2025, 11, 15): {
         'DADM': {'Venue': 'E2'},
         'LSSA': {'Venue': 'E2'},
+        'IMCA': {'Venue': 'T6'}, 
+    },
+    date(2025, 11, 16): { 
+        'IMCB': {'Venue': 'T7'}, 
     },
     date(2025, 11, 17): {
         'DVVSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
@@ -139,13 +151,11 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     }
 }
-
-
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': "SCM('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 13), 'Time': '6:10-7:10PM', 'Subject': 'INB(A)', 'Faculty': 'M C Gupta', 'Venue': 'T6 (Rescheduled)'},
+    {'Date': date(2WELCOME-MESSAGE_ROLL_NO): date(2025, 11, 13), 'Time': '6:10-7:10PM', 'Subject': 'INB(A)', 'Faculty': 'M C Gupta', 'Venue': 'T6 (Rescheduled)'},
     {'Date': date(2025, 11, 29), 'Time': '8:30-9:30PM', 'Subject': "DRM('C)", 'Faculty': 'Pankaj Agrawal', 'Venue': 'T5 (Preponed)'}, 
     {'Date': date(2025, 12, 6), 'Time': '6:10-7:10PM', 'Subject': 'B2B(B)', 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, 
     {'Date': date(2025, 12, 6), 'Time': '7:20-8:20PM', 'Subject': "B2B('C)", 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'},
@@ -186,6 +196,7 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 12, 5), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
     {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
 ]
+
 
 # 3. FUNCTIONS
 def normalize_string(text):
