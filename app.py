@@ -197,7 +197,6 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
 ]
 
-
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
@@ -222,7 +221,7 @@ def load_and_clean_schedule(file_path, is_stats_file=False):
             st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
         return pd.DataFrame()
 
-# --- MODIFIED: Use @st.cache_resource ---
+# --- (FIXED) Function to load ALL schedules ---
 @st.cache_resource
 def load_all_schedules(file_list):
     all_dfs = []
@@ -669,6 +668,9 @@ student_data_map = get_all_student_data()
 
 if not student_data_map:
     # Fatal error, can't even show stats
+    # Show headers even on error
+    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
     st.error("FATAL ERROR: Could not load any student data. Please check your Excel files.")
 else:
     # --- DISPLAY LOGIN PAGE ---
@@ -945,6 +947,7 @@ else:
                     st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
 
                     # --- "Upcoming Classes" subheader REMOVED ---
+                    # st.subheader("Upcoming Classes")
 
                     if not upcoming_dates:
                          st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
@@ -987,6 +990,7 @@ else:
                                         </div>
                                 ''', unsafe_allow_html=True)
                             else:
+                                # --- THIS IS THE FIXED LINE ---
                                 st.markdown(f'''
                                     <div class="day-card {today_class}" id="{card_id}">
                                         <div class="day-header">
@@ -1038,6 +1042,7 @@ else:
                                     venue_display = f'<span class="venue">{venue_text}</span>'
                                     faculty_display = f'<span class="faculty">{faculty_text}</span>'
                                 
+                                # --- THIS IS THE FIXED LINE ---
                                 meta_html = f'''
                                     <div class="meta">
                                         <span class="time {status_class}">{class_info["Time"]}</span>
@@ -1046,6 +1051,7 @@ else:
                                     </div>
                                 '''
                                 
+                                # --- THIS IS THE FIXED LINE ---
                                 st.markdown(f'''
                                     <div class="class-entry">
                                         <div class="left">
