@@ -203,8 +203,7 @@ def normalize_string(text):
         return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").upper()
     return ""
 
-# --- MODIFIED: Use @st.cache_resource ---
-@st.cache_resource
+# --- MODIFIED: REMOVED @st.cache_resource ---
 def load_and_clean_schedule(file_path, is_stats_file=False):
     try:
         df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3)
@@ -221,23 +220,7 @@ def load_and_clean_schedule(file_path, is_stats_file=False):
             st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
         return pd.DataFrame()
 
-# --- (FIXED) Function to load ALL schedules ---
-@st.cache_resource
-def load_all_schedules(file_list):
-    all_dfs = []
-    for file_path in file_list:
-        # Use the existing function, but suppress errors for old files
-        df = load_and_clean_schedule(file_path, is_stats_file=True) 
-        if not df.empty:
-            all_dfs.append(df)
-            
-    if not all_dfs:
-        return pd.DataFrame()
-        
-    combined_df = pd.concat(all_dfs)
-    # --- THIS IS THE FIX: We DO NOT drop duplicates. We sum from all files.
-    combined_df = combined_df.sort_values(by=[0]) # Sort by date
-    return combined_df
+# --- load_all_schedules function REMOVED ---
 
 # --- (FIXED) Function to calculate and display stats ---
 def calculate_and_display_stats():
@@ -775,10 +758,7 @@ else:
                         if norm_added_subject in normalized_student_section_map:
                             
                             # --- THIS IS THE FIX ---
-                            # Check for special status. If found, we still add the class
-                            # so the strikethrough logic can display it correctly.
-                            # We just need to mark it as an "override".
-                            
+                            # Check for special status.
                             venue_text = added_class.get('Venue', '').upper()
                             faculty_text = added_class.get('Faculty', '').upper()
                             is_override = False # Default
