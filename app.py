@@ -120,7 +120,6 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
 ]
 
-
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
@@ -264,7 +263,7 @@ def calculate_and_display_stats():
                 st.info("No past classes were found to calculate statistics.")
                 return
 
-            st.markdown("This shows the total number of sessions held to date. *(May not be fully accurate)*")
+            st.markdown("This shows the total number of sessions held *to date*, accounting for all schedule changes.")
             
             # --- NEW: Grouping Logic ---
             grouped_counts = defaultdict(dict)
@@ -704,7 +703,7 @@ else:
                 # --- ORGANIZED RESULTS SECTION ---
                 if found_classes:
                     ics_content = generate_ics_content(found_classes)
-                    sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
+                    sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                     
                     # --- NEW: Combined Download & Import Expander ---
                     with st.expander("Download & Import to Calendar"):
@@ -766,8 +765,6 @@ else:
 
                         if search_query:
                             st.subheader(f"Search Results for '{search_query}'")
-                        else:
-                            pass
                         
                         found_past_search = False
                         if not past_dates and not search_query:
@@ -867,6 +864,8 @@ else:
                     # --- SEARCH ANCHOR ---
                     st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
 
+                    # --- SUBHEADER REMOVED ---
+                    # st.subheader("Upcoming Classes") 
 
                     if not upcoming_dates:
                          st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
@@ -894,7 +893,7 @@ else:
                                         <div class="left">
                                             <div class="subject-name" style="color: var(--muted); font-style: italic;">No classes scheduled</div>
                                         </div>
-                                        <div classf="meta"><span class="time" style="color: var(--muted);">—</span></div>
+                                        <div class="meta"><span class="time" style="color: var(--muted);">—</span></div>
                                     </div>
                                 </div>
                             ''', unsafe_allow_html=True)
