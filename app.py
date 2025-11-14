@@ -703,7 +703,7 @@ else:
                 # --- ORGANIZED RESULTS SECTION ---
                 if found_classes:
                     ics_content = generate_ics_content(found_classes)
-                    sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
+                    sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
                     
                     # --- NEW: Combined Download & Import Expander ---
                     with st.expander("Download & Import to Calendar"):
@@ -753,7 +753,7 @@ else:
                         search_query = st_keyup(
                             label=None, # <-- Label removed
                             placeholder="Search past classes...",
-                            debounce=0, 
+                            debounce=300, # <-- Added debounce
                             key=f"search_bar_past_{st.session_state.search_clear_counter}" 
                         )
                         search_query = search_query.lower() if search_query else ""
@@ -864,8 +864,7 @@ else:
                     # --- SEARCH ANCHOR ---
                     st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
 
-                    # --- SUBHEADER REMOVED ---
-                    # st.subheader("Upcoming Classes") 
+                    # --- "Upcoming Classes" subheader REMOVED ---
 
                     if not upcoming_dates:
                          st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
@@ -1004,7 +1003,7 @@ else:
                     
                 else:
                     st.warning("No classes found for your registered sections in the master schedule.")
-            
+
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("_Made by Vishesh_")
