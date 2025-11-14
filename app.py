@@ -11,6 +11,17 @@ import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
 from streamlit_extras.st_keyup import st_keyup # For live search
+import gc # <-- NEW: For cache clearing
+import streamlit.runtime.caching as st_cache # <-- NEW: For cache clearing
+
+# --- NEW: Cache Clearing Logic ---
+if "run_counter" not in st.session_state:
+    st.session_state.run_counter = 0
+st.session_state.run_counter += 1
+
+if st.session_state.run_counter % 100 == 0:
+    st_cache.clear_cache()
+    gc.collect()
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -126,7 +137,8 @@ def normalize_string(text):
         return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").upper()
     return ""
 
-@st.cache_data
+# --- MODIFIED: Use @st.cache_resource ---
+@st.cache_resource
 def load_and_clean_schedule(file_path, is_stats_file=False):
     try:
         df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3)
@@ -143,8 +155,8 @@ def load_and_clean_schedule(file_path, is_stats_file=False):
             st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
         return pd.DataFrame()
 
-# --- (FIXED) Function to load ALL schedules ---
-@st.cache_data
+# --- MODIFIED: Use @st.cache_resource ---
+@st.cache_resource
 def load_all_schedules(file_list):
     all_dfs = []
     for file_path in file_list:
@@ -308,6 +320,7 @@ def calculate_and_display_stats():
                             st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
                     st.markdown("") # Add a little space
 
+# --- MODIFIED: Kept @st.cache_data ---
 @st.cache_data
 def get_all_student_data(folder_path='.'):
     student_data_map = {}
@@ -703,7 +716,7 @@ else:
                 # --- ORGANIZED RESULTS SECTION ---
                 if found_classes:
                     ics_content = generate_ics_content(found_classes)
-                    sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
+                    sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                     
                     # --- NEW: Combined Download & Import Expander ---
                     with st.expander("Download & Import to Calendar"):
@@ -753,7 +766,7 @@ else:
                         search_query = st_keyup(
                             label=None, # <-- Label removed
                             placeholder="Search past classes...",
-                            debounce=300, # <-- Added debounce
+                            debounce=300, 
                             key=f"search_bar_past_{st.session_state.search_clear_counter}" 
                         )
                         search_query = search_query.lower() if search_query else ""
@@ -1003,7 +1016,7 @@ else:
                     
                 else:
                     st.warning("No classes found for your registered sections in the master schedule.")
-
+            
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("_Made by Vishesh_")
