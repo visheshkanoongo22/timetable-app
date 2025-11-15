@@ -201,7 +201,7 @@ ADDITIONAL_CLASSES = [
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
-        return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").upper()
+        return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").replace("&", "").upper()
     return ""
 
 # --- MODIFIED: Use @st.cache_resource ---
