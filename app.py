@@ -15,7 +15,16 @@ import gc
 import streamlit.runtime.caching as st_cache
 import time 
 
+# --- AUTO-REFRESH BLOCK REMOVED ---
 
+# --- Cache Clearing Logic (This part is safe and stays) ---
+if "run_counter" not in st.session_state:
+    st.session_state.run_counter = 0
+st.session_state.run_counter += 1
+
+if st.session_state.run_counter % 100 == 0:
+    st_cache.clear_cache()
+    gc.collect()
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -47,6 +56,7 @@ COURSE_DETAILS_MAP = {
     'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
+
 
 # --- DAY-SPECIFIC OVERRIDES & ADDITIONS ---
 DAY_SPECIFIC_OVERRIDES = {
@@ -81,17 +91,21 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'SCMB': {'Venue': 'T4'}, 
     },
-    # --- MODIFIED HERE ---
     date(2025, 11, 15): {
-        'DADM': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # <-- NEW CHANGE
+        'DADM': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
         'LSSA': {'Venue': 'E2'},
         'IMCA': {'Venue': 'T6'}, 
     },
     date(2025, 11, 16): { 
         'IMCB': {'Venue': 'T7'}, 
     },
+    # --- MODIFIED HERE ---
     date(2025, 11, 17): {
         'DVVSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
+        'B2BB':  {'Venue': 'E1'},
+        'B2BC':  {'Venue': 'E1'},
+        'B2BA':  {'Venue': 'E2'},
+        'OMSD':  {'Venue': '214'},
     },
     date(2025, 11, 18): {
         'DVVSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
@@ -177,10 +191,11 @@ ADDITIONAL_CLASSES = [
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
-        return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").replace("&", "").upper()
+        return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").upper()
     return ""
 
-# --- MODIFIED: REMOVED @st.cache_resource ---
+# --- MODIFIED: Use @st.cache_resource ---
+@st.cache_resource
 def load_and_clean_schedule(file_path, is_stats_file=False):
     try:
         df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3)
@@ -197,7 +212,23 @@ def load_and_clean_schedule(file_path, is_stats_file=False):
             st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
         return pd.DataFrame()
 
-# --- load_all_schedules function REMOVED ---
+# --- (FIXED) Function to load ALL schedules ---
+@st.cache_resource
+def load_all_schedules(file_list):
+    all_dfs = []
+    for file_path in file_list:
+        # Use the existing function, but suppress errors for old files
+        df = load_and_clean_schedule(file_path, is_stats_file=True) 
+        if not df.empty:
+            all_dfs.append(df)
+            
+    if not all_dfs:
+        return pd.DataFrame()
+        
+    combined_df = pd.concat(all_dfs)
+    # --- THIS IS THE FIX: We DO NOT drop duplicates. We sum from all files.
+    combined_df = combined_df.sort_values(by=[0]) # Sort by date
+    return combined_df
 
 # --- (FIXED) Function to calculate and display stats ---
 def calculate_and_display_stats():
@@ -346,7 +377,6 @@ def calculate_and_display_stats():
                             st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
                     st.markdown("") # Add a little space
 
-# --- MODIFIED: Kept @st.cache_data ---
 @st.cache_data
 def get_all_student_data(folder_path='.'):
     student_data_map = {}
@@ -441,6 +471,7 @@ st.set_page_config(
 st.markdown("""
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0F172A">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 """, unsafe_allow_html=True)
@@ -449,6 +480,12 @@ local_css_string = """
 <style>
     /* ... (your existing CSS from root to .results-container) ... */
     * { color-scheme: dark !important; }
+    
+    /* --- NEW: Force browser background dark --- */
+    html, body {
+        background-color: var(--bg) !important;
+    }
+    
     [data-testid="stAppViewContainer"], [data-testid="stHeader"], section[data-testid="stSidebar"] {
         background-color: var(--bg) !important; color: #ffffff !important;
     }
@@ -735,7 +772,10 @@ else:
                         if norm_added_subject in normalized_student_section_map:
                             
                             # --- THIS IS THE FIX ---
-                            # Check for special status.
+                            # Check for special status. If found, we still add the class
+                            # so the strikethrough logic can display it correctly.
+                            # We just need to mark it as an "override".
+                            
                             venue_text = added_class.get('Venue', '').upper()
                             faculty_text = added_class.get('Faculty', '').upper()
                             is_override = False # Default
@@ -761,7 +801,7 @@ else:
                 # --- ORGANIZED RESULTS SECTION ---
                 if found_classes:
                     ics_content = generate_ics_content(found_classes)
-                    sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
+                    sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
                     
                     # --- NEW: Combined Download & Import Expander ---
                     with st.expander("Download & Import to Calendar"):
@@ -966,7 +1006,7 @@ else:
                                         </div>
                                 ''', unsafe_allow_html=True)
                             else:
-                                # --- THIS IS THE FIXED LINE ---
+                                # --- THIS IS THE FIXED LINE (was "classa") ---
                                 st.markdown(f'''
                                     <div class="day-card {today_class}" id="{card_id}">
                                         <div class="day-header">
@@ -1018,7 +1058,7 @@ else:
                                     venue_display = f'<span class="venue">{venue_text}</span>'
                                     faculty_display = f'<span class="faculty">{faculty_text}</span>'
                                 
-                                # --- THIS IS THE FIXED LINE ---
+                                # --- THIS IS THE FIXED LINE (was "classf") ---
                                 meta_html = f'''
                                     <div class="meta">
                                         <span class="time {status_class}">{class_info["Time"]}</span>
@@ -1027,7 +1067,7 @@ else:
                                     </div>
                                 '''
                                 
-                                # --- THIS IS THE FIXED LINE ---
+                                # --- THIS IS THE FIXED LINE (was "classZ") ---
                                 st.markdown(f'''
                                     <div class="class-entry">
                                         <div class="left">
