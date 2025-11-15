@@ -15,9 +15,26 @@ import gc
 import streamlit.runtime.caching as st_cache
 import time 
 
-# --- AUTO-REFRESH BLOCK REMOVED ---
+# --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
+AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
 
-# --- Cache Clearing Logic (This part is safe and stays) ---
+# Store the start time in session_state
+if "start_time" not in st.session_state:
+    st.session_state.start_time = time.time()
+
+elapsed = time.time() - st.session_state.start_time
+
+if elapsed > AUTO_REFRESH_INTERVAL:
+    with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
+        st_cache.clear_cache()
+        gc.collect()
+        st.session_state.clear()  # Clears all stored state (logs user out)
+        time.sleep(2)  # short pause for smooth refresh
+        st.experimental_rerun()
+# --- END NEW BLOCK ---
+
+
+# --- Cache Clearing Logic ---
 if "run_counter" not in st.session_state:
     st.session_state.run_counter = 0
 st.session_state.run_counter += 1
@@ -56,7 +73,6 @@ COURSE_DETAILS_MAP = {
     'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
-
 
 # --- DAY-SPECIFIC OVERRIDES & ADDITIONS ---
 DAY_SPECIFIC_OVERRIDES = {
@@ -99,7 +115,6 @@ DAY_SPECIFIC_OVERRIDES = {
     date(2025, 11, 16): { 
         'IMCB': {'Venue': 'T7'}, 
     },
-    # --- MODIFIED HERE ---
     date(2025, 11, 17): {
         'DVVSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
         'B2BB':  {'Venue': 'E1'},
@@ -140,8 +155,6 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     }
 }
-
-
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
@@ -377,6 +390,7 @@ def calculate_and_display_stats():
                             st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
                     st.markdown("") # Add a little space
 
+# --- MODIFIED: Kept @st.cache_data ---
 @st.cache_data
 def get_all_student_data(folder_path='.'):
     student_data_map = {}
@@ -486,9 +500,17 @@ local_css_string = """
         background-color: var(--bg) !important;
     }
     
-    [data-testid="stAppViewContainer"], [data-testid="stHeader"], section[data-testid="stSidebar"] {
+    [data-testid="stAppViewContainer"], [data-testid="stSidebar"] {
         background-color: var(--bg) !important; color: #ffffff !important;
     }
+    
+    /* --- CHANGE 1: Force-hide the Streamlit header bar --- */
+    [data-testid="stHeader"] {
+        display: none;
+        visibility: hidden;
+        height: 0;
+    }
+    
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
     :root{
         --bg:#0F172A; --card:#1E293B; --muted:#94A3B8; --accent-start:#60A5FA; --accent-end:#818CF8;
@@ -510,12 +532,12 @@ local_css_string = """
     }
     .welcome-box strong { color: #ffffff; font-weight: 600; }
     
-    /* --- NEW WELCOME MESSAGE --- */
+    /* --- CHANGE 2: Removed negative margin-top --- */
     .welcome-message {
-        margin-top: -2rem; /* Pulls it up */
-        margin-bottom: 1rem; /* Adds space before the next element */
-        font-size: 1.1rem; /* Smaller than h3, larger than caption */
-        color: var(--muted); /* Use the muted color */
+        margin-top: 0rem; /* Was -2rem, now 0rem */
+        margin-bottom: 1rem; 
+        font-size: 1.1rem; 
+        color: var(--muted); 
     }
     .welcome-message strong {
         color: #ffffff; /* Make the roll number white */
@@ -801,7 +823,7 @@ else:
                 # --- ORGANIZED RESULTS SECTION ---
                 if found_classes:
                     ics_content = generate_ics_content(found_classes)
-                    sanitized_name = re.sub(r'[^a-zA-Z0.9_]', '', str(student_name).replace(" ", "_")).upper()
+                    sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                     
                     # --- NEW: Combined Download & Import Expander ---
                     with st.expander("Download & Import to Calendar"):
@@ -1079,33 +1101,9 @@ else:
                             
                             st.markdown('</div>', unsafe_allow_html=True)
 
-                    # --- AUTO-SCROLL SCRIPT ---
-                    if st.session_state.just_submitted:
-                        components.html(f"""
-                        <script>
-                            let attempts = 0;
-                            const scrollInterval = setInterval(() => {{
-                                attempts++;
-                                const searchAnchor = window.parent.document.getElementById('search-anchor-div');
-                                
-                                if (searchAnchor) {{
-                                    clearInterval(scrollInterval);
-                                    const rect = searchAnchor.getBoundingClientRect();
-                                    const currentScrollY = window.parent.scrollY;
-                                    const targetY = rect.top + currentScrollY - 85; 
-                                    window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
-                                }}
-                                if (attempts > 20) {{
-                                    clearInterval(scrollInterval);
-                                }}
-                            }}, 250);
-                        </script>
-                        """, height=0)
-                        st.session_state.just_submitted = False # Unset the flag
+                    # --- AUTO-SCROLL SCRIPT (REMOVED) ---
                     
                 else:
                     st.warning("No classes found for your registered sections in the master schedule.")
             
-# --- ADDED CAPTION AT THE VERY END ---
-st.markdown("---")
-st.caption("_Made by Vishesh_")
+# --- CAPTION BLOCK (REMOVED) ---
