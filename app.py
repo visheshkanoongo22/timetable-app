@@ -754,7 +754,7 @@ else:
                     </div>
                     """, unsafe_allow_html=True)
                 with col2:
-                    if st.button("Change Roll Number"):
+                    if st.button("Logout"):
                         st.session_state.submitted = False
                         st.session_state.roll_number = ""
                         st.session_state.search_clear_counter = 0 # Reset search
