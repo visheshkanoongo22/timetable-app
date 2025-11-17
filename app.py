@@ -121,6 +121,8 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BC':  {'Venue': 'E1'},
         'B2BA':  {'Venue': 'E2'},
         'OMSD':  {'Venue': '214'},
+        'TEOMA': {'Venue': '216'}, # <-- NEW CHANGE
+        'TEOMB': {'Venue': '216'}, # <-- NEW CHANGE
     },
     date(2025, 11, 18): {
         'DVVSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
