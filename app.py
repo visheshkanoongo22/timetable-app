@@ -121,14 +121,19 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BC':  {'Venue': 'E1'},
         'B2BA':  {'Venue': 'E2'},
         'OMSD':  {'Venue': '214'},
-        'TEOMA': {'Venue': '216'}, # <-- NEW CHANGE
-        'TEOMB': {'Venue': '216'}, # <-- NEW CHANGE
+        'TEOMA': {'Venue': '216'},
+        'TEOMB': {'Venue': '216'},
     },
     date(2025, 11, 18): {
         'DVVSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     },
+    # --- MODIFIED 19.11.2025 ---
     date(2025, 11, 19): {
         'DVVSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DVVSA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'SMKTA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'VALUB': {'Time': '02:30-03:30PM'}, # Time change only
     },
     date(2025, 11, 20): {
         'DVVSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
@@ -157,7 +162,6 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     }
 }
-
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
@@ -177,16 +181,15 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     
-    # --- DV&VS 16.11.2025 (MODIFIED) ---
+    # --- DV&VS 16.11.2025 ---
     {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    # --- CANCELLED SESSIONS ---
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': "DV&VS('C)", 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
+    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
 
     # --- VALUATION 21.11.2025 ---
     {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
@@ -205,11 +208,10 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
 ]
 
-
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
-        return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").replace("&", "").upper()
+        return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").upper()
     return ""
 
 # --- MODIFIED: Use @st.cache_resource ---
@@ -395,7 +397,6 @@ def calculate_and_display_stats():
                             st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
                     st.markdown("") # Add a little space
 
-# --- MODIFIED: Kept @st.cache_data ---
 @st.cache_data
 def get_all_student_data(folder_path='.'):
     student_data_map = {}
@@ -537,7 +538,7 @@ local_css_string = """
     }
     .welcome-box strong { color: #ffffff; font-weight: 600; }
     
-    /* --- CHANGE 2: Removed negative margin-top --- */
+    /* --- NEW WELCOME MESSAGE --- */
     .welcome-message {
         margin-top: 0rem; /* Was -2rem, now 0rem */
         margin-bottom: 1rem; 
@@ -756,7 +757,7 @@ else:
                     </div>
                     """, unsafe_allow_html=True)
                 with col2:
-                    if st.button("Logout"):
+                    if st.button("Change Roll Number"):
                         st.session_state.submitted = False
                         st.session_state.roll_number = ""
                         st.session_state.search_clear_counter = 0 # Reset search
@@ -766,6 +767,7 @@ else:
                 with st.spinner(f'Compiling classes for {student_name}...'):
                     NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
                     normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
+                    # --- FIXED: Corrected 8:30-9:3App-c typo ---
                     time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
                                   6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
                                   10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
@@ -788,7 +790,9 @@ else:
                                                 details.update(DAY_SPECIFIC_OVERRIDES[date][norm_sec])
                                                 
                                         found_classes.append({
-                                            "Date": date, "Day": day, "Time": time, "Subject": orig_sec,
+                                            "Date": date, "Day": day, 
+                                            "Time": details.get('Time', time), # <-- UPDATED: Use overridden time if present
+                                            "Subject": orig_sec,
                                             "Faculty": details.get('Faculty', 'N/A'),
                                             "Venue": details.get('Venue', '-'),
                                             "is_venue_override": is_venue_override
@@ -1106,9 +1110,33 @@ else:
                             
                             st.markdown('</div>', unsafe_allow_html=True)
 
-                    # --- AUTO-SCROLL SCRIPT (REMOVED) ---
+                    # --- AUTO-SCROLL SCRIPT ---
+                    if st.session_state.just_submitted:
+                        components.html(f"""
+                        <script>
+                            let attempts = 0;
+                            const scrollInterval = setInterval(() => {{
+                                attempts++;
+                                const searchAnchor = window.parent.document.getElementById('search-anchor-div');
+                                
+                                if (searchAnchor) {{
+                                    clearInterval(scrollInterval);
+                                    const rect = searchAnchor.getBoundingClientRect();
+                                    const currentScrollY = window.parent.scrollY;
+                                    const targetY = rect.top + currentScrollY - 85; 
+                                    window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
+                                }}
+                                if (attempts > 20) {{
+                                    clearInterval(scrollInterval);
+                                }}
+                            }}, 250);
+                        </script>
+                        """, height=0)
+                        st.session_state.just_submitted = False # Unset the flag
                     
                 else:
                     st.warning("No classes found for your registered sections in the master schedule.")
             
-# --- CAPTION BLOCK (REMOVED) ---
+# --- ADDED CAPTION AT THE VERY END ---
+st.markdown("---")
+st.caption("_Made by Vishesh_")
