@@ -80,7 +80,7 @@ DAY_SPECIFIC_OVERRIDES = {
         'DC': {'Venue': '216'}, 'VALUC': {'Venue': '216'}, 'VALUD': {'Venue': '216'}, 'IMCB': {'Venue': '216'},
     },
     date(2025, 11, 10): {
-        'B2BB': {'Venue': 'E1'}, 'B2BC': {'Venue': 'E1'}, 'DVVSC': {'Venue': 'E2'},
+        'B2BB': {'Venue': 'E1'}, 'B2BC': {'Venue': 'E1'}, 'DV&VSC': {'Venue': 'E2'}, # <-- Fixed &
         'DMB': {'Venue': '214'}, 'DMA': {'Venue': '214'}, 'OMSD': {'Venue': '214'},
     },
     date(2025, 11, 11): {
@@ -96,7 +96,7 @@ DAY_SPECIFIC_OVERRIDES = {
         'ANB':   {'Venue': 'T7'},
         'LSSA':  {'Venue': 'T1'},
         'B2BA':  {'Venue': 'E1'},
-        'DVVSC': {'Venue': 'E2'},
+        'DV&VSC': {'Venue': 'E2'}, # <-- Fixed &
         'OMSD':  {'Venue': 'T3'},
         'B2BB':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
         'B2BC':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
@@ -116,7 +116,7 @@ DAY_SPECIFIC_OVERRIDES = {
         'IMCB': {'Venue': 'T7'}, 
     },
     date(2025, 11, 17): {
-        'DVVSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
+        'DV&VSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # <-- Fixed &
         'B2BB':  {'Venue': 'E1'},
         'B2BC':  {'Venue': 'E1'},
         'B2BA':  {'Venue': 'E2'},
@@ -125,24 +125,23 @@ DAY_SPECIFIC_OVERRIDES = {
         'TEOMB': {'Venue': '216'},
     },
     date(2025, 11, 18): {
-        'DVVSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DV&VSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- Fixed &
     },
-    # --- MODIFIED 19.11.2025 ---
     date(2025, 11, 19): {
-        'DVVSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'DVVSA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'DV&VSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- Fixed &
+        'DV&VSA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # <-- Fixed &
         'SMKTA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
         'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'VALUB': {'Time': '02:30-03:30PM'}, # Time change only
+        'VALUB': {'Time': '02:30-03:30PM'},
     },
     date(2025, 11, 20): {
-        'DVVSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
+        'DV&VSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # <-- Fixed &
     },
     date(2025, 11, 21): {
-        'DVVSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- Fixed &
     },
     date(2025, 11, 24): {
-        'DVVSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- Fixed &
     },
     date(2025, 11, 28): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
@@ -162,6 +161,8 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     }
 }
+
+
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
