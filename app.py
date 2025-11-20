@@ -149,10 +149,9 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BA':   {'Venue': 'T7'},
         'SMKTA':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
     },
-    # --- MODIFIED HERE ---
     date(2025, 11, 21): {
         'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'DRMC':   {'Venue': 'T7'}, # <-- NEW CHANGE
+        'DRMC':   {'Venue': 'T7'},
     },
     date(2025, 11, 24): {
         'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
@@ -175,9 +174,6 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     }
 }
-
-
-
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
@@ -413,6 +409,7 @@ def calculate_and_display_stats():
                             st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
                     st.markdown("") # Add a little space
 
+# --- MODIFIED: Kept @st.cache_data ---
 @st.cache_data
 def get_all_student_data(folder_path='.'):
     student_data_map = {}
@@ -554,7 +551,7 @@ local_css_string = """
     }
     .welcome-box strong { color: #ffffff; font-weight: 600; }
     
-    /* --- NEW WELCOME MESSAGE --- */
+    /* --- CHANGE 2: Removed negative margin-top --- */
     .welcome-message {
         margin-top: 0rem; /* Was -2rem, now 0rem */
         margin-bottom: 1rem; 
@@ -709,9 +706,6 @@ student_data_map = get_all_student_data()
 
 if not student_data_map:
     # Fatal error, can't even show stats
-    # Show headers even on error
-    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
     st.error("FATAL ERROR: Could not load any student data. Please check your Excel files.")
 else:
     # --- DISPLAY LOGIN PAGE ---
@@ -729,7 +723,18 @@ else:
             submitted_button = st.form_submit_button("Generate Timetable")
             
             if submitted_button:
-                st.session_state.roll_number = roll_number_input
+                # --- SMART ROLL NUMBER LOGIC ---
+                final_roll = roll_number_input
+                if roll_number_input.isdigit():
+                    val = int(roll_number_input)
+                    if 0 <= val < 100:
+                        final_roll = f"21BCM{roll_number_input}"
+                    elif 100 <= val <= 999:
+                        final_roll = f"24MBA{roll_number_input}"
+                
+                st.session_state.roll_number = final_roll
+                # -------------------------------
+                
                 st.session_state.submitted = True
                 st.session_state.just_submitted = True # <-- Set scroll flag
                 st.rerun()
@@ -783,7 +788,6 @@ else:
                 with st.spinner(f'Compiling classes for {student_name}...'):
                     NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
                     normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
-                    # --- FIXED: Corrected 8:30-9:3App-c typo ---
                     time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
                                   6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
                                   10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
@@ -1010,7 +1014,6 @@ else:
                     st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
 
                     # --- "Upcoming Classes" subheader REMOVED ---
-                    # st.subheader("Upcoming Classes")
 
                     if not upcoming_dates:
                          st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
@@ -1053,7 +1056,6 @@ else:
                                         </div>
                                 ''', unsafe_allow_html=True)
                             else:
-                                # --- THIS IS THE FIXED LINE (was "classa") ---
                                 st.markdown(f'''
                                     <div class="day-card {today_class}" id="{card_id}">
                                         <div class="day-header">
@@ -1105,7 +1107,6 @@ else:
                                     venue_display = f'<span class="venue">{venue_text}</span>'
                                     faculty_display = f'<span class="faculty">{faculty_text}</span>'
                                 
-                                # --- THIS IS THE FIXED LINE (was "classf") ---
                                 meta_html = f'''
                                     <div class="meta">
                                         <span class="time {status_class}">{class_info["Time"]}</span>
@@ -1114,7 +1115,6 @@ else:
                                     </div>
                                 '''
                                 
-                                # --- THIS IS THE FIXED LINE (was "classZ") ---
                                 st.markdown(f'''
                                     <div class="class-entry">
                                         <div class="left">
