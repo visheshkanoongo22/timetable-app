@@ -1126,33 +1126,7 @@ else:
                             
                             st.markdown('</div>', unsafe_allow_html=True)
 
-                    # --- AUTO-SCROLL SCRIPT ---
-                    if st.session_state.just_submitted:
-                        components.html(f"""
-                        <script>
-                            let attempts = 0;
-                            const scrollInterval = setInterval(() => {{
-                                attempts++;
-                                const searchAnchor = window.parent.document.getElementById('search-anchor-div');
-                                
-                                if (searchAnchor) {{
-                                    clearInterval(scrollInterval);
-                                    const rect = searchAnchor.getBoundingClientRect();
-                                    const currentScrollY = window.parent.scrollY;
-                                    const targetY = rect.top + currentScrollY - 85; 
-                                    window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
-                                }}
-                                if (attempts > 20) {{
-                                    clearInterval(scrollInterval);
-                                }}
-                            }}, 250);
-                        </script>
-                        """, height=0)
-                        st.session_state.just_submitted = False # Unset the flag
                     
-                else:
-                    st.warning("No classes found for your registered sections in the master schedule.")
-            
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("")
