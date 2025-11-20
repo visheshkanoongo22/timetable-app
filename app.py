@@ -1155,4 +1155,4 @@ else:
             
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
-st.caption("_Made by Vishesh_")
+st.caption("")
