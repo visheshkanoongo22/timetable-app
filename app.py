@@ -719,7 +719,7 @@ else:
             unsafe_allow_html=True
         )
         with st.form("roll_number_form"):
-            roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
+            roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
             submitted_button = st.form_submit_button("Generate Timetable")
             
             if submitted_button:
