@@ -15,33 +15,6 @@ import gc
 import streamlit.runtime.caching as st_cache
 import time 
 
-# --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
-AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
-
-# Store the start time in session_state
-if "start_time" not in st.session_state:
-    st.session_state.start_time = time.time()
-
-elapsed = time.time() - st.session_state.start_time
-
-if elapsed > AUTO_REFRESH_INTERVAL:
-    with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
-        st_cache.clear_cache()
-        gc.collect()
-        st.session_state.clear()  # Clears all stored state (logs user out)
-        time.sleep(2)  # short pause for smooth refresh
-        st.experimental_rerun()
-# --- END NEW BLOCK ---
-
-
-# --- Cache Clearing Logic ---
-if "run_counter" not in st.session_state:
-    st.session_state.run_counter = 0
-st.session_state.run_counter += 1
-
-if st.session_state.run_counter % 100 == 0:
-    st_cache.clear_cache()
-    gc.collect()
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
