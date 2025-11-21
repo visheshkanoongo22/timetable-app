@@ -12,7 +12,6 @@ from collections import defaultdict
 import streamlit.components.v1 as components
 from streamlit_extras.st_keyup import st_keyup # For live search
 import gc 
-import streamlit.runtime.caching as st_cache
 import time 
 
 # --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
@@ -26,11 +25,12 @@ elapsed = time.time() - st.session_state.start_time
 
 if elapsed > AUTO_REFRESH_INTERVAL:
     with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
-        st_cache.clear_cache()
+        st.cache_data.clear()     # Clear data cache
+        st.cache_resource.clear() # Clear resource cache
         gc.collect()
         st.session_state.clear()  # Clears all stored state (logs user out)
         time.sleep(2)  # short pause for smooth refresh
-        st.experimental_rerun()
+        st.rerun() # Use st.rerun() instead of experimental_rerun() for newer streamlit versions
 # --- END NEW BLOCK ---
 
 
@@ -40,7 +40,8 @@ if "run_counter" not in st.session_state:
 st.session_state.run_counter += 1
 
 if st.session_state.run_counter % 100 == 0:
-    st_cache.clear_cache()
+    st.cache_data.clear()     # <-- FIXED THIS
+    st.cache_resource.clear() # <-- FIXED THIS
     gc.collect()
 
 # 2. CONFIGURATION
@@ -149,9 +150,12 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BA':   {'Venue': 'T7'},
         'SMKTA':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
     },
+    # --- MODIFIED HERE (21.11.2025) ---
     date(2025, 11, 21): {
         'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'DRMC':   {'Venue': 'T7'},
+        'B2BB':   {'Venue': 'E1'}, # <-- NEW
+        'B2BC':   {'Venue': 'E1'}, # <-- NEW
     },
     date(2025, 11, 24): {
         'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
@@ -551,7 +555,7 @@ local_css_string = """
     }
     .welcome-box strong { color: #ffffff; font-weight: 600; }
     
-    /* --- CHANGE 2: Removed negative margin-top --- */
+    /* --- NEW WELCOME MESSAGE --- */
     .welcome-message {
         margin-top: 0rem; /* Was -2rem, now 0rem */
         margin-bottom: 1rem; 
@@ -706,6 +710,9 @@ student_data_map = get_all_student_data()
 
 if not student_data_map:
     # Fatal error, can't even show stats
+    # Show headers even on error
+    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
     st.error("FATAL ERROR: Could not load any student data. Please check your Excel files.")
 else:
     # --- DISPLAY LOGIN PAGE ---
@@ -1126,29 +1133,7 @@ else:
                             
                             st.markdown('</div>', unsafe_allow_html=True)
 
-                    # --- AUTO-SCROLL SCRIPT ---
-                    if st.session_state.just_submitted:
-                        components.html(f"""
-                        <script>
-                            let attempts = 0;
-                            const scrollInterval = setInterval(() => {{
-                                attempts++;
-                                const searchAnchor = window.parent.document.getElementById('search-anchor-div');
-                                
-                                if (searchAnchor) {{
-                                    clearInterval(scrollInterval);
-                                    const rect = searchAnchor.getBoundingClientRect();
-                                    const currentScrollY = window.parent.scrollY;
-                                    const targetY = rect.top + currentScrollY - 85; 
-                                    window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
-                                }}
-                                if (attempts > 20) {{
-                                    clearInterval(scrollInterval);
-                                }}
-                            }}, 250);
-                        </script>
-                        """, height=0)
-                        st.session_state.just_submitted = False # Unset the flag
+                    # --- AUTO-SCROLL SCRIPT (REMOVED) ---
                     
                 else:
                     st.warning("No classes found for your registered sections in the master schedule.")
