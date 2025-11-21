@@ -150,21 +150,22 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BA':   {'Venue': 'T7'},
         'SMKTA':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
     },
-    # --- MODIFIED 21.11.2025 ---
     date(2025, 11, 21): {
         'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'DRMC':   {'Venue': 'T7'},
         'B2BB':   {'Venue': 'E1'}, 
         'B2BC':   {'Venue': 'E1'}, 
-        'B2BA':   {'Venue': 'E2'}, # <-- NEW
-        'DMA':    {'Venue': 'T6'}, # <-- NEW
-        'DMB':    {'Venue': 'T6'}, # <-- NEW
+        'B2BA':   {'Venue': 'E2'}, 
+        'DMA':    {'Venue': 'T6'}, 
+        'DMB':    {'Venue': 'T6'}, 
     },
-# --- NEW CHANGES HERE (22.11.2025) ---
+    # --- MODIFIED 22.11.2025 ---
     date(2025, 11, 22): {
         'DC':    {'Venue': '214'},
         'SMKTB': {'Venue': '214'},
         'IMCB':  {'Venue': '214'},
+        'VALUC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # <-- NEW
+        'VALUD': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # <-- NEW
     },
     date(2025, 11, 24): {
         'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
@@ -187,7 +188,6 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     }
 }
-
 
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
@@ -227,6 +227,18 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    
+    # --- NEW: DV&VS 23.11.2025 (Sunday) ---
+    # Sections A & B (2PM - 4PM)
+    {'Date': date(2025, 11, 23), 'Time': '2:00-3:00PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 23), 'Time': '3:00-4:00PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 23), 'Time': '2:00-3:00PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 23), 'Time': '3:00-4:00PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    # Sections C & D (5PM - 7PM)
+    {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
 
     # --- NEW: DV&VS(C) Rescheduled ---
     {'Date': date(2025, 11, 28), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
@@ -234,6 +246,7 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 12, 5), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
     {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
 ]
+
 
 # 3. FUNCTIONS
 def normalize_string(text):
