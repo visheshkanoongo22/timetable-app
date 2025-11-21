@@ -14,9 +14,34 @@ from streamlit_extras.st_keyup import st_keyup # For live search
 import gc 
 import streamlit.runtime.caching as st_cache
 import time 
-import gc 
+
+# --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
+AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
+
+# Store the start time in session_state
+if "start_time" not in st.session_state:
+    st.session_state.start_time = time.time()
+
+elapsed = time.time() - st.session_state.start_time
+
+if elapsed > AUTO_REFRESH_INTERVAL:
+    with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
+        st_cache.clear_cache()
+        gc.collect()
+        st.session_state.clear()  # Clears all stored state (logs user out)
+        time.sleep(2)  # short pause for smooth refresh
+        st.experimental_rerun()
+# --- END NEW BLOCK ---
 
 
+# --- Cache Clearing Logic ---
+if "run_counter" not in st.session_state:
+    st.session_state.run_counter = 0
+st.session_state.run_counter += 1
+
+if st.session_state.run_counter % 100 == 0:
+    st_cache.clear_cache()
+    gc.collect()
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -668,7 +693,7 @@ if 'just_submitted' not in st.session_state: # <-- For one-time scroll
 if not st.session_state.submitted:
     # Only show headers on the login page
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub">Made by Vishesh</div>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
 else:
     # On the main app page, show nothing here.
     # The "welcome-message" div will be the first thing shown.
@@ -694,7 +719,7 @@ else:
             unsafe_allow_html=True
         )
         with st.form("roll_number_form"):
-            roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
+            roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
             submitted_button = st.form_submit_button("Generate Timetable")
             
             if submitted_button:
@@ -1101,7 +1126,33 @@ else:
                             
                             st.markdown('</div>', unsafe_allow_html=True)
 
+                    # --- AUTO-SCROLL SCRIPT ---
+                    if st.session_state.just_submitted:
+                        components.html(f"""
+                        <script>
+                            let attempts = 0;
+                            const scrollInterval = setInterval(() => {{
+                                attempts++;
+                                const searchAnchor = window.parent.document.getElementById('search-anchor-div');
+                                
+                                if (searchAnchor) {{
+                                    clearInterval(scrollInterval);
+                                    const rect = searchAnchor.getBoundingClientRect();
+                                    const currentScrollY = window.parent.scrollY;
+                                    const targetY = rect.top + currentScrollY - 85; 
+                                    window.parent.scrollTo({{ top: targetY, behavior: 'smooth' }});
+                                }}
+                                if (attempts > 20) {{
+                                    clearInterval(scrollInterval);
+                                }}
+                            }}, 250);
+                        </script>
+                        """, height=0)
+                        st.session_state.just_submitted = False # Unset the flag
                     
+                else:
+                    st.warning("No classes found for your registered sections in the master schedule.")
+            
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
-st.caption("")
+st.caption("_Made by Vishesh_")
