@@ -7,3 +7,6 @@ matplotlib
 Pillow
 streamlit-javascript
 streamlit-extras
+streamlit-components-v1
+streamlit-keyup
+extra-streamlit-components
