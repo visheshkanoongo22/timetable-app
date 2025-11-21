@@ -12,6 +12,7 @@ from collections import defaultdict
 import streamlit.components.v1 as components
 from streamlit_extras.st_keyup import st_keyup # For live search
 import gc 
+import streamlit.runtime.caching as st_cache
 import time 
 
 # --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
@@ -25,12 +26,11 @@ elapsed = time.time() - st.session_state.start_time
 
 if elapsed > AUTO_REFRESH_INTERVAL:
     with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
-        st.cache_data.clear()     # Clear data cache
-        st.cache_resource.clear() # Clear resource cache
+        st_cache.clear_cache()
         gc.collect()
         st.session_state.clear()  # Clears all stored state (logs user out)
         time.sleep(2)  # short pause for smooth refresh
-        st.rerun() # Use st.rerun() instead of experimental_rerun() for newer streamlit versions
+        st.experimental_rerun()
 # --- END NEW BLOCK ---
 
 
@@ -40,8 +40,7 @@ if "run_counter" not in st.session_state:
 st.session_state.run_counter += 1
 
 if st.session_state.run_counter % 100 == 0:
-    st.cache_data.clear()     # <-- FIXED THIS
-    st.cache_resource.clear() # <-- FIXED THIS
+    st_cache.clear_cache()
     gc.collect()
 
 # 2. CONFIGURATION
@@ -159,13 +158,12 @@ DAY_SPECIFIC_OVERRIDES = {
         'DMA':    {'Venue': 'T6'}, 
         'DMB':    {'Venue': 'T6'}, 
     },
-    # --- MODIFIED 22.11.2025 ---
     date(2025, 11, 22): {
         'DC':    {'Venue': '214'},
         'SMKTB': {'Venue': '214'},
         'IMCB':  {'Venue': '214'},
-        'VALUC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # <-- NEW
-        'VALUD': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, # <-- NEW
+        'VALUC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'VALUD': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
     },
     date(2025, 11, 24): {
         'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
@@ -188,7 +186,6 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     }
 }
-
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
@@ -227,7 +224,7 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    
+
     # --- NEW: DV&VS 23.11.2025 (Sunday) ---
     # Sections A & B (2PM - 4PM)
     {'Date': date(2025, 11, 23), 'Time': '2:00-3:00PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
@@ -246,7 +243,6 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 12, 5), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
     {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
 ]
-
 
 # 3. FUNCTIONS
 def normalize_string(text):
@@ -437,7 +433,6 @@ def calculate_and_display_stats():
                             st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
                     st.markdown("") # Add a little space
 
-# --- MODIFIED: Kept @st.cache_data ---
 @st.cache_data
 def get_all_student_data(folder_path='.'):
     student_data_map = {}
@@ -906,9 +901,34 @@ else:
                         schedule_by_date[class_info['Date']].append(class_info)
                     
                     sorted_dates = sorted(schedule_by_date.keys())
-                    time_sorter = {time: i for i, time in enumerate(time_slots.values())}
+                    # --- SORT KEY FIX ---
+                    def get_sort_key(class_item):
+                        time_str = class_item['Time']
+                        try:
+                            # Extract start hour and minute
+                            start_part = time_str.split('-')[0].strip()
+                            if ':' in start_part:
+                                h, m = map(int, re.findall(r'\d+', start_part))
+                            else:
+                                h = int(re.search(r'\d+', start_part).group())
+                                m = 0
+                            
+                            # Heuristic for sorting chronological order (8AM - 10PM window)
+                            # If hour is 12, it's PM (noon) -> 12
+                            # If hour is 1, 2, 3, 4, 5, 6, 7 -> PM (add 12)
+                            # If hour is 8, 9, 10, 11 -> AM (keep as is)
+                            # Exception: 8, 9, 10, 11 could be PM if explicitly stated, but standard schedule is AM.
+                            # The new guest sessions (e.g. 5-6PM) will be caught by the 1-7 logic.
+                            
+                            if h < 8: h += 12 # 1,2,3,4,5,6,7 -> 13,14,15,16,17,18,19
+                            if h == 12: pass  # 12 -> 12
+                            
+                            return h * 60 + m
+                        except:
+                            return 9999
+
                     for date in sorted_dates:
-                        schedule_by_date[date].sort(key=lambda x: time_sorter.get(x['Time'], 99))
+                        schedule_by_date[date].sort(key=get_sort_key)
                     
                     all_dates = []
                     if sorted_dates:
