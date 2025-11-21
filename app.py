@@ -160,6 +160,12 @@ DAY_SPECIFIC_OVERRIDES = {
         'DMA':    {'Venue': 'T6'}, # <-- NEW
         'DMB':    {'Venue': 'T6'}, # <-- NEW
     },
+# --- NEW CHANGES HERE (22.11.2025) ---
+    date(2025, 11, 22): {
+        'DC':    {'Venue': '214'},
+        'SMKTB': {'Venue': '214'},
+        'IMCB':  {'Venue': '214'},
+    },
     date(2025, 11, 24): {
         'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     },
