@@ -14,6 +14,19 @@ from streamlit_extras.st_keyup import st_keyup # For live search
 import gc 
 import streamlit.runtime.caching as st_cache
 import time 
+import gc 
+import streamlit.runtime.caching as st_cache
+
+# --- Cache Clearing Logic ---
+if "run_counter" not in st.session_state:
+    st.session_state.run_counter = 0
+st.session_state.run_counter += 1
+
+# Clear cache every 100 reruns to prevent memory leaks
+if st.session_state.run_counter % 100 == 0:
+    st_cache.clear_cache()
+    gc.collect()
+
 
 
 # 2. CONFIGURATION
