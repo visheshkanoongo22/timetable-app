@@ -165,8 +165,16 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
         'VALUD': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
     },
+    # --- MODIFIED HERE (24.11.2025) ---
     date(2025, 11, 24): {
         'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DRMC':   {'Venue': 'T7'},  # <-- NEW
+        'B2BB':   {'Venue': 'E3'},  # <-- NEW
+        'B2BC':   {'Venue': 'E3'},  # <-- NEW
+        'B2BA':   {'Venue': 'E1'},  # <-- NEW
+        'DMA':    {'Venue': '215'}, # <-- NEW
+        'DMB':    {'Venue': '215'}, # <-- NEW
+        'OMSD':   {'Venue': '215'}, # <-- NEW
     },
     date(2025, 11, 28): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
@@ -186,6 +194,8 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     }
 }
+
+
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
