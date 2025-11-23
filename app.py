@@ -74,124 +74,122 @@ COURSE_DETAILS_MAP = {
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
 
-ADDITIONAL_CLASSES = [
-    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': "SCM('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 13), 'Time': '6:10-7:10PM', 'Subject': 'INB(A)', 'Faculty': 'M C Gupta', 'Venue': 'T6 (Rescheduled)'},
-    {'Date': date(2025, 11, 29), 'Time': '8:30-9:30PM', 'Subject': "DRM('C)", 'Faculty': 'Pankaj Agrawal', 'Venue': 'T5 (Preponed)'}, 
-    {'Date': date(2025, 12, 6), 'Time': '6:10-7:10PM', 'Subject': 'B2B(B)', 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, 
-    {'Date': date(2025, 12, 6), 'Time': '7:20-8:20PM', 'Subject': "B2B('C)", 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'},
-    
-    # --- VALUATION 14.11.2025 ---
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    
-    # --- DV&VS 16.11.2025 ---
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- VALUATION 21.11.2025 ---
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- DV&VS 23.11.2025 (Sunday) ---
-    {'Date': date(2025, 11, 23), 'Time': '2:00-3:00PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '3:00-4:00PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '2:00-3:00PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '3:00-4:00PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': "DV&VS('C)", 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
-    {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': "DV&VS('C)", 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
-    {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
-    {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
-
-    # --- NEW: VALUATION 26.11.2025 ---
-    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(B)', 'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
-    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(D)', 'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
-
-    # --- NEW: DV&VS(C) Rescheduled ---
-    {'Date': date(2025, 11, 28), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-    {'Date': date(2025, 11, 28), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-    {'Date': date(2025, 12, 5), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-    {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-]
-ADDITIONAL_CLASSES = [
-    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': "SCM('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 13), 'Time': '6:10-7:10PM', 'Subject': 'INB(A)', 'Faculty': 'M C Gupta', 'Venue': 'T6 (Rescheduled)'},
-    {'Date': date(2025, 11, 29), 'Time': '8:30-9:30PM', 'Subject': "DRM('C)", 'Faculty': 'Pankaj Agrawal', 'Venue': 'T5 (Preponed)'}, 
-    {'Date': date(2025, 12, 6), 'Time': '6:10-7:10PM', 'Subject': 'B2B(B)', 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, 
-    {'Date': date(2025, 12, 6), 'Time': '7:20-8:20PM', 'Subject': "B2B('C)", 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'},
-    
-    # --- VALUATION 14.11.2025 ---
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    
-    # --- DV&VS 16.11.2025 ---
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- VALUATION 21.11.2025 ---
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- DV&VS 23.11.2025 (Sunday) ---
-    {'Date': date(2025, 11, 23), 'Time': '2:00-3:00PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '3:00-4:00PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '2:00-3:00PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '3:00-4:00PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': "DV&VS('C)", 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
-    {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': "DV&VS('C)", 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
-    {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
-    {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
-
-    # --- NEW: VALUATION 26.11.2025 ---
-    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(B)', 'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
-    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(D)', 'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
-
-    # --- NEW: DV&VS(C) Rescheduled ---
-    {'Date': date(2025, 11, 28), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-    {'Date': date(2025, 11, 28), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-    {'Date': date(2025, 12, 5), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-    {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-]
+DAY_SPECIFIC_OVERRIDES = {
+    date(2025, 11, 8): {
+        'DC': {'Venue': '216'}, 'VALUC': {'Venue': '216'}, 'VALUD': {'Venue': '216'}, 'IMCB': {'Venue': '216'},
+    },
+    date(2025, 11, 10): {
+        'B2BB': {'Venue': 'E1'}, 'B2BC': {'Venue': 'E1'}, 'DV&VSC': {'Venue': 'E2'},
+        'DMB': {'Venue': '214'}, 'DMA': {'Venue': '214'}, 'OMSD': {'Venue': '214'},
+    },
+    date(2025, 11, 11): {
+        'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 'IMCA': {'Venue': 'T3'}
+    },
+    date(2025, 11, 12): {
+        'INBA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}
+    },
+    date(2025, 11, 13): {
+        'SMKTA': {'Venue': 'T7'},
+        'BS':    {'Venue': 'T7'},
+        'ANA':   {'Venue': 'T7'},
+        'ANB':   {'Venue': 'T7'},
+        'LSSA':  {'Venue': 'T1'},
+        'B2BA':  {'Venue': 'E1'},
+        'DVVSC': {'Venue': 'E2'},
+        'OMSD':  {'Venue': 'T3'},
+        'B2BB':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'B2BC':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'IMCA':  {'Venue': 'T3'},
+    },
+    date(2025, 11, 14): {
+        'B2BB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, 
+        'B2BC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'SCMB': {'Venue': 'T4'}, 
+    },
+    date(2025, 11, 15): {
+        'DADM': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'LSSA': {'Venue': 'E2'},
+        'IMCA': {'Venue': 'T6'}, 
+    },
+    date(2025, 11, 16): { 
+        'IMCB': {'Venue': 'T7'}, 
+    },
+    date(2025, 11, 17): {
+        'DV&VSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
+        'B2BB':  {'Venue': 'E1'},
+        'B2BC':  {'Venue': 'E1'},
+        'B2BA':  {'Venue': 'E2'},
+        'OMSD':  {'Venue': '214'},
+        'TEOMA': {'Venue': '216'},
+        'TEOMB': {'Venue': '216'},
+    },
+    date(2025, 11, 18): {
+        'DV&VSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    },
+    date(2025, 11, 19): {
+        'DV&VSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DV&VSA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'SMKTA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'VALUB': {'Time': '02:30-03:30PM'},
+        'BS':    {'Venue': 'T4'},
+    },
+    date(2025, 11, 20): {
+        'DV&VSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
+        'IMCA':   {'Venue': 'T3'}, 
+        'IMCB':   {'Venue': 'T3'}, 
+        'B2BB':   {'Venue': 'E2'}, 
+        'B2BC':   {'Venue': 'E2'}, 
+        'DMA':    {'Venue': 'T6'}, 
+        'DMB':    {'Venue': 'T6'}, 
+        'OMSD':   {'Venue': 'T3'}, 
+        'ML&AIA': {'Venue': 'T7'},
+        'SMKTB':  {'Venue': 'T7'},
+        'B2BA':   {'Venue': 'T7'},
+        'SMKTA':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
+    },
+    date(2025, 11, 21): {
+        'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DRMC':   {'Venue': 'T7'},
+        'B2BB':   {'Venue': 'E1'}, 
+        'B2BC':   {'Venue': 'E1'}, 
+        'B2BA':   {'Venue': 'E2'}, 
+        'DMA':    {'Venue': 'T6'}, 
+        'DMB':    {'Venue': 'T6'}, 
+    },
+    date(2025, 11, 22): {
+        'DC':    {'Venue': '214'},
+        'SMKTB': {'Venue': '214'},
+        'IMCB':  {'Venue': '214'},
+        'VALUC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'VALUD': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+    },
+    date(2025, 11, 24): {
+        'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    },
+    # --- NEW CHANGE (26.11.2025) ---
+    date(2025, 11, 26): {
+        'VALUA': {'Time': '01:30-02:30PM'},
+        'VALUB': {'Time': '01:30-02:30PM'},
+    },
+    date(2025, 11, 28): {
+        'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    },
+    date(2025, 12, 5): {
+        'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    },
+    date(2025, 12, 12): {
+        'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    },
+    date(2025, 12, 15): {
+        'DRMC': {'Venue': 'PREPONED', 'Faculty': 'Session Preponed'}, 
+    },
+    date(2025, 12, 19): {
+        'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    }
+}
 
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
