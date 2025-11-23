@@ -542,172 +542,440 @@ st.markdown("""
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 """, unsafe_allow_html=True)
 # --- CSS STYLING ---
+# Replace the CSS section in your code (lines ~355-511) with this:
+
 local_css_string = """
 <style>
-    /* ... (your existing CSS from root to .results-container) ... */
-    * { color-scheme: dark !important; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
-    /* --- NEW: Force browser background dark --- */
+    /* Root Variables - Professional Minimalist Palette */
+    :root {
+        --bg: #0A0E1A;
+        --bg-secondary: #12182B;
+        --card: #1A2035;
+        --border: rgba(255, 255, 255, 0.06);
+        --border-hover: rgba(255, 255, 255, 0.12);
+        --text-primary: #E8EBF0;
+        --text-secondary: #8B94A8;
+        --text-muted: #5A6477;
+        --accent: #6366F1;
+        --accent-hover: #4F46E5;
+        --accent-light: rgba(99, 102, 241, 0.1);
+        --success: #10B981;
+        --warning: #F59E0B;
+        --danger: #EF4444;
+        --today-glow: #6366F1;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+        --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+        --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.6);
+    }
+    
+    * { 
+        color-scheme: dark !important;
+        margin: 0;
+        padding: 0;
+    }
+    
     html, body {
         background-color: var(--bg) !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
     
     [data-testid="stAppViewContainer"], [data-testid="stSidebar"] {
-        background-color: var(--bg) !important; color: #ffffff !important;
+        background-color: var(--bg) !important;
+        color: var(--text-primary) !important;
     }
     
-    /* --- CHANGE 1: Force-hide the Streamlit header bar --- */
+    /* Hide Streamlit Header */
     [data-testid="stHeader"] {
         display: none;
         visibility: hidden;
         height: 0;
     }
     
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-    :root{
-        --bg:#0F172A; --card:#1E293B; --muted:#94A3B8; --accent-start:#60A5FA; --accent-end:#818CF8;
-        --glass-border: rgba(255,255,255,0.08); --today-glow: #38BDF8; --today-glow-shadow: rgba(56, 189, 248, 0.4);
-        --venue-change-color: #F87171;
-    }
     .stApp {
-        background: radial-gradient(1200px 600px at 10% 10%, rgba(96,165,250,0.08), transparent 10%),
-                    radial-gradient(1000px 500px at 90% 90%, rgba(129,140,248,0.06), transparent 10%), var(--bg);
-        color: #ffffff; font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        background: var(--bg);
+        color: var(--text-primary);
     }
+    
+    /* Typography */
     .main-header {
-        font-size: 2.4rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem;
+        font-size: 2rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
     }
-    .header-sub { text-align:center; color:var(--muted); margin-top:0rem; margin-bottom:2rem; font-size:1.0rem; }
+    
+    .header-sub {
+        text-align: center;
+        color: var(--text-secondary);
+        margin-top: 0;
+        margin-bottom: 2.5rem;
+        font-size: 0.95rem;
+        font-weight: 400;
+    }
+    
+    /* Welcome Box */
     .welcome-box {
-        background: var(--card); border: 1px solid var(--glass-border); padding: 1rem 1.25rem;
-        border-radius: 14px; margin-bottom: 1.5rem; color: var(--muted); font-size: 0.95rem;
+        background: var(--card);
+        border: 1px solid var(--border);
+        padding: 1.25rem 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.6;
     }
-    .welcome-box strong { color: #ffffff; font-weight: 600; }
     
-    /* --- NEW WELCOME MESSAGE --- */
+    .welcome-box strong {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+    
     .welcome-message {
-        margin-top: 0rem; /* Was -2rem, now 0rem */
-        margin-bottom: 1rem; 
-        font-size: 1.1rem; 
-        color: var(--muted); 
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        font-weight: 500;
     }
-    .welcome-message strong {
-        color: #ffffff; /* Make the roll number white */
-    }
-
-    .day-card {
-        background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-        border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-        border: 1px solid var(--glass-border); transition: transform 0.18s ease, box-shadow 0.18s ease;
-        scroll-margin-top: 85px; position: relative;
-    }
-    .day-card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(0,0,0,0.6); }
-    .day-card.today {
-        border: 3px solid var(--today-glow);
-        box-shadow: 0 0 35px var(--today-glow-shadow), 0 0 60px rgba(56, 189, 248, 0.2), 0 8px 30px rgba(0,0,0,0.4);
-        animation: pulse-glow 2s ease-in-out infinite;
-    }
-    .today-badge {
-        position: absolute; top: -12px; right: 20px; background: var(--today-glow); color: var(--bg);
-        font-size: 0.75rem; font-weight: 800; padding: 0.35rem 0.75rem; border-radius: 6px;
-        letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 4px 15px var(--today-glow-shadow); z-index: 10;
-    }
-    @keyframes pulse-glow {
-        0%, 100% { box-shadow: 0 0 35px var(--today-glow-shadow), 0 0 60px rgba(56, 189, 248, 0.2), 0 8px 30px rgba(0,0,0,0.4); }
-        50% { box-shadow: 0 0 45px rgba(56, 189, 248, 0.6), 0 0 80px rgba(56, 189, 248, 0.3), 0 8px 30px rgba(0,0,0,0.4); }
-    }
-    .day-header { font-size: 1.15rem; font-weight: 700; color: #E2E8F0; margin-bottom: 0.5rem; }
-    .class-entry {
-        display:flex; flex-direction:row; align-items:center; justify-content:space-between;
-        padding-top:0.65rem; padding-bottom:0.65rem; border-bottom:1px solid rgba(255,255,255,0.04);
-    }
-    .day-card .class-entry:last-child { border-bottom: none; padding-bottom: 0; }
-    .left { display:flex; flex-direction:column; gap:0.2rem; }
-    .subject-name { font-size:1.05rem; font-weight:700; margin:0; color: #FFFFFF; }
-    .class-details { font-size:0.94rem; color:var(--muted); }
-    .meta { text-align:right; min-width:170px; }
-    .meta .time { display:block; font-weight:600; color:#fff; font-size:0.97rem; }
-    .meta .venue, .meta .faculty { display:block; font-size:0.85rem; color:var(--muted); }
-    .venue-changed { color: var(--venue-change-color) !important; font-weight: 600; }
     
-    /* --- NEW: Strikethrough Class --- */
+    .welcome-message strong {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+    
+    /* Day Cards */
+    .day-card {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
+        transition: all 0.2s ease;
+        scroll-margin-top: 80px;
+        position: relative;
+    }
+    
+    .day-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--border-hover);
+    }
+    
+    .day-card.today {
+        border: 2px solid var(--today-glow);
+        box-shadow: 0 0 0 1px var(--accent-light), var(--shadow-md);
+        background: linear-gradient(to bottom, rgba(99, 102, 241, 0.03), var(--card));
+    }
+    
+    .today-badge {
+        position: absolute;
+        top: -10px;
+        right: 1.5rem;
+        background: var(--accent);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        box-shadow: var(--shadow-sm);
+        z-index: 10;
+    }
+    
+    .day-header {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        letter-spacing: -0.01em;
+    }
+    
+    /* Class Entry */
+    .class-entry {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 0.875rem 0;
+        border-bottom: 1px solid var(--border);
+        gap: 1rem;
+    }
+    
+    .day-card .class-entry:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .day-card .class-entry:first-child {
+        padding-top: 0;
+    }
+    
+    .left {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        flex: 1;
+    }
+    
+    .subject-name {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-primary);
+        letter-spacing: -0.01em;
+    }
+    
+    .class-details {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    
+    .meta {
+        text-align: right;
+        min-width: 140px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .meta .time {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+    }
+    
+    .meta .venue,
+    .meta .faculty {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        line-height: 1.4;
+    }
+    
+    .venue-changed {
+        color: var(--warning) !important;
+        font-weight: 500;
+    }
+    
     .strikethrough {
         text-decoration: line-through;
-        opacity: 0.6;
+        opacity: 0.5;
     }
     
-    .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
-        background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); color: var(--bg);
-        font-weight:700; padding: 0.5rem 0.9rem; border-radius:10px; border:none;
-        box-shadow: 0 8px 20px rgba(96,165,250,0.1); width: 100%;
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
-    }
-    .stDownloadButton>button:hover, div[data-testid="stForm"] button[kind="primary"]:hover, .stButton>button:hover {
-        transform: translateY(-3px); box-shadow: 0 14px 30px rgba(96,165,250,0.15);
+    /* Buttons */
+    .stDownloadButton > button,
+    div[data-testid="stForm"] button[kind="primary"] {
+        background: var(--accent);
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        box-shadow: var(--shadow-sm);
+        width: 100%;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
     }
     
-    /* --- MODIFIED: Smaller Change Button --- */
-    .stButton>button {
-        width: auto; 
-        padding: 0.25rem 0.6rem; /* Smaller padding */
-        font-size: 0.8rem; /* Smaller font */
-        background: var(--card);
-        color: var(--muted); 
-        border: 1px solid var(--glass-border);
+    .stDownloadButton > button:hover,
+    div[data-testid="stForm"] button[kind="primary"]:hover {
+        background: var(--accent-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
     }
-    .stButton>button:hover { color: var(--accent-start); border-color: var(--accent-start); }
     
-    a { color: var(--accent-start); font-weight:600; }
-    .css-1d391kg, .css-1v3fvcr, .css-18ni7ap { color: #ffffff; }
-    .stTextInput>div>div>input, .stTextInput>div>div>textarea {
-        background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
-        border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
+    .stButton > button {
+        width: auto;
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
     }
+    
+    .stButton > button:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+        background: var(--accent-light);
+    }
+    
+    /* Form Inputs */
+    .stTextInput > div > div > input,
+    .stTextInput > div > div > textarea {
+        background: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border) !important;
+        padding: 0.75rem !important;
+        border-radius: 8px !important;
+        font-size: 0.9rem !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    .stTextInput > div > div > input:focus,
+    .stTextInput > div > div > textarea:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 3px var(--accent-light) !important;
+        outline: none !important;
+    }
+    
+    /* Results Container */
     .results-container {
-        background: var(--card); border: 1px solid var(--glass-border); padding: 1.25rem;
-        border-radius: 14px; margin-bottom: 1.5rem;
+        background: var(--card);
+        border: 1px solid var(--border);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
     }
-    .results-container h3 { color: #E2E8F0; margin-top: 0; margin-bottom: 1rem; font-size: 1.3rem; }
-    .results-container h3:not(:first-child) { margin-top: 1.5rem; }
     
-    /* --- MODIFIED: Mobile View Adjustments --- */
+    .results-container h3 {
+        color: var(--text-primary);
+        margin-top: 0;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+    }
+    
+    .results-container h3:not(:first-child) {
+        margin-top: 2rem;
+    }
+    
+    /* Expander Styling */
+    .streamlit-expanderHeader {
+        background: var(--card) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 8px !important;
+        font-weight: 500 !important;
+        color: var(--text-primary) !important;
+    }
+    
+    .streamlit-expanderHeader:hover {
+        border-color: var(--border-hover) !important;
+    }
+    
+    /* Links */
+    a {
+        color: var(--accent);
+        font-weight: 500;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    
+    a:hover {
+        color: var(--accent-hover);
+        text-decoration: underline;
+    }
+    
+    /* Spinner */
+    .stSpinner > div {
+        border-top-color: var(--accent) !important;
+    }
+    
+    /* Captions */
+    .caption {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        text-align: center;
+        margin-top: 2rem;
+    }
+    
+    /* Mobile Responsiveness */
     @media (max-width: 600px) {
-        /* Reduce padding on cards */
         .day-card {
-            padding: 0.8rem; /* Further reduced padding */
-            margin-bottom: 1rem;
+            padding: 1rem;
+            margin-bottom: 0.875rem;
         }
+        
         .results-container {
-            padding: 0.8rem;
+            padding: 1rem;
         }
-        /* Reduce font sizes */
-        .main-header { font-size: 1.6rem; } /* Further reduced */
-        .header-sub { font-size: 0.8rem; margin-bottom: 1.5rem; } /* Further reduced */
-        .day-header { font-size: 0.9rem; } /* Further reduced */
-        .subject-name { font-size: 0.9rem; } /* Further reduced */
-        .meta .time { font-size: 0.85rem; } /* Further reduced */
-        .meta .venue, .meta .faculty { font-size: 0.75rem; } /* Further reduced */
-        /* Reduce padding on class entries */
-        .class-entry {
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
+        
+        .main-header {
+            font-size: 1.5rem;
         }
-        .meta { 
-            min-width: 120px; 
-            font-size: 0.85rem; /* Further reduced */
+        
+        .header-sub {
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
         }
-        /* Make buttons slightly smaller */
-        .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
-            padding: 0.4rem 0.8rem;
+        
+        .day-header {
             font-size: 0.9rem;
         }
-        /* Make change button even smaller on mobile */
-        .stButton>button {
-            padding: 0.25rem 0.6rem;
+        
+        .subject-name {
+            font-size: 0.875rem;
+        }
+        
+        .meta .time {
             font-size: 0.8rem;
         }
+        
+        .meta .venue,
+        .meta .faculty {
+            font-size: 0.75rem;
+        }
+        
+        .class-entry {
+            padding: 0.75rem 0;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .meta {
+            text-align: left;
+            min-width: auto;
+            width: 100%;
+        }
+        
+        .stDownloadButton > button,
+        div[data-testid="stForm"] button[kind="primary"] {
+            padding: 0.625rem 1.25rem;
+            font-size: 0.85rem;
+        }
+        
+        .stButton > button {
+            padding: 0.5rem 0.875rem;
+            font-size: 0.8rem;
+        }
+        
+        .today-badge {
+            right: 1rem;
+            font-size: 0.65rem;
+            padding: 0.3rem 0.6rem;
+        }
+    }
+    
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: var(--bg);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--border-hover);
     }
 </style>
+"""
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
