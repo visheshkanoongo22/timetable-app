@@ -243,10 +243,10 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 23), 'Time': '3:00-4:00PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 23), 'Time': '2:00-3:00PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 23), 'Time': '3:00-4:00PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': "DV&VS('C)", 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
-    {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': "DV&VS('C)", 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
-    {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
-    {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Session Cancelled', 'Venue': 'CANCELLED'},
+    {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
 
     # --- NEW: VALUATION 26.11.2025 ---
     {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(B)', 'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
