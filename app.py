@@ -218,15 +218,17 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     
-    # --- DV&VS 16.11.2025 ---
+# --- DV&VS 16.11.2025 ---
     {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    
+    # --- CANCELLED SESSIONS (Sections C & D) ---
+    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': "DV&VS('C)", 'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(D)', 'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(D)', 'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
 
     # --- VALUATION 21.11.2025 ---
     {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
