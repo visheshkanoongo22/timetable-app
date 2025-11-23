@@ -1,0 +1,122 @@
+from datetime import date
+
+# --- DAY-SPECIFIC OVERRIDES ---
+# Format: date(YYYY, MM, DD): {'SUBJECT': {'Venue': '...'}, ...}
+DAY_SPECIFIC_OVERRIDES = {
+    date(2025, 11, 8): {
+        'DC': {'Venue': '216'}, 'VALUC': {'Venue': '216'}, 'VALUD': {'Venue': '216'}, 'IMCB': {'Venue': '216'},
+    },
+    date(2025, 11, 10): {
+        'B2BB': {'Venue': 'E1'}, 'B2BC': {'Venue': 'E1'}, 'DV&VSC': {'Venue': 'E2'},
+        'DMB': {'Venue': '214'}, 'DMA': {'Venue': '214'}, 'OMSD': {'Venue': '214'},
+    },
+    date(2025, 11, 11): {
+        'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 'IMCA': {'Venue': 'T3'}
+    },
+    date(2025, 11, 12): {
+        'INBA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}
+    },
+    date(2025, 11, 13): {
+        'SMKTA': {'Venue': 'T7'},
+        'BS':    {'Venue': 'T7'},
+        'ANA':   {'Venue': 'T7'},
+        'ANB':   {'Venue': 'T7'},
+        'LSSA':  {'Venue': 'T1'},
+        'B2BA':  {'Venue': 'E1'},
+        'DVVSC': {'Venue': 'E2'},
+        'OMSD':  {'Venue': 'T3'},
+        'B2BB':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'B2BC':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'IMCA':  {'Venue': 'T3'},
+    },
+    date(2025, 11, 14): {
+        'B2BB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, 
+        'B2BC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'SCMB': {'Venue': 'T4'}, 
+    },
+    date(2025, 11, 15): {
+        'DADM': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'LSSA': {'Venue': 'E2'},
+        'IMCA': {'Venue': 'T6'}, 
+    },
+    date(2025, 11, 16): { 
+        'IMCB': {'Venue': 'T7'}, 
+    },
+    date(2025, 11, 17): {
+        'DV&VSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
+        'B2BB':  {'Venue': 'E1'},
+        'B2BC':  {'Venue': 'E1'},
+        'B2BA':  {'Venue': 'E2'},
+        'OMSD':  {'Venue': '214'},
+        'TEOMA': {'Venue': '216'},
+        'TEOMB': {'Venue': '216'},
+    },
+    date(2025, 11, 18): {
+        'DV&VSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    },
+    date(2025, 11, 19): {
+        'DV&VSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DV&VSA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'SMKTA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'VALUB': {'Time': '02:30-03:30PM'},
+        'BS':    {'Venue': 'T4'},
+    },
+    date(2025, 11, 20): {
+        'DV&VSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
+        'IMCA':   {'Venue': 'T3'}, 
+        'IMCB':   {'Venue': 'T3'}, 
+        'B2BB':   {'Venue': 'E2'}, 
+        'B2BC':   {'Venue': 'E2'}, 
+        'DMA':    {'Venue': 'T6'}, 
+        'DMB':    {'Venue': 'T6'}, 
+        'OMSD':   {'Venue': 'T3'}, 
+        'ML&AIA': {'Venue': 'T7'},
+        'SMKTB':  {'Venue': 'T7'},
+        'B2BA':   {'Venue': 'T7'},
+        'SMKTA':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
+    },
+    date(2025, 11, 21): {
+        'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DRMC':   {'Venue': 'T7'},
+        'B2BB':   {'Venue': 'E1'}, 
+        'B2BC':   {'Venue': 'E1'}, 
+        'B2BA':   {'Venue': 'E2'}, 
+        'DMA':    {'Venue': 'T6'}, 
+        'DMB':    {'Venue': 'T6'}, 
+    },
+    date(2025, 11, 22): {
+        'DC':    {'Venue': '214'},
+        'SMKTB': {'Venue': '214'},
+        'IMCB':  {'Venue': '214'},
+        'VALUC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'VALUD': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+    },
+    date(2025, 11, 24): {
+        'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DRMC':   {'Venue': 'T7'},
+        'B2BB':   {'Venue': 'E3'},
+        'B2BC':   {'Venue': 'E3'},
+        'B2BA':   {'Venue': 'E1'},
+        'DMA':    {'Venue': '215'},
+        'DMB':    {'Venue': '215'},
+        'OMSD':   {'Venue': '215'},
+    },
+    date(2025, 11, 28): {
+        'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    },
+    date(2025, 12, 5): {
+        'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    },
+    date(2025, 12, 12): {
+        'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    },
+    date(2025, 12, 15): {
+        'DRMC': {'Venue': 'PREPONED', 'Faculty': 'Session Preponed'}, 
+    },
+    date(2025, 12, 19): {
+        'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    }
+}
