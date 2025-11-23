@@ -15,6 +15,10 @@ import gc
 import streamlit.runtime.caching as st_cache
 import time 
 
+# --- IMPORT DATA FROM EXTERNAL FILES ---
+from day_overrides import DAY_SPECIFIC_OVERRIDES
+from additional_classes import ADDITIONAL_CLASSES
+
 # --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
 AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
 
@@ -45,8 +49,6 @@ if st.session_state.run_counter % 100 == 0:
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
-# --- List of all schedule files, from oldest to newest ---
-SCHEDULE_FILES = ['schedule1.xlsx', 'schedule2.xlsx', 'schedule3.xlsx', 'schedule.xlsx'] 
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
 COURSE_DETAILS_MAP = {
@@ -74,193 +76,12 @@ COURSE_DETAILS_MAP = {
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
 
-# --- DAY-SPECIFIC OVERRIDES & ADDITIONS ---
-DAY_SPECIFIC_OVERRIDES = {
-    date(2025, 11, 8): {
-        'DC': {'Venue': '216'}, 'VALUC': {'Venue': '216'}, 'VALUD': {'Venue': '216'}, 'IMCB': {'Venue': '216'},
-    },
-    date(2025, 11, 10): {
-        'B2BB': {'Venue': 'E1'}, 'B2BC': {'Venue': 'E1'}, 'DV&VSC': {'Venue': 'E2'},
-        'DMB': {'Venue': '214'}, 'DMA': {'Venue': '214'}, 'OMSD': {'Venue': '214'},
-    },
-    date(2025, 11, 11): {
-        'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 'IMCA': {'Venue': 'T3'}
-    },
-    date(2025, 11, 12): {
-        'INBA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}
-    },
-    date(2025, 11, 13): {
-        'SMKTA': {'Venue': 'T7'},
-        'BS':    {'Venue': 'T7'},
-        'ANA':   {'Venue': 'T7'},
-        'ANB':   {'Venue': 'T7'},
-        'LSSA':  {'Venue': 'T1'},
-        'B2BA':  {'Venue': 'E1'},
-        'DVVSC': {'Venue': 'E2'},
-        'OMSD':  {'Venue': 'T3'},
-        'B2BB':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'B2BC':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'IMCA':  {'Venue': 'T3'},
-    },
-    date(2025, 11, 14): {
-        'B2BB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, 
-        'B2BC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'SCMB': {'Venue': 'T4'}, 
-    },
-    date(2025, 11, 15): {
-        'DADM': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'LSSA': {'Venue': 'E2'},
-        'IMCA': {'Venue': 'T6'}, 
-    },
-    date(2025, 11, 16): { 
-        'IMCB': {'Venue': 'T7'}, 
-    },
-    date(2025, 11, 17): {
-        'DV&VSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
-        'B2BB':  {'Venue': 'E1'},
-        'B2BC':  {'Venue': 'E1'},
-        'B2BA':  {'Venue': 'E2'},
-        'OMSD':  {'Venue': '214'},
-        'TEOMA': {'Venue': '216'},
-        'TEOMB': {'Venue': '216'},
-    },
-    date(2025, 11, 18): {
-        'DV&VSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-    },
-    date(2025, 11, 19): {
-        'DV&VSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'DV&VSA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'SMKTA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'VALUB': {'Time': '02:30-03:30PM'},
-        'BS':    {'Venue': 'T4'},
-    },
-    date(2025, 11, 20): {
-        'DV&VSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
-        'IMCA':   {'Venue': 'T3'}, 
-        'IMCB':   {'Venue': 'T3'}, 
-        'B2BB':   {'Venue': 'E2'}, 
-        'B2BC':   {'Venue': 'E2'}, 
-        'DMA':    {'Venue': 'T6'}, 
-        'DMB':    {'Venue': 'T6'}, 
-        'OMSD':   {'Venue': 'T3'}, 
-        'ML&AIA': {'Venue': 'T7'},
-        'SMKTB':  {'Venue': 'T7'},
-        'B2BA':   {'Venue': 'T7'},
-        'SMKTA':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
-    },
-    date(2025, 11, 21): {
-        'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'DRMC':   {'Venue': 'T7'},
-        'B2BB':   {'Venue': 'E1'}, 
-        'B2BC':   {'Venue': 'E1'}, 
-        'B2BA':   {'Venue': 'E2'}, 
-        'DMA':    {'Venue': 'T6'}, 
-        'DMB':    {'Venue': 'T6'}, 
-    },
-    date(2025, 11, 22): {
-        'DC':    {'Venue': '214'},
-        'SMKTB': {'Venue': '214'},
-        'IMCB':  {'Venue': '214'},
-        'VALUC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'VALUD': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-    },
-    # --- MODIFIED HERE (24.11.2025) ---
-    date(2025, 11, 24): {
-        'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'DRMC':   {'Venue': 'T7'},  # <-- NEW
-        'B2BB':   {'Venue': 'E3'},  # <-- NEW
-        'B2BC':   {'Venue': 'E3'},  # <-- NEW
-        'B2BA':   {'Venue': 'E1'},  # <-- NEW
-        'DMA':    {'Venue': '215'}, # <-- NEW
-        'DMB':    {'Venue': '215'}, # <-- NEW
-        'OMSD':   {'Venue': '215'}, # <-- NEW
-    },
-    date(2025, 11, 28): {
-        'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-    },
-    date(2025, 12, 5): {
-        'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-    },
-    date(2025, 12, 12): {
-        'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-    },
-    date(2025, 12, 15): {
-        'DRMC': {'Venue': 'PREPONED', 'Faculty': 'Session Preponed'}, 
-    },
-    date(2025, 12, 19): {
-        'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-    }
-}
-
-
-ADDITIONAL_CLASSES = [
-    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': "SCM('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 13), 'Time': '6:10-7:10PM', 'Subject': 'INB(A)', 'Faculty': 'M C Gupta', 'Venue': 'T6 (Rescheduled)'},
-    {'Date': date(2025, 11, 29), 'Time': '8:30-9:30PM', 'Subject': "DRM('C)", 'Faculty': 'Pankaj Agrawal', 'Venue': 'T5 (Preponed)'}, 
-    {'Date': date(2025, 12, 6), 'Time': '6:10-7:10PM', 'Subject': 'B2B(B)', 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, 
-    {'Date': date(2025, 12, 6), 'Time': '7:20-8:20PM', 'Subject': "B2B('C)", 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'},
-    
-    # --- VALUATION 14.11.2025 ---
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    
-    # --- DV&VS 16.11.2025 ---
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- VALUATION 21.11.2025 ---
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- NEW: DV&VS 23.11.2025 (Sunday) ---
-    # Sections A & B (2PM - 4PM)
-    {'Date': date(2025, 11, 23), 'Time': '2:00-3:00PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '3:00-4:00PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '2:00-3:00PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '3:00-4:00PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    # Sections C & D (5PM - 7PM)
-    {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- NEW: DV&VS(C) Rescheduled ---
-    {'Date': date(2025, 11, 28), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-    {'Date': date(2025, 11, 28), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-    {'Date': date(2025, 12, 5), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-    {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-]
-
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
         return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").upper()
     return ""
 
-# --- MODIFIED: Use @st.cache_resource ---
 @st.cache_resource
 def load_and_clean_schedule(file_path, is_stats_file=False):
     try:
@@ -277,24 +98,6 @@ def load_and_clean_schedule(file_path, is_stats_file=False):
         if not is_stats_file:
             st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
         return pd.DataFrame()
-
-# --- (FIXED) Function to load ALL schedules ---
-@st.cache_resource
-def load_all_schedules(file_list):
-    all_dfs = []
-    for file_path in file_list:
-        # Use the existing function, but suppress errors for old files
-        df = load_and_clean_schedule(file_path, is_stats_file=True) 
-        if not df.empty:
-            all_dfs.append(df)
-            
-    if not all_dfs:
-        return pd.DataFrame()
-        
-    combined_df = pd.concat(all_dfs)
-    # --- THIS IS THE FIX: We DO NOT drop duplicates. We sum from all files.
-    combined_df = combined_df.sort_values(by=[0]) # Sort by date
-    return combined_df
 
 # --- (FIXED) Function to calculate and display stats ---
 def calculate_and_display_stats():
@@ -755,7 +558,7 @@ else:
             unsafe_allow_html=True
         )
         with st.form("roll_number_form"):
-            roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
+            roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
             submitted_button = st.form_submit_button("Generate Timetable")
             
             if submitted_button:
@@ -911,27 +714,27 @@ else:
                         schedule_by_date[class_info['Date']].append(class_info)
                     
                     sorted_dates = sorted(schedule_by_date.keys())
-                    # --- SORT KEY FIX ---
+                    
+                    # --- SORTING LOGIC: Handles both '8-9AM' and '5:00-6:00PM' formats
                     def get_sort_key(class_item):
                         time_str = class_item['Time']
                         try:
                             # Extract start hour and minute
                             start_part = time_str.split('-')[0].strip()
+                            # Handle "5:00" vs "5"
                             if ':' in start_part:
-                                h, m = map(int, re.findall(r'\d+', start_part))
+                                h_str, m_str = start_part.split(':')
+                                h = int(re.search(r'\d+', h_str).group())
+                                m = int(re.search(r'\d+', m_str).group())
                             else:
                                 h = int(re.search(r'\d+', start_part).group())
                                 m = 0
                             
-                            # Heuristic for sorting chronological order (8AM - 10PM window)
+                            # Heuristic for 24-hour sorting (assuming 8AM - 10PM window)
                             # If hour is 12, it's PM (noon) -> 12
-                            # If hour is 1, 2, 3, 4, 5, 6, 7 -> PM (add 12)
-                            # If hour is 8, 9, 10, 11 -> AM (keep as is)
-                            # Exception: 8, 9, 10, 11 could be PM if explicitly stated, but standard schedule is AM.
-                            # The new guest sessions (e.g. 5-6PM) will be caught by the 1-7 logic.
-                            
-                            if h < 8: h += 12 # 1,2,3,4,5,6,7 -> 13,14,15,16,17,18,19
-                            if h == 12: pass  # 12 -> 12
+                            # If hour is 1-7, it's PM -> add 12
+                            # If hour is 8-11, it's AM -> keep as is
+                            if h < 8: h += 12 
                             
                             return h * 60 + m
                         except:
@@ -1187,10 +990,6 @@ else:
                             
                             st.markdown('</div>', unsafe_allow_html=True)
 
-                    # --- AUTO-SCROLL SCRIPT (REMOVED) ---
-                    
-                else:
-                    st.warning("No classes found for your registered sections in the master schedule.")
             
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
