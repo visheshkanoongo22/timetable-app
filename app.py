@@ -921,36 +921,42 @@ else:
                         schedule_by_date[class_info['Date']].append(class_info)
                     
                     sorted_dates = sorted(schedule_by_date.keys())
-                    # --- SORT KEY FIX ---
+                                        # --- SORTING LOGIC: Handles both '8-9AM' and '8:30-9:30PM' formats
                     def get_sort_key(class_item):
-                        time_str = class_item['Time']
+                        time_str = class_item['Time'].upper()
                         try:
                             # Extract start hour and minute
                             start_part = time_str.split('-')[0].strip()
+                            
                             if ':' in start_part:
-                                h, m = map(int, re.findall(r'\d+', start_part))
+                                h_str, m_str = start_part.split(':')
+                                h = int(re.search(r'\d+', h_str).group())
+                                m = int(re.search(r'\d+', m_str).group())
                             else:
                                 h = int(re.search(r'\d+', start_part).group())
                                 m = 0
                             
-                            # Heuristic for sorting chronological order (8AM - 10PM window)
-                            # If hour is 12, it's PM (noon) -> 12
-                            # If hour is 1, 2, 3, 4, 5, 6, 7 -> PM (add 12)
-                            # If hour is 8, 9, 10, 11 -> AM (keep as is)
-                            # Exception: 8, 9, 10, 11 could be PM if explicitly stated, but standard schedule is AM.
-                            # The new guest sessions (e.g. 5-6PM) will be caught by the 1-7 logic.
+                            # Heuristic for 24-hour sorting
+                            # 1. If hour is 1-7 (e.g., 1PM, 5PM), it's afternoon/evening -> Add 12
+                            if h < 8: 
+                                h += 12
+                            # 2. If hour is 8, 9, 10 (e.g., 8PM) AND string has "PM" but not "AM" -> Add 12
+                            # (This fixes the 8:30PM vs 8:00AM issue)
+                            elif h in [8, 9, 10] and "PM" in time_str and "AM" not in time_str:
+                                h += 12
                             
-                            if h < 8: h += 12 # 1,2,3,4,5,6,7 -> 13,14,15,16,17,18,19
-                            if h == 12: pass  # 12 -> 12
+                            # 12PM (Noon) stays 12. 11AM stays 11.
                             
                             return h * 60 + m
                         except:
                             return 9999
 
+                    
+
                     for date in sorted_dates:
                         schedule_by_date[date].sort(key=get_sort_key)
                     
-                    all_dates = []
+               all_dates = []
                     if sorted_dates:
                         first_date = sorted_dates[0]
                         last_date = sorted_dates[-1]
