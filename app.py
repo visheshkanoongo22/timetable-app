@@ -181,7 +181,7 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUD': {'Venue': 'E1'},
         'DC':    {'Venue': '215'},
     },
-    # --- NEW CHANGE HERE (26.11.2025) ---
+    # --- MODIFIED HERE (26.11.2025) ---
     date(2025, 11, 26): {
         'VALUA': {'Time': '01:30-02:30PM'},
         'VALUB': {'Time': '01:30-02:30PM'},
@@ -190,6 +190,8 @@ DAY_SPECIFIC_OVERRIDES = {
     },
     date(2025, 11, 28): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DRMA':  {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DRMB':  {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     },
     date(2025, 12, 5): {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
@@ -207,7 +209,9 @@ DAY_SPECIFIC_OVERRIDES = {
     }
 }
 
+from datetime import date
 
+# --- ADDITIONAL CLASSES ---
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
@@ -227,17 +231,15 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     
-# --- DV&VS 16.11.2025 ---
+    # --- DV&VS 16.11.2025 ---
     {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    
-    # --- CANCELLED SESSIONS (Sections C & D) ---
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': "DV&VS('C)", 'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(D)', 'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(D)', 'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
 
     # --- VALUATION 21.11.2025 ---
     {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
@@ -249,7 +251,7 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
 
-    # --- DV&VS 23.11.2025 (Sunday) ---
+    # --- NEW: DV&VS 23.11.2025 (Sunday) ---
     {'Date': date(2025, 11, 23), 'Time': '2:00-3:00PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 23), 'Time': '3:00-4:00PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 23), 'Time': '2:00-3:00PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
@@ -259,11 +261,16 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
 
-    # --- NEW: VALUATION 26.11.2025 ---
-    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(B)', 'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
-    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(D)', 'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
+    # --- NEW: LSS Sessions (26.11.2025 & 28.11.2025) ---
+    {'Date': date(2025, 11, 26), 'Time': '8:30-9:30PM', 'Subject': 'LSS(A)', 'Faculty': 'Rajesh Jain', 'Venue': 'T3'},
+    {'Date': date(2025, 11, 26), 'Time': '8:30-9:30PM', 'Subject': 'LSS(B)', 'Faculty': 'Rajesh Jain', 'Venue': 'T1'},
+    
+    {'Date': date(2025, 11, 28), 'Time': '7:20-8:20PM', 'Subject': 'LSS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 28), 'Time': '8:30-9:30PM', 'Subject': 'LSS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 28), 'Time': '7:20-8:20PM', 'Subject': 'LSS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 11, 28), 'Time': '8:30-9:30PM', 'Subject': 'LSS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
 
-    # --- NEW: DV&VS(C) Rescheduled ---
+    # --- DV&VS(C) Rescheduled ---
     {'Date': date(2025, 11, 28), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
     {'Date': date(2025, 11, 28), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
     {'Date': date(2025, 12, 5), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
