@@ -183,6 +183,8 @@ DAY_SPECIFIC_OVERRIDES = {
     },
     # --- NEW CHANGE HERE (26.11.2025) ---
     date(2025, 11, 26): {
+        'VALUA': {'Time': '01:30-02:30PM'},
+        'VALUB': {'Time': '01:30-02:30PM'},
         'VALUC': {'Time': '01:30-02:30PM'},
         'VALUD': {'Time': '01:30-02:30PM'},
     },
