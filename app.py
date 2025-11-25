@@ -175,12 +175,16 @@ DAY_SPECIFIC_OVERRIDES = {
         'DMB':    {'Venue': '215'},
         'OMSD':   {'Venue': '215'},
     },
-    # --- NEW CHANGES HERE (25.11.2025) ---
     date(2025, 11, 25): {
         'IMCA':  {'Venue': 'T1'},
         'VALUC': {'Venue': 'E1'},
         'VALUD': {'Venue': 'E1'},
         'DC':    {'Venue': '215'},
+    },
+    # --- NEW CHANGE HERE (26.11.2025) ---
+    date(2025, 11, 26): {
+        'VALUC': {'Time': '01:30-02:30PM'},
+        'VALUD': {'Time': '01:30-02:30PM'},
     },
     date(2025, 11, 28): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
