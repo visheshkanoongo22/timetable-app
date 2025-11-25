@@ -268,8 +268,8 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 28), 'Time': '8:30-9:30PM', 'Subject': 'LSS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
 
     # --- NEW: VALUATION (B/D) 26.11.2025 ---
-    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(B)', 'Faculty': 'Extra Session', 'Venue': 'TBA'},
-    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(D)', 'Faculty': 'Extra Session', 'Venue': 'TBA'},
+    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(B)', 'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
+    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(D)', 'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
 
     # --- DV&VS(C) Rescheduled ---
     {'Date': date(2025, 11, 28), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
