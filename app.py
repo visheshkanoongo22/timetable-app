@@ -187,6 +187,8 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB': {'Time': '01:30-02:30PM'},
         'VALUC': {'Time': '01:30-02:30PM'},
         'VALUD': {'Time': '01:30-02:30PM'},
+        'DV&VSA': {'Venue': 'T7'}, # <-- NEW
+        'IMCB':   {'Venue': 'T6'}, # <-- NEW
     },
     date(2025, 11, 28): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
@@ -208,6 +210,7 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     }
 }
+
 
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
