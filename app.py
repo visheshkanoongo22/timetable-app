@@ -74,7 +74,10 @@ COURSE_DETAILS_MAP = {
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
 
-# --- DAY-SPECIFIC OVERRIDES & ADDITIONS ---
+from datetime import date
+
+# --- DAY-SPECIFIC OVERRIDES ---
+# Format: date(YYYY, MM, DD): {'SUBJECT': {'Venue': '...'}, ...}
 DAY_SPECIFIC_OVERRIDES = {
     date(2025, 11, 8): {
         'DC': {'Venue': '216'}, 'VALUC': {'Venue': '216'}, 'VALUD': {'Venue': '216'}, 'IMCB': {'Venue': '216'},
@@ -181,14 +184,23 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUD': {'Venue': 'E1'},
         'DC':    {'Venue': '215'},
     },
-    # --- MODIFIED HERE (26.11.2025) ---
     date(2025, 11, 26): {
         'VALUA': {'Time': '01:30-02:30PM'},
         'VALUB': {'Time': '01:30-02:30PM'},
         'VALUC': {'Time': '01:30-02:30PM'},
         'VALUD': {'Time': '01:30-02:30PM'},
-        'DV&VSA': {'Venue': 'T7'}, # <-- NEW
-        'IMCB':   {'Venue': 'T6'}, # <-- NEW
+        'DV&VSA': {'Venue': 'T7'},
+        'IMCB':   {'Venue': 'T6'},
+    },
+    # --- NEW CHANGES HERE (27.11.2025) ---
+    date(2025, 11, 27): {
+        'IMCA': {'Venue': 'T3'},
+        'B2BB': {'Venue': 'E1'},
+        'B2BC': {'Venue': 'E1'},
+        'B2BA': {'Venue': 'E2'},
+        'DMA':  {'Venue': 'T6'},
+        'DMB':  {'Venue': 'T6'},
+        'OMSD': {'Venue': 'T6'},
     },
     date(2025, 11, 28): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
