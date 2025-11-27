@@ -192,7 +192,6 @@ DAY_SPECIFIC_OVERRIDES = {
         'DV&VSA': {'Venue': 'T7'},
         'IMCB':   {'Venue': 'T6'},
     },
-    # --- NEW CHANGES HERE (27.11.2025) ---
     date(2025, 11, 27): {
         'IMCA': {'Venue': 'T3'},
         'B2BB': {'Venue': 'E1'},
@@ -202,10 +201,14 @@ DAY_SPECIFIC_OVERRIDES = {
         'DMB':  {'Venue': 'T6'},
         'OMSD': {'Venue': 'T6'},
     },
+    # --- MODIFIED HERE (28.11.2025) ---
     date(2025, 11, 28): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'DRMA':  {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'DRMB':  {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'B2BB':  {'Venue': 'E1'}, # <-- NEW
+        'B2BC':  {'Venue': 'E1'}, # <-- NEW
+        'B2BA':  {'Venue': 'E2'}, # <-- NEW
     },
     date(2025, 12, 5): {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
@@ -222,6 +225,7 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     }
 }
+
 
 
 ADDITIONAL_CLASSES = [
