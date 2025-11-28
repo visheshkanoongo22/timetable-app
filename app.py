@@ -220,6 +220,13 @@ DAY_SPECIFIC_OVERRIDES = {
         'DMA':   {'Venue': '214'}, # <-- NEW
         'DMB':   {'Venue': '214'}, # <-- NEW
     },
+    date(2025, 11, 29): {
+        'IMCA': {'Venue': 'T6'},
+        'IMCB': {'Venue': 'T3'},
+        'DMA':  {'Venue': 'T3'},
+        'DMB':  {'Venue': 'T3'},
+    },
+
     date(2025, 12, 5): {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     },
@@ -243,7 +250,7 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': "SCM('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 13), 'Time': '6:10-7:10PM', 'Subject': 'INB(A)', 'Faculty': 'M C Gupta', 'Venue': 'T6 (Rescheduled)'},
-    {'Date': date(2025, 11, 29), 'Time': '8:30-9:30PM', 'Subject': "DRM('C)", 'Faculty': 'Pankaj Agrawal', 'Venue': 'T5 (Preponed)'}, 
+    {'Date': date(2025, 11, 29), 'Time': '8:30-9:30PM', 'Subject': "DRM('C)", 'Faculty': 'Pankaj Agrawal', 'Venue': 'T3 (Preponed)'}, 
     {'Date': date(2025, 12, 6), 'Time': '6:10-7:10PM', 'Subject': 'B2B(B)', 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, 
     {'Date': date(2025, 12, 6), 'Time': '7:20-8:20PM', 'Subject': "B2B('C)", 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'},
     
