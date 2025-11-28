@@ -290,10 +290,10 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(B)', 'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
 
     # --- DV&VS(C) Rescheduled ---
-    {'Date': date(2025, 11, 28), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-    {'Date': date(2025, 11, 28), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-    {'Date': date(2025, 12, 5), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-    {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
+    {'Date': date(2025, 11, 28), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'T5 (Rescheduled)'},
+    {'Date': date(2025, 11, 28), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'T5 (Rescheduled)'},
+    {'Date': date(2025, 12, 5), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'T5 (Rescheduled)'},
+    {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'T5 (Rescheduled)'},
 ]
 
 
