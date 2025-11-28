@@ -210,6 +210,16 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BC':  {'Venue': 'E1'}, # <-- NEW
         'B2BA':  {'Venue': 'E2'}, # <-- NEW
     },
+    date(2025, 11, 28): {
+        'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DRMA':  {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DRMB':  {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'B2BB':  {'Venue': 'E1'},
+        'B2BC':  {'Venue': 'E1'},
+        'B2BA':  {'Venue': 'E2'},
+        'DMA':   {'Venue': '214'}, # <-- NEW
+        'DMB':   {'Venue': '214'}, # <-- NEW
+    },
     date(2025, 12, 5): {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     },
