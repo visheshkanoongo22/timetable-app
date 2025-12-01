@@ -244,8 +244,10 @@ DAY_SPECIFIC_OVERRIDES = {
     },
     # --- NEW CHANGES (03.12.2025) ---
     date(2025, 12, 3): {
-        'DV&VSA': {'Time': '06:10-08:20PM'}, # Timing changed
-        'DV&VSD': {'Time': '06:10-08:20PM'}, # Timing changed
+        'DV&VSA': {'Time': '06:10-07:10PM'}, # Timing changed
+       'DV&VSA': {'Time': '07:20-08:20PM'}, # Timing change
+        'DV&VSD': {'Time': '06:10-07:10PM'}, # Timing change
+        'DV&VSD': {'Time': '07:20-08:20PM'}, # Timing change
         'IMCB':   {'Time': '08:30-09:30PM'}, # Timing changed
     },
 
