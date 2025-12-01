@@ -226,7 +226,10 @@ DAY_SPECIFIC_OVERRIDES = {
         'DMA':  {'Venue': 'T3'},
         'DMB':  {'Venue': 'T3'},
     },
-
+    date(2025, 12, 1): {
+        'B2BB': {'Venue': '208 B'},
+        'B2BC': {'Venue': '208 B'},
+    },
     date(2025, 12, 5): {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     },
