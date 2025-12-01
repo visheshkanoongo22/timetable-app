@@ -230,6 +230,7 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BB':   {'Venue': '208 B'},
         'B2BC':   {'Venue': '208 B'},
         'B2BA':   {'Venue': 'E1'},    # <-- NEW
+        'DV&VSB': {'Venue': 'T4'},    # <-- NEW
         'DV&VSC': {'Venue': 'E2'},    # <-- NEW
         'DMA':    {'Venue': '215'},   # <-- NEW
         'DMB':    {'Venue': '215'},   # <-- NEW
