@@ -236,6 +236,19 @@ DAY_SPECIFIC_OVERRIDES = {
         'DMB':    {'Venue': '215'},   # <-- NEW
         'OMSD':   {'Venue': '215'},   # <-- NEW
     },
+    # --- NEW CHANGES (02.12.2025) ---
+    date(2025, 12, 2): {
+        'IMCA':   {'Venue': 'T3'},
+        'DV&VSD': {'Venue': 'T5'},
+        'DC':     {'Venue': 'T3'},
+    },
+    # --- NEW CHANGES (03.12.2025) ---
+    date(2025, 12, 3): {
+        'DV&VSA': {'Time': '06:10-08:20PM'}, # Timing changed
+        'DV&VSD': {'Time': '06:10-08:20PM'}, # Timing changed
+        'IMCB':   {'Time': '08:30-09:30PM'}, # Timing changed
+    },
+
 
     date(2025, 12, 5): {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
@@ -312,6 +325,17 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 28), 'Time': '8:30-9:30PM', 'Subject': 'LSS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 28), 'Time': '7:20-8:20PM', 'Subject': 'LSS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 28), 'Time': '8:30-9:30PM', 'Subject': 'LSS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+
+    # --- SMKT Guest Sessions 03.12.2025 ---
+    {'Date': date(2025, 12, 3), 'Time': '3:50-4:50PM', 'Subject': 'SMKT(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 12, 3), 'Time': '5:00-6:00PM', 'Subject': 'SMKT(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 12, 3), 'Time': '3:50-4:50PM', 'Subject': 'SMKT(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 12, 3), 'Time': '5:00-6:00PM', 'Subject': 'SMKT(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+
+    # --- DADM Extra Sessions 03.12.2025 ---
+    {'Date': date(2025, 12, 3), 'Time': '3:50-4:50PM', 'Subject': 'DADM', 'Faculty': 'Extra Session', 'Venue': 'TBA'},
+    {'Date': date(2025, 12, 3), 'Time': '5:00-6:00PM', 'Subject': 'DADM', 'Faculty': 'Extra Session', 'Venue': 'TBA'},
+
 
     # --- NEW: VALUATION (B/D) 26.11.2025 ---
     {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(B)', 'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
