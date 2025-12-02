@@ -924,12 +924,23 @@ else:
                                     if norm_sec in normalized_cell:
                                         details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'}).copy()
                                         is_venue_override = False
+
                                         
                                         if date in DAY_SPECIFIC_OVERRIDES:
-                                            if norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
-                                                if 'Venue' in DAY_SPECIFIC_OVERRIDES[date][norm_sec]:
+                                        if norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
+                                            override_data = DAY_SPECIFIC_OVERRIDES[date][norm_sec]
+                                            
+                                            # --- Logic for Partial Cancellations ---
+                                            should_apply = True
+                                            if 'Target_Time' in override_data:
+                                                # Only apply override if the current time matches the target
+                                                if override_data['Target_Time'] != time:
+                                                    should_apply = False
+                                            
+                                            if should_apply:
+                                                if 'Venue' in override_data:
                                                     is_venue_override = True
-                                                details.update(DAY_SPECIFIC_OVERRIDES[date][norm_sec])
+                                                details.update(override_data)
                                                 
                                         found_classes.append({
                                             "Date": date, "Day": day, 
