@@ -1,4 +1,4 @@
-    # 1. IMPORTS
+# 1. IMPORTS
 import pandas as pd
 import os
 import glob
@@ -58,8 +58,8 @@ COURSE_DETAILS_MAP = {
     'DC': {'Faculty': 'Sapan Oza', 'Venue': 'T6'}, 'DM(A)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'},
     'DM(B)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'}, "DRM('C)": {'Faculty': 'Pankaj Agrawal', 'Venue': 'T5'},
     'DRM(A)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'}, 'DRM(B)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'},
-    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'T5'}, 'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
-    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'T5'},
+    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'E2'}, 'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
+    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'E2'},
     'IMC(A)': {'Faculty': 'Sanjay Jain', 'Venue': 'T1'}, 'IMC(B)': {'Faculty': 'Riddhi Ambavale', 'Venue': 'T7'},
     'INB(A)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'INB(B)': {'Faculty': 'M C Gupta', 'Venue': 'T7'},
     'INB(C)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'LSS(A)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'},
@@ -74,9 +74,7 @@ COURSE_DETAILS_MAP = {
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
 
-from datetime import date
-
-# --- DAY-SPECIFIC OVERRIDES ---
+# --- DAY-SPECIFIC OVERRIDES & ADDITIONS ---
 DAY_SPECIFIC_OVERRIDES = {
     date(2025, 11, 8): {
         'DC': {'Venue': '216'}, 'VALUC': {'Venue': '216'}, 'VALUD': {'Venue': '216'}, 'IMCB': {'Venue': '216'},
@@ -256,8 +254,6 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     }
 }
-
-
 ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
@@ -316,29 +312,26 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 11, 28), 'Time': '7:20-8:20PM', 'Subject': 'LSS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 11, 28), 'Time': '8:30-9:30PM', 'Subject': 'LSS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
 
+    # --- NEW: VALUATION (B/D) 26.11.2025 ---
+    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(B)', 'Faculty': 'Extra Session', 'Venue': 'TBA'},
+    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(D)', 'Faculty': 'Extra Session', 'Venue': 'TBA'},
+
+    # --- DV&VS(C) Rescheduled ---
+    {'Date': date(2025, 11, 28), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
+    {'Date': date(2025, 11, 28), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
+    {'Date': date(2025, 12, 5), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
+    {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
+    
     # --- SMKT Guest Sessions 03.12.2025 ---
     {'Date': date(2025, 12, 3), 'Time': '3:50-4:50PM', 'Subject': 'SMKT(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 12, 3), 'Time': '5:00-6:00PM', 'Subject': 'SMKT(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 12, 3), 'Time': '3:50-4:50PM', 'Subject': 'SMKT(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 12, 3), 'Time': '5:00-6:00PM', 'Subject': 'SMKT(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
 
-
     # --- DADM Extra Sessions 03.12.2025 ---
     {'Date': date(2025, 12, 3), 'Time': '3:50-4:50PM', 'Subject': 'DADM', 'Faculty': 'Extra Session', 'Venue': 'TBA'},
     {'Date': date(2025, 12, 3), 'Time': '5:00-6:00PM', 'Subject': 'DADM', 'Faculty': 'Extra Session', 'Venue': 'TBA'},
-
-
-    # --- NEW: VALUATION (B/D) 26.11.2025 ---
-    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(B)', 'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
-
-    # --- DV&VS(C) Rescheduled ---
-    {'Date': date(2025, 11, 28), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'T5 (Rescheduled)'},
-    {'Date': date(2025, 11, 28), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'T5 (Rescheduled)'},
-    {'Date': date(2025, 12, 5), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'T5 (Rescheduled)'},
-    {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'T5 (Rescheduled)'},
 ]
-
-
 
 # 3. FUNCTIONS
 def normalize_string(text):
@@ -812,7 +805,7 @@ if 'just_submitted' not in st.session_state: # <-- For one-time scroll
 if not st.session_state.submitted:
     # Only show headers on the login page
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub">Made by Vishesh</div>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
 else:
     # On the main app page, show nothing here.
     # The "welcome-message" div will be the first thing shown.
@@ -841,7 +834,7 @@ else:
             unsafe_allow_html=True
         )
         with st.form("roll_number_form"):
-            roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
+            roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 24MBA463").strip().upper()
             submitted_button = st.form_submit_button("Generate Timetable")
             
             if submitted_button:
@@ -914,56 +907,31 @@ else:
                                   6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
                                   10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
                     found_classes = []
-                    
                     for index, row in master_schedule_df.iterrows():
-    date, day = row[0], row[1]
-
-    for col_index, time in time_slots.items():
-        cell_value = str(row[col_index])
-
-        if cell_value and cell_value != 'nan':
-            normalized_cell = normalize_string(cell_value)
-
-            for norm_sec, orig_sec in normalized_student_section_map.items():
-
-                if norm_sec in normalized_cell:
-
-                    details = NORMALIZED_COURSE_DETAILS_MAP.get(
-                        norm_sec, {'Faculty': 'N/A', 'Venue': '-'}
-                    ).copy()
-
-                    is_venue_override = False
-
-                    # ---------------------------
-                    # DAY-SPECIFIC OVERRIDES
-                    # ---------------------------
-                    if date in DAY_SPECIFIC_OVERRIDES and norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
-
-                        override_data = DAY_SPECIFIC_OVERRIDES[date][norm_sec]
-
-                        # Partial cancellation logic
-                        should_apply = True
-                        if 'Target_Time' in override_data:
-                            if override_data['Target_Time'] != time:
-                                should_apply = False
-
-                        if should_apply:
-                            if 'Venue' in override_data:
-                                is_venue_override = True
-                            details.update(override_data)
-
-                    # ---------------------------
-                    # BUILD CLASS ENTRY
-                    # ---------------------------
-                    found_classes.append({
-                        "Date": date,
-                        "Day": day,
-                        "Time": details.get('Time', time),
-                        "Subject": orig_sec,
-                        "Faculty": details.get('Faculty', 'N/A'),
-                        "Venue": details.get('Venue', '-'),
-                        "is_venue_override": is_venue_override
-                    })
+                        date, day = row[0], row[1]
+                        for col_index, time in time_slots.items():
+                            cell_value = str(row[col_index])
+                            if cell_value and cell_value != 'nan':
+                                normalized_cell = normalize_string(cell_value)
+                                for norm_sec, orig_sec in normalized_student_section_map.items():
+                                    if norm_sec in normalized_cell:
+                                        details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'}).copy()
+                                        is_venue_override = False
+                                        
+                                        if date in DAY_SPECIFIC_OVERRIDES:
+                                            if norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
+                                                if 'Venue' in DAY_SPECIFIC_OVERRIDES[date][norm_sec]:
+                                                    is_venue_override = True
+                                                details.update(DAY_SPECIFIC_OVERRIDES[date][norm_sec])
+                                                
+                                        found_classes.append({
+                                            "Date": date, "Day": day, 
+                                            "Time": details.get('Time', time), # <-- UPDATED: Use overridden time if present
+                                            "Subject": orig_sec,
+                                            "Faculty": details.get('Faculty', 'N/A'),
+                                            "Venue": details.get('Venue', '-'),
+                                            "is_venue_override": is_venue_override
+                                        })
                     
                     for added_class in ADDITIONAL_CLASSES:
                         norm_added_subject = normalize_string(added_class['Subject'])
@@ -1022,7 +990,8 @@ else:
                         schedule_by_date[class_info['Date']].append(class_info)
                     
                     sorted_dates = sorted(schedule_by_date.keys())
-                                        # --- SORTING LOGIC: Handles both '8-9AM' and '8:30-9:30PM' formats
+                    
+                    # --- SORTING LOGIC: Handles both '8-9AM' and '5:00-6:00PM' formats
                     def get_sort_key(class_item):
                         time_str = class_item['Time'].upper()
                         try:
@@ -1052,7 +1021,6 @@ else:
                         except:
                             return 9999
 
-                    
                     for date in sorted_dates:
                         schedule_by_date[date].sort(key=get_sort_key)
                     
@@ -1310,4 +1278,4 @@ else:
             
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
-st.caption("")
+st.caption("_Made by Vishesh_")
