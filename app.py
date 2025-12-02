@@ -927,7 +927,7 @@ else:
 
                                         
                                         if date in DAY_SPECIFIC_OVERRIDES:
-                                        if norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
+                                            if norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
                                             override_data = DAY_SPECIFIC_OVERRIDES[date][norm_sec]
                                             
                                             # --- Logic for Partial Cancellations ---
