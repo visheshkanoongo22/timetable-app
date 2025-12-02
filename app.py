@@ -201,15 +201,6 @@ DAY_SPECIFIC_OVERRIDES = {
         'DMB':  {'Venue': 'T6'},
         'OMSD': {'Venue': 'T6'},
     },
-    # --- MODIFIED HERE (28.11.2025) ---
-    date(2025, 11, 28): {
-        'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'DRMA':  {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'DRMB':  {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'B2BB':  {'Venue': 'E1'}, # <-- NEW
-        'B2BC':  {'Venue': 'E1'}, # <-- NEW
-        'B2BA':  {'Venue': 'E2'}, # <-- NEW
-    },
     date(2025, 11, 28): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'DRMA':  {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
@@ -217,43 +208,39 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BB':  {'Venue': 'E1'},
         'B2BC':  {'Venue': 'E1'},
         'B2BA':  {'Venue': 'E2'},
-        'DMA':   {'Venue': '214'}, # <-- NEW
-        'DMB':   {'Venue': '214'}, # <-- NEW
-    },
-    date(2025, 11, 29): {
-        'IMCA': {'Venue': 'T6'},
-        'IMCB': {'Venue': 'T3'},
-        'DMA':  {'Venue': 'T3'},
-        'DMB':  {'Venue': 'T3'},
+        'DMA':   {'Venue': '214'},
+        'DMB':   {'Venue': '214'},
     },
     date(2025, 12, 1): {
         'B2BB':   {'Venue': '208 B'},
         'B2BC':   {'Venue': '208 B'},
-        'B2BA':   {'Venue': 'E1'},    # <-- NEW
-        'DV&VSB': {'Venue': 'T4'},    # <-- NEW
-        'DV&VSC': {'Venue': 'E2'},    # <-- NEW
-        'DMA':    {'Venue': '215'},   # <-- NEW
-        'DMB':    {'Venue': '215'},   # <-- NEW
-        'OMSD':   {'Venue': '215'},   # <-- NEW
+        'B2BA':   {'Venue': 'E1'},
+        'DV&VSC': {'Venue': 'E2'},
+        'DMA':    {'Venue': '215'},
+        'DMB':    {'Venue': '215'},
+        'OMSD':   {'Venue': '215'},
     },
-
     date(2025, 12, 2): {
         'IMCA':   {'Venue': 'T3'},
         'DV&VSD': {'Venue': 'T5'},
         'DC':     {'Venue': 'T3'},
         'VALUC':  {'Venue': 'T3'},
         'VALUD':  {'Venue': 'T3'},
-        'DV&VSA': {'Venue': 'T1'}, # <-- NEW CHANGE
+        'DV&VSA': {'Venue': 'T1'},
     },
-    # --- NEW CHANGES (03.12.2025) ---
+    # --- MODIFIED HERE (03.12.2025) ---
     date(2025, 12, 3): {
-       'DV&VSA': {'Time': '06:10-08:20PM'}, # Timing change
-        'DV&VSD': {'Time': '06:10-08:20PM'}, # Timing change
-
-        'IMCB':   {'Time': '08:30-09:30PM'}, # Timing changed
+        'DV&VSA': {'Time': '06:10-08:20PM'},
+        'DV&VSD': {'Time': '06:10-08:20PM', 'Venue': 'E1'}, # Changed to E1
+        'IMCB':   {'Time': '08:30-09:30PM', 'Venue': 'E2'}, # Changed to E2
+        'VALUC':  {'Venue': 'E2'}, # <-- NEW
+        'VALUD':  {'Venue': 'E2'}, # <-- NEW
+        'DADM':   {'Venue': 'E2'}, # <-- NEW
     },
-
-
+    # --- NEW CHANGE (06.12.2025) ---
+    date(2025, 12, 6): {
+        'IMCA': {'Venue': 'CANCELLED (08:00-09:00AM Session Only)', 'Faculty': 'Morning Session Cancelled'}, 
+    },
     date(2025, 12, 5): {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     },
