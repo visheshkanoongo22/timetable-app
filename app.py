@@ -434,16 +434,36 @@ def calculate_and_display_stats():
                             for norm_name, orig_name in normalized_course_map.items():
                                 if norm_name in normalized_cell:
                                     # --- CHECK FOR OVERRIDES ---
+                                    # --- CHECK FOR OVERRIDES ---
                                     is_overridden = False
                                     if class_date in DAY_SPECIFIC_OVERRIDES and norm_name in DAY_SPECIFIC_OVERRIDES[class_date]:
                                         override_details = DAY_SPECIFIC_OVERRIDES[class_date][norm_name]
-                                        venue_text = override_details.get('Venue', '').upper()
-                                        faculty_text = override_details.get('Faculty', '').upper()
                                         
-                                        if "POSTPONED" in venue_text or "POSTPONED" in faculty_text or \
-                                           "CANCELLED" in venue_text or "CANCELLED" in faculty_text or \
-                                           "PREPONED" in venue_text or "PREPONED" in faculty_text:
-                                            is_overridden = True # Don't count this class
+                                        # --- NEW: Time-Specific Cancellation Logic ---
+                                        should_apply_override = True
+                                        if 'Target_Time' in override_details:
+                                            # If the override specifies a time (e.g. "8-9AM"), 
+                                            # ONLY apply it if the current time slot matches exactly.
+                                            # Otherwise, skip this override for this specific time slot.
+                                            if override_details['Target_Time'] != time:
+                                                should_apply_override = False
+                                        
+                                        if should_apply_override:
+                                            venue_text = override_details.get('Venue', '').upper()
+                                            faculty_text = override_details.get('Faculty', '').upper()
+                                            
+                                            # Apply the updates to the class details
+                                            details.update(override_details)
+                                            
+                                            # Set the "is_venue_override" flag so it shows in red/strikethrough
+                                            if 'Venue' in override_details:
+                                                is_venue_override = True
+
+                                            # Check for status keywords to trigger "is_overridden" (skip for stats)
+                                            if "POSTPONED" in venue_text or "POSTPONED" in faculty_text or \
+                                               "CANCELLED" in venue_text or "CANCELLED" in faculty_text or \
+                                               "PREPONED" in venue_text or "PREPONED" in faculty_text:
+                                                is_overridden = True
                                             
                                     if not is_overridden:
                                         class_counts[orig_name] += 1
