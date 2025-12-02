@@ -328,8 +328,8 @@ ADDITIONAL_CLASSES = [
 
 
     #---- DVVS (A&D) Extra sessions---
-    {'Date': date(2025, 12, 03), 'Time': '7:20-8:20PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E1'},
-    {'Date': date(2025, 12, 03), 'Time': '7:20-8:20PM', 'Subject': "DV&VS(A)", 'Faculty': 'Somayya Madakkam', 'Venue': 'E3'},
+    {'Date': date(2025, 12, 3), 'Time': '7:20-8:20PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E1'},
+    {'Date': date(2025, 12, 3), 'Time': '7:20-8:20PM', 'Subject': "DV&VS(A)", 'Faculty': 'Somayya Madakkam', 'Venue': 'E3'},
     
     # --- SMKT Guest Sessions 03.12.2025 ---
     {'Date': date(2025, 12, 3), 'Time': '3:50-4:50PM', 'Subject': 'SMKT(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
