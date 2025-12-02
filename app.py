@@ -77,7 +77,6 @@ COURSE_DETAILS_MAP = {
 from datetime import date
 
 # --- DAY-SPECIFIC OVERRIDES ---
-# Format: date(YYYY, MM, DD): {'SUBJECT': {'Venue': '...'}, ...}
 DAY_SPECIFIC_OVERRIDES = {
     date(2025, 11, 8): {
         'DC': {'Venue': '216'}, 'VALUC': {'Venue': '216'}, 'VALUD': {'Venue': '216'}, 'IMCB': {'Venue': '216'},
@@ -228,21 +227,22 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUD':  {'Venue': 'T3'},
         'DV&VSA': {'Venue': 'T1'},
     },
-    # --- MODIFIED HERE (03.12.2025) ---
+    # --- MODIFIED (03.12.2025) ---
     date(2025, 12, 3): {
         'DV&VSA': {'Time': '06:10-08:20PM'},
-        'DV&VSD': {'Time': '06:10-08:20PM', 'Venue': 'E1'}, # Changed to E1
-        'IMCB':   {'Time': '08:30-09:30PM', 'Venue': 'E2'}, # Changed to E2
-        'VALUC':  {'Venue': 'E2'}, # <-- NEW
-        'VALUD':  {'Venue': 'E2'}, # <-- NEW
-        'DADM':   {'Venue': 'E2'}, # <-- NEW
-    },
-    # --- NEW CHANGE (06.12.2025) ---
-    date(2025, 12, 6): {
-        'IMCA': {'Venue': 'CANCELLED (08:00-09:00AM Session Only)', 'Faculty': 'Morning Session Cancelled'}, 
+        'DV&VSD': {'Time': '06:10-08:20PM', 'Venue': 'E1'},
+        'IMCB':   {'Time': '08:30-09:30PM', 'Venue': 'E2'},
+        'VALUC':  {'Venue': 'E2'},
+        'VALUD':  {'Venue': 'E2'},
+        'DADM':   {'Venue': 'E2'},
     },
     date(2025, 12, 5): {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    },
+    # --- MODIFIED (06.12.2025) ---
+    date(2025, 12, 6): {
+        # Partial Cancellation Logic
+        'IMCA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled', 'Target_Time': '8-9AM'}, 
     },
     date(2025, 12, 12): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
@@ -256,7 +256,6 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     }
 }
-
 
 
 ADDITIONAL_CLASSES = [
