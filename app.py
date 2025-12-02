@@ -914,42 +914,56 @@ else:
                                   6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
                                   10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
                     found_classes = []
+                    
                     for index, row in master_schedule_df.iterrows():
-                        date, day = row[0], row[1]
-                        for col_index, time in time_slots.items():
-                            cell_value = str(row[col_index])
-                            if cell_value and cell_value != 'nan':
-                                normalized_cell = normalize_string(cell_value)
-                                for norm_sec, orig_sec in normalized_student_section_map.items():
-                                    if norm_sec in normalized_cell:
-                                        details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'}).copy()
-                                        is_venue_override = False
+    date, day = row[0], row[1]
 
-                                        
-                                        if date in DAY_SPECIFIC_OVERRIDES:
-                                            if norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
-                                            override_data = DAY_SPECIFIC_OVERRIDES[date][norm_sec]
-                                            
-                                            # --- Logic for Partial Cancellations ---
-                                            should_apply = True
-                                            if 'Target_Time' in override_data:
-                                                # Only apply override if the current time matches the target
-                                                if override_data['Target_Time'] != time:
-                                                    should_apply = False
-                                            
-                                            if should_apply:
-                                                if 'Venue' in override_data:
-                                                    is_venue_override = True
-                                                details.update(override_data)
-                                                
-                                        found_classes.append({
-                                            "Date": date, "Day": day, 
-                                            "Time": details.get('Time', time), # <-- UPDATED: Use overridden time if present
-                                            "Subject": orig_sec,
-                                            "Faculty": details.get('Faculty', 'N/A'),
-                                            "Venue": details.get('Venue', '-'),
-                                            "is_venue_override": is_venue_override
-                                        })
+    for col_index, time in time_slots.items():
+        cell_value = str(row[col_index])
+
+        if cell_value and cell_value != 'nan':
+            normalized_cell = normalize_string(cell_value)
+
+            for norm_sec, orig_sec in normalized_student_section_map.items():
+
+                if norm_sec in normalized_cell:
+
+                    details = NORMALIZED_COURSE_DETAILS_MAP.get(
+                        norm_sec, {'Faculty': 'N/A', 'Venue': '-'}
+                    ).copy()
+
+                    is_venue_override = False
+
+                    # ---------------------------
+                    # DAY-SPECIFIC OVERRIDES
+                    # ---------------------------
+                    if date in DAY_SPECIFIC_OVERRIDES and norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
+
+                        override_data = DAY_SPECIFIC_OVERRIDES[date][norm_sec]
+
+                        # Partial cancellation logic
+                        should_apply = True
+                        if 'Target_Time' in override_data:
+                            if override_data['Target_Time'] != time:
+                                should_apply = False
+
+                        if should_apply:
+                            if 'Venue' in override_data:
+                                is_venue_override = True
+                            details.update(override_data)
+
+                    # ---------------------------
+                    # BUILD CLASS ENTRY
+                    # ---------------------------
+                    found_classes.append({
+                        "Date": date,
+                        "Day": day,
+                        "Time": details.get('Time', time),
+                        "Subject": orig_sec,
+                        "Faculty": details.get('Faculty', 'N/A'),
+                        "Venue": details.get('Venue', '-'),
+                        "is_venue_override": is_venue_override
+                    })
                     
                     for added_class in ADDITIONAL_CLASSES:
                         norm_added_subject = normalize_string(added_class['Subject'])
