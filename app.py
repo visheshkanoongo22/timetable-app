@@ -227,8 +227,8 @@ DAY_SPECIFIC_OVERRIDES = {
     },
     # --- MODIFIED (03.12.2025) ---
     date(2025, 12, 3): {
-        'DV&VSA': {'Time': '06:10-08:20PM'},
-        'DV&VSD': {'Time': '06:10-08:20PM', 'Venue': 'E1'},
+        'DV&VSA': {'Time': '06:10-07:10PM'},
+        'DV&VSD': {'Time': '06:10-07:10PM', 'Venue': 'E1'},
         'IMCB':   {'Time': '08:30-09:30PM', 'Venue': 'E2'},
         'VALUC':  {'Venue': 'E2'},
         'VALUD':  {'Venue': 'E2'},
@@ -326,6 +326,11 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 12, 5), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
     {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
 
+
+    #---- DVVS (A&D) Extra sessions---
+    {'Date': date(2025, 12, 03), 'Time': '7:20-8:20PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E1'},
+    {'Date': date(2025, 12, 03), 'Time': '7:20-8:20PM', 'Subject': "DV&VS(A)", 'Faculty': 'Somayya Madakkam', 'Venue': 'E3'},
+    
     # --- SMKT Guest Sessions 03.12.2025 ---
     {'Date': date(2025, 12, 3), 'Time': '3:50-4:50PM', 'Subject': 'SMKT(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 12, 3), 'Time': '5:00-6:00PM', 'Subject': 'SMKT(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
