@@ -236,12 +236,14 @@ DAY_SPECIFIC_OVERRIDES = {
         'DMB':    {'Venue': '215'},   # <-- NEW
         'OMSD':   {'Venue': '215'},   # <-- NEW
     },
+
     date(2025, 12, 2): {
         'IMCA':   {'Venue': 'T3'},
         'DV&VSD': {'Venue': 'T5'},
         'DC':     {'Venue': 'T3'},
-        'VALUC':  {'Venue': 'T3'}, # <-- NEW
-        'VALUD':  {'Venue': 'T3'}, # <-- NEW
+        'VALUC':  {'Venue': 'T3'},
+        'VALUD':  {'Venue': 'T3'},
+        'DV&VSA': {'Venue': 'T1'}, # <-- NEW CHANGE
     },
     # --- NEW CHANGES (03.12.2025) ---
     date(2025, 12, 3): {
