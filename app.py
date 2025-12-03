@@ -237,6 +237,15 @@ DAY_SPECIFIC_OVERRIDES = {
     date(2025, 12, 5): {
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     },
+    date(2025, 12, 4): {
+        'IMCA': {'Venue': 'T3'},
+        'DMA':  {'Venue': 'T3'},
+        'DMB':  {'Venue': 'T3'},
+        'OMSD': {'Venue': 'T3'},
+        'B2BB': {'Venue': 'E2'},
+        'B2BC': {'Venue': 'E2'},
+        'B2BA': {'Venue': 'E1'},
+    },
     # --- MODIFIED (06.12.2025) ---
     date(2025, 12, 6): {
         # Partial Cancellation Logic
