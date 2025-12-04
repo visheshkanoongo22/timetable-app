@@ -244,15 +244,18 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BA': {'Venue': 'E1'},
     },
     date(2025, 12, 5): {
-        'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # Existing cancellation
-        'ANA':   {'Venue': '214'}, # <-- NEW
-        'ANB':   {'Venue': '214'}, # <-- NEW
-        'DMA':   {'Venue': '214'}, # <-- NEW
-        'DMB':   {'Venue': '214'}, # <-- NEW
-        'VALUA': {'Venue': '214'}, # <-- NEW
-        'B2BB':  {'Venue': 'E3'},  # <-- NEW
-        'B2BC':  {'Venue': 'E3'},  # <-- NEW
-        'B2BA':  {'Venue': 'E1'},  # <-- NEW
+        'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'ANA':   {'Venue': '214'},
+        'ANB':   {'Venue': '214'},
+        'DMA':   {'Venue': '214'},
+        'DMB':   {'Venue': '214'},
+        'VALUA': {'Venue': '214'},
+        'B2BB':  {'Venue': 'E3'},
+        'B2BC':  {'Venue': 'E3'},
+        'B2BA':  {'Venue': 'E1'},
+        'SCMA':  {'Venue': '309-F'}, # <-- NEW
+        'SCMB':  {'Venue': '309-F'}, # <-- NEW
+        'SCMC':  {'Venue': '309-F'}, # <-- NEW
     },
     # --- MODIFIED (06.12.2025) ---
     date(2025, 12, 6): {
