@@ -260,7 +260,8 @@ DAY_SPECIFIC_OVERRIDES = {
     # --- MODIFIED (06.12.2025) ---
     date(2025, 12, 6): {
         # Partial Cancellation Logic
-        'IMCA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled', 'Target_Time': '8-9AM'}, 
+        'IMCA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled', 'Target_Time': '8-9AM'},
+        'IMCB':  {'Venue': 'E3'},
     },
     date(2025, 12, 12): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
@@ -362,8 +363,8 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 12, 3), 'Time': '5:00-6:00PM', 'Subject': 'DADM', 'Faculty': 'Extra Session', 'Venue': 'TBA'},
 
     # --- IMC(A) Sessions 06.12.2025 (ADDED) ---
-    {'Date': date(2025, 12, 6), 'Time': '3:50-4:50PM', 'Subject': 'IMC(A)', 'Faculty': 'Sanjay Jain', 'Venue': 'T1'},
-    {'Date': date(2025, 12, 6), 'Time': '5:00-6:00PM', 'Subject': 'IMC(A)', 'Faculty': 'Sanjay Jain', 'Venue': 'T1'},
+    {'Date': date(2025, 12, 6), 'Time': '3:50-4:50PM', 'Subject': 'IMC(A)', 'Faculty': 'Sanjay Jain', 'Venue': 'E2'},
+    {'Date': date(2025, 12, 6), 'Time': '5:00-6:00PM', 'Subject': 'IMC(A)', 'Faculty': 'Sanjay Jain', 'Venue': 'E2'},
 ]
 
 
