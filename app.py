@@ -366,6 +366,95 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 12, 6), 'Time': '5:00-6:00PM', 'Subject': 'IMC(A)', 'Faculty': 'Sanjay Jain', 'Venue': 'T1'},
 ]
 
+
+from datetime import date
+
+# --- MESS MENU DATA ---
+MESS_MENU = {
+    date(2025, 12, 6): {
+        "Breakfast": """
+        * Dal Pakwan with Chutney
+        * Fruit + Daliya + Khakhra
+        """,
+        "Lunch": """
+        * Gobi Tamatar Capsicum Curry
+        * Veg Kofta
+        * Dal Fry & Jeera Rice
+        * Roti
+        * Green Salad, Onion Lemon
+        * Plain Curd
+        * *(Tea / Coffee)*
+        """,
+        "Dinner": """
+        * Chole Bhature & Kulcha
+        * Dal Fry & Jeera Rice
+        * Roti
+        * Green Chilli Fry
+        * Ring Onion
+        * Masala Papad
+        * Buttermilk
+        """
+    },
+    date(2025, 12, 7): {
+        "Breakfast": """
+        * Mix Paratha with Curd + Pickle
+        * Fruit + Toast
+        * *(Tea / Coffee)*
+        """,
+        "Lunch": """
+        * **South Indian Special:**
+        * Masala Dosa
+        * Mix Uttapam
+        * Idli Sambhar & Vada Sambhar
+        * Lemon Rice & Aloo Vada
+        * Coconut Chutney
+        * Sweet Lassi
+        """,
+        "Dinner": """
+        * Paneer Pasanda
+        * Chana Methi Masala
+        * Dal Fry & Jeera Rice
+        * Roti
+        * Onion + Lemon
+        * Frymes
+        * **Ice Cream**
+        """
+    },
+        # Friday (5/12/2025) – TODAY
+    date(2025, 12, 5): {
+        "Breakfast": """
+        * Vada sambar chutney
+        * Fruit + veg sandwich + khakhra
+        * Poha
+        """,
+        "Lunch": """
+        * Paneer Angara Masala
+        * Cabbage mutter dry
+        * Dal fry
+        * Plain rice
+        * Roti
+        * Green salad
+        * Onion lemon
+        * Buttermilk
+        """,
+        "Hi-Tea": """
+        * Tea / coffee
+        """,
+        "Dinner": """
+        * Broccoli soup
+        * Live dhokla
+        * Aloo pakoda
+        * Plain kadhi
+        * Plain khichdi
+        * Methi thepla
+        * Lasoon khichadi
+        * Roti + frymes
+        * Onion lemon
+        * Gulab jamun
+        """
+    },
+}
+
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
@@ -408,6 +497,37 @@ def load_all_schedules(file_list):
     combined_df = combined_df.sort_values(by=[0]) # Sort by date
     return combined_df
 
+# Mess Menu
+def display_mess_menu():
+    """Display today's mess menu if available"""
+    local_tz = pytz.timezone(TIMEZONE)
+    today = datetime.now(local_tz).date()
+
+    if today in MESS_MENU:
+        st.markdown("---")
+        st.markdown("### 🍽️ Today's Mess Menu")
+
+        menu_data = MESS_MENU[today]
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.markdown("#### 🌅 Breakfast")
+            st.markdown(menu_data.get("Breakfast", "Not available"))
+        
+        with col2:
+            st.markdown("#### ☀️ Lunch")
+            st.markdown(menu_data.get("Lunch", "Not available"))
+        
+        with col3:
+            st.markdown("#### 🍪 Hi-Tea")
+            st.markdown(menu_data.get("Hi-Tea", "Not available"))
+        
+        with col4:
+            st.markdown("#### 🌙 Dinner")
+            st.markdown(menu_data.get("Dinner", "Not available"))
+
+            
 # --- (FIXED) Function to calculate and display stats ---
 def calculate_and_display_stats():
     # --- Separator REMOVED ---
@@ -1309,6 +1429,8 @@ else:
                 else:
                     st.warning("No classes found for your registered sections in the master schedule.")
             
+# Display mess menu for today
+display_mess_menu()
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("")
