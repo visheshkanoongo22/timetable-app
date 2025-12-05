@@ -508,7 +508,7 @@ def render_mess_menu_expander():
 
     menu_data = MESS_MENU[today]
 
-    with st.expander("🍽️ Today's Mess Menu", expanded=False):
+    with st.expander("🍽️ Today's Mess Menu <- NEW!", expanded=False):
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
