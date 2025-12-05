@@ -357,7 +357,9 @@ MESS_MENU = {
         * Roti
         * Green Salad, Onion Lemon
         * Plain Curd
-        * *(Tea / Coffee)*
+        """,
+        "Hi-Tea": """
+        * Tea / coffee
         """,
         "Dinner": """
         * Chole Bhature & Kulcha
@@ -383,6 +385,9 @@ MESS_MENU = {
         * Lemon Rice & Aloo Vada
         * Coconut Chutney
         * Sweet Lassi
+        """,
+        "Hi-Tea": """
+        * Tea / coffee
         """,
         "Dinner": """
         * Paneer Pasanda
