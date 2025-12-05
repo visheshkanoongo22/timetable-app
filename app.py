@@ -1434,8 +1434,7 @@ else:
                 else:
                     st.warning("No classes found for your registered sections in the master schedule.")
             
-# Display mess menu for today
-display_mess_menu()
+
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("")
