@@ -498,34 +498,35 @@ def load_all_schedules(file_list):
     return combined_df
 
 # Mess Menu
-def display_mess_menu():
-    """Display today's mess menu if available"""
+def render_mess_menu_expander():
+    """Show today's mess menu as a collapsible dropdown on the login page."""
     local_tz = pytz.timezone(TIMEZONE)
     today = datetime.now(local_tz).date()
 
-    if today in MESS_MENU:
-        st.markdown("---")
-        st.markdown("### 🍽️ Today's Mess Menu")
+    if today not in MESS_MENU:
+        return  # nothing for today
 
-        menu_data = MESS_MENU[today]
+    menu_data = MESS_MENU[today]
 
+    with st.expander("🍽️ Today's Mess Menu", expanded=False):
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
             st.markdown("#### 🌅 Breakfast")
             st.markdown(menu_data.get("Breakfast", "Not available"))
-        
+
         with col2:
             st.markdown("#### ☀️ Lunch")
             st.markdown(menu_data.get("Lunch", "Not available"))
-        
+
         with col3:
             st.markdown("#### 🍪 Hi-Tea")
             st.markdown(menu_data.get("Hi-Tea", "Not available"))
-        
+
         with col4:
             st.markdown("#### 🌙 Dinner")
             st.markdown(menu_data.get("Dinner", "Not available"))
+
 
             
 # --- (FIXED) Function to calculate and display stats ---
@@ -1006,6 +1007,10 @@ else:
                 st.session_state.submitted = True
                 st.session_state.just_submitted = True # <-- Set scroll flag
                 st.rerun()
+        
+        
+# --- DISPLAY MESS MENU DROPDOWN (ABOVE STATS) ---
+        render_mess_menu_expander()
         
         # --- DISPLAY STATS ON LOGIN PAGE ---
         calculate_and_display_stats()
