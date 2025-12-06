@@ -402,10 +402,8 @@ MESS_MENU = {
         "Breakfast": """
         * Mix Paratha with Curd + Pickle
         * Fruit + Toast
-        * *(Tea / Coffee)*
         """,
         "Lunch": """
-        * **South Indian Special:**
         * Masala Dosa
         * Mix Uttapam
         * Idli Sambhar & Vada Sambhar
