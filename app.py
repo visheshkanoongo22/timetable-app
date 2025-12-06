@@ -1,3 +1,4 @@
+
  # 1. IMPORTS
 import pandas as pd
 import os
@@ -441,7 +442,7 @@ def normalize_string(text):
     return ""
 
 # --- MODIFIED: Use @st.cache_resource ---
-@st.cache_data(ttl=300) 
+@st.cache_resource
 def load_and_clean_schedule(file_path, is_stats_file=False):
     try:
         df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3)
@@ -459,7 +460,7 @@ def load_and_clean_schedule(file_path, is_stats_file=False):
         return pd.DataFrame()
 
 # --- (FIXED) Function to load ALL schedules ---
-@st.cache_data(ttl=300) 
+@st.cache_resource
 def load_all_schedules(file_list):
     all_dfs = []
     for file_path in file_list:
@@ -510,10 +511,10 @@ def render_mess_menu_expander():
             
 # --- (FIXED) Function to calculate and display stats ---
 def calculate_and_display_stats():
-    """Display stats only when explicitly triggered."""
-    if st.button("🔄 Calculate Stats Now", key="stats_btn", use_container_width=True):
+    # --- Separator REMOVED ---
+    with st.expander("Sessions Taken till Now"):
         with st.spinner("Calculating session statistics..."):
-            # --- YOUR EXISTING CODE FROM HERE ---
+            # --- MODIFIED: Load only the main schedule file ---
             all_schedules_df = load_and_clean_schedule(SCHEDULE_FILE_NAME) 
             
             if all_schedules_df.empty:
@@ -525,10 +526,7 @@ def calculate_and_display_stats():
             today_date = now_dt.date()
             
             class_counts = defaultdict(int)
-            # ... [PASTE ALL YOUR EXISTING LOGIC HERE] ...
-    else:
-        st.info("👆 Click above to calculate session statistics")
-
+            
             # Time slots mapping columns to end times for comparison
             time_slot_end_times = {
                 2: "9:00AM", 3: "10:10AM", 4: "11:20AM", 5: "12:30PM",
