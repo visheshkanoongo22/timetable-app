@@ -339,6 +339,22 @@ ADDITIONAL_CLASSES = [
     # --- IMC(A) Sessions 06.12.2025 (ADDED) ---
     {'Date': date(2025, 12, 6), 'Time': '3:50-4:50PM', 'Subject': 'IMC(A)', 'Faculty': 'Sanjay Jain', 'Venue': 'E2'},
     {'Date': date(2025, 12, 6), 'Time': '5:00-6:00PM', 'Subject': 'IMC(A)', 'Faculty': 'Sanjay Jain', 'Venue': 'E2'},
+ 
+    # --- DADM Guest Sessions 07.12.2025 ---
+    {'Date': date(2025, 12, 7), 'Time': '10:20-11:20AM', 'Subject': 'DADM', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 12, 7), 'Time': '11:30-12:30PM', 'Subject': 'DADM', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+
+    # --- CC&AU Guest Sessions 13.12.2025 ---
+    {'Date': date(2025, 12, 13), 'Time': '6:10-7:10PM', 'Subject': 'CC&AU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 12, 13), 'Time': '7:20-8:20PM', 'Subject': 'CC&AU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 12, 13), 'Time': '6:10-7:10PM', 'Subject': 'CC&AU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 12, 13), 'Time': '7:20-8:20PM', 'Subject': 'CC&AU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+
+    # --- CC&AU Guest Sessions 14.12.2025 ---
+    {'Date': date(2025, 12, 14), 'Time': '10:20-11:20AM', 'Subject': 'CC&AU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 12, 14), 'Time': '11:30-12:30PM', 'Subject': 'CC&AU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 12, 14), 'Time': '10:20-11:20AM', 'Subject': 'CC&AU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 12, 14), 'Time': '11:30-12:30PM', 'Subject': 'CC&AU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
 ]
 
 
