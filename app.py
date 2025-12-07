@@ -461,38 +461,38 @@ MESS_MENU = {
     },
 # Monday (08/12/2025)
     date(2025, 12, 8): {
-        "Breakfast": \"\"\"
+        "Breakfast": """
         * Indori Poha, Lemon Onion, Sev
         * Fruit + Mix Sprout + Veg Sandwich
-        \"\"\",
-        "Lunch": \"\"\"
+        """,
+        "Lunch": """
         * Gajar Methi Mutter
         * Kadi Pakoda
         * Dal Fry & Plain Rice
         * Roti
         * Green Salad, Onion + Lemon
         * Lemon Water
-        \"\"\",
-        "Hi-Tea": \"\"\"
+        """,
+        "Hi-Tea": """
         * Tea / Coffee
-        \"\"\",
-        "Dinner": \"\"\"
+        """,
+        "Dinner": """
         * Cheese Kofta Masala
         * Aloo Chips Masala
         * Dal Fry & Jeera Rice
         * Roti
         * Onion + Lemon
         * Frymes
-        \"\"\"
+        """
     },
     
     # Tuesday (09/12/2025)
     date(2025, 12, 9): {
-        "Breakfast": \"\"\"
+        "Breakfast": """
         * Sandwich Dhokla with Green Chutney
         * Fruit + Methi ka Thepla with Curd & Pickle
-        \"\"\",
-        "Lunch": \"\"\"
+        """,
+        "Lunch": """
         * Paneer Handi Masala
         * Loki Chana Dal
         * Dal Fry & Plain Rice
@@ -500,11 +500,11 @@ MESS_MENU = {
         * Chana Chaat Salad
         * Onion + Lemon
         * Butter Milk
-        \"\"\",
-        "Hi-Tea": \"\"\"
+        """,
+        "Hi-Tea": """
         * Tea / Coffee
-        \"\"\",
-        "Dinner": \"\"\"
+        """,
+        "Dinner": """
         * **Sweet: Jalebi**
         * Pav Bhaji & Veg Pulav
         * Boondi Raita
@@ -512,27 +512,27 @@ MESS_MENU = {
         * Sev Roll with Chutney
         * Roasted Papad
         * Onion + Lemon
-        \"\"\"
+        """
     },
     
     # Wednesday (10/12/2025)
     date(2025, 12, 10): {
-        "Breakfast": \"\"\"
+        "Breakfast": """
         * Masala Mix Uttapam, Sambhar, Chutney
         * Fruit Poha Sambhar + Toast
-        \"\"\",
-        "Lunch": \"\"\"
+        """,
+        "Lunch": """
         * Veg Makhanwala
         * Kala Chana Dry
         * Dal Mix Tadka & Jeera Rice
         * Roti
         * Green Salad, Onion Lemon
         * Plain Curd
-        \"\"\",
-        "Hi-Tea": \"\"\"
+        """,
+        "Hi-Tea": """
         * Tea / Coffee
-        \"\"\",
-        "Dinner": \"\"\"
+        """,
+        "Dinner": """
         * **Soup: Cheese Corn**
         * Chinese Samosa
         * Aloo Mutter Tamatar
@@ -540,27 +540,27 @@ MESS_MENU = {
         * Lasan ki Chatni
         * Methi Thepla & Roti
         * **Sweet: Pineapple Halwa**
-        \"\"\"
+        """
     },
     
     # Thursday (11/12/2025)
     date(2025, 12, 11): {
-        "Breakfast": \"\"\"
+        "Breakfast": """
         * Sev Khamani with Green Chutney
         * Fruit Bread Pakoda + Khakhra + Bhakhri
-        \"\"\",
-        "Lunch": \"\"\"
+        """,
+        "Lunch": """
         * Palak Corn Capsicum
         * Rajma Masala
         * Dal Tadka & Mutter Rice
         * Roti
         * Green Salad, Onion Lemon
         * Butter Milk
-        \"\"\",
-        "Hi-Tea": \"\"\"
+        """,
+        "Hi-Tea": """
         * Tea / Coffee
-        \"\"\",
-        "Dinner": \"\"\"
+        """,
+        "Dinner": """
         * Gobi Mutter Tamatar
         * Moong Masala
         * Hot Pot Rice
@@ -568,27 +568,27 @@ MESS_MENU = {
         * Masala Papad, Onion Lemon
         * Plain Curd
         * Roti
-        \"\"\"
+        """
     },
     
     # Friday (12/12/2025)
     date(2025, 12, 12): {
-        "Breakfast": \"\"\"
+        "Breakfast": """
         * Dabeli with Chutney
         * Fruit + Masala Maggi + Corn Flakes
-        \"\"\",
-        "Lunch": \"\"\"
+        """,
+        "Lunch": """
         * Paneer Bhurji Masala
         * Jeera Aloo Masala
         * Dal Fry & Plain Rice
         * Roti
         * Green Salad, Onion Lemon
         * Lemon Water
-        \"\"\",
-        "Hi-Tea": \"\"\"
+        """,
+        "Hi-Tea": """
         * Tea / Coffee
-        \"\"\",
-        "Dinner": \"\"\"
+        """,
+        "Dinner": """
         * **Dal Batti Rajasthani**
         * **Sweet: Churma**
         * Besan ka Gatta Masala
@@ -596,27 +596,27 @@ MESS_MENU = {
         * Plain Rice
         * Onion Lemon, Butter Milk
         * Roti
-        \"\"\"
+        """
     },
     
     # Saturday (13/12/2025)
     date(2025, 12, 13): {
-        "Breakfast": \"\"\"
+        "Breakfast": """
         * Puri Bhaji
         * Fruit Daliya + Veg Sandwich
-        \"\"\",
-        "Lunch": \"\"\"
+        """,
+        "Lunch": """
         * Veg Jalfrezi Masala Dry
         * Paneer Kofta
         * Dal Mix Tadka & Jeera Rice
         * Roti
         * Green Salad, Onion Lemon
         * Butter Milk
-        \"\"\",
-        "Hi-Tea": \"\"\"
+        """,
+        "Hi-Tea": """
         * Tea / Coffee
-        \"\"\",
-        "Dinner": \"\"\"
+        """,
+        "Dinner": """
         * Mix Pakoda
         * **Sarso ka Saag**
         * Sev Tamatar
@@ -625,7 +625,7 @@ MESS_MENU = {
         * **Makai ki Roti**
         * Ghee + Gud
         * Onion + Lemon, Butter Milk
-        \"\"\"
+        """
     },
 }
 
