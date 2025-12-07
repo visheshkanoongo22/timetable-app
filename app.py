@@ -82,6 +82,8 @@ DAY_SPECIFIC_OVERRIDES = {
     },
     date(2025, 11, 15): {
         'DADM': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'VALUC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
+        'VALUD': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
         'LSSA': {'Venue': 'E2'},
         'IMCA': {'Venue': 'T6'}, 
     },
@@ -324,7 +326,6 @@ ADDITIONAL_CLASSES = [
 
     # --- NEW: VALUATION (B/D) 26.11.2025 ---
     {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(B)', 'Faculty': 'Extra Session', 'Venue': 'TBA'},
-    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(D)', 'Faculty': 'Extra Session', 'Venue': 'TBA'},
 
     # --- DV&VS(C) Rescheduled ---
     {'Date': date(2025, 11, 28), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
