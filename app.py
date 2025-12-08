@@ -863,53 +863,70 @@ def calculate_and_display_stats():
 
 @st.cache_data
 @st.cache_data
+
+@st.cache_data
 def get_all_student_data(folder_path='.'):
-    # 1. Initialize as an empty dictionary (Fixes the infinite loop)
-    student_data_map = {} 
+    student_data_map = {} # Initialize empty dict
     
-    # 2. Get list of files
-    subject_files = [f for f in glob.glob(os.path.join(folder_path, '*.xlsx')) if os.path.basename(f) != SCHEDULE_FILE_NAME]
+    # Filter out the main schedule AND temporary open files (starting with ~$)
+    all_files = glob.glob(os.path.join(folder_path, '*.xlsx'))
+    subject_files = [
+        f for f in all_files 
+        if os.path.basename(f) != SCHEDULE_FILE_NAME 
+        and not os.path.basename(f).startswith('~$') # <--- IGNORE TEMP FILES
+    ]
     
     for file in subject_files:
         try:
-            # 3. Use openpyxl here too for memory efficiency
-            df = pd.read_excel(file, header=None, engine='openpyxl') 
+            # Read file using openpyxl for better memory management
+            # Only read the first few rows initially to find the header
+            df = pd.read_excel(file, header=None, engine='openpyxl')
             
             header_row_index = -1
-            # Scan first 5 rows for header
-            for i in range(min(5, len(df))):
-                if df.iloc[i].astype(str).str.upper().str.contains('ROLL').any():
-                    header_row_index = i; break
+            # Scan first 6 rows for "Roll"
+            for i in range(min(6, len(df))):
+                row_str = df.iloc[i].astype(str).str.upper()
+                if row_str.str.contains('ROLL').any():
+                    header_row_index = i
+                    break
             
-            if header_row_index == -1: continue
+            if header_row_index == -1: 
+                del df
+                gc.collect()
+                continue
             
+            # Process the file
             subject_row = df.iloc[0]
-            roll_no_columns = df.iloc[header_row_index][df.iloc[header_row_index].astype(str).str.upper().str.contains('ROLL')].index
+            # Find columns containing "Roll"
+            header_row = df.iloc[header_row_index].astype(str).str.upper()
+            roll_no_columns = header_row[header_row.str.contains('ROLL')].index
             
             for col_idx in roll_no_columns:
-                section_name = subject_row[col_idx]
+                section_name = str(subject_row[col_idx])
                 name_column_index = col_idx + 1
                 
-                # Iterate through student rows
-                for _, row in df.iloc[header_row_index + 1:].iterrows():
-                    roll_no = str(row[col_idx]).upper()
-                    if 'NAN' in roll_no: continue
-                    
-                    student_name = row[name_column_index]
+                # Iterate rows below header
+                # Extract only necessary columns to list first (faster than iterrows)
+                data_slice = df.iloc[header_row_index + 1:, [col_idx, name_column_index]].values
+                
+                for r_idx, (roll_val, name_val) in enumerate(data_slice):
+                    roll_no = str(roll_val).upper().strip()
+                    if roll_no == 'NAN' or roll_no == '': continue
                     
                     if roll_no not in student_data_map:
-                        student_data_map[roll_no] = {'name': student_name, 'sections': set()}
+                        student_data_map[roll_no] = {'name': name_val, 'sections': set()}
                     student_data_map[roll_no]['sections'].add(section_name)
-            
-            # 4. cleanup memory after every file
-            del df 
+
+            # FORCE MEMORY CLEANUP after every file
+            del df
             gc.collect()
 
-        except Exception:
+        except Exception as e:
+            # print(f"Skipping file {file}: {e}") # Optional logging
             continue
             
     return student_data_map
-    
+
 def get_class_end_datetime(class_info, local_tz):
     """Parses class info to get its end datetime."""
     try:
@@ -997,11 +1014,11 @@ local_css_string = """
     }
     
     /* --- CHANGE 1: Force-hide the Streamlit header bar --- */
-    [data-testid="stHeader"] {
-        display: none;
-        visibility: hidden;
-        height: 0;
-    }
+    # [data-testid="stHeader"] {
+    #     display: none;
+    #     visibility: hidden;
+    #     height: 0;
+    # }
     
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
     :root{
