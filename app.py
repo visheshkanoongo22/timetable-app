@@ -862,31 +862,52 @@ def calculate_and_display_stats():
                     st.markdown("") # Add a little space
 
 @st.cache_data
+@st.cache_data
 def get_all_student_data(folder_path='.'):
-    student_data_map = get_all_student_data()
-    gc.collect()
+    # 1. Initialize as an empty dictionary (Fixes the infinite loop)
+    student_data_map = {} 
+    
+    # 2. Get list of files
     subject_files = [f for f in glob.glob(os.path.join(folder_path, '*.xlsx')) if os.path.basename(f) != SCHEDULE_FILE_NAME]
+    
     for file in subject_files:
         try:
-            df = pd.read_excel(file, header=None)
+            # 3. Use openpyxl here too for memory efficiency
+            df = pd.read_excel(file, header=None, engine='openpyxl') 
+            
             header_row_index = -1
+            # Scan first 5 rows for header
             for i in range(min(5, len(df))):
                 if df.iloc[i].astype(str).str.upper().str.contains('ROLL').any():
                     header_row_index = i; break
+            
             if header_row_index == -1: continue
-            subject_row, roll_no_columns = df.iloc[0], df.iloc[header_row_index][df.iloc[header_row_index].astype(str).str.upper().str.contains('ROLL')].index
+            
+            subject_row = df.iloc[0]
+            roll_no_columns = df.iloc[header_row_index][df.iloc[header_row_index].astype(str).str.upper().str.contains('ROLL')].index
+            
             for col_idx in roll_no_columns:
                 section_name = subject_row[col_idx]
                 name_column_index = col_idx + 1
+                
+                # Iterate through student rows
                 for _, row in df.iloc[header_row_index + 1:].iterrows():
                     roll_no = str(row[col_idx]).upper()
                     if 'NAN' in roll_no: continue
+                    
                     student_name = row[name_column_index]
+                    
                     if roll_no not in student_data_map:
                         student_data_map[roll_no] = {'name': student_name, 'sections': set()}
                     student_data_map[roll_no]['sections'].add(section_name)
+            
+            # 4. cleanup memory after every file
+            del df 
+            gc.collect()
+
         except Exception:
             continue
+            
     return student_data_map
     
 def get_class_end_datetime(class_info, local_tz):
