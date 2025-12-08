@@ -639,7 +639,7 @@ def normalize_string(text):
 @st.cache_resource
 def load_and_clean_schedule(file_path, is_stats_file=False):
     try:
-        df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3)
+        df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3, engine = 'openpyxl')
         schedule_df = df.iloc[:, 0:14].copy()
         schedule_df[0] = pd.to_datetime(schedule_df[0], errors='coerce').dt.date
         schedule_df.dropna(subset=[0], inplace=True)
@@ -863,7 +863,8 @@ def calculate_and_display_stats():
 
 @st.cache_data
 def get_all_student_data(folder_path='.'):
-    student_data_map = {}
+    student_data_map = get_all_student_data()
+    gc.collect()
     subject_files = [f for f in glob.glob(os.path.join(folder_path, '*.xlsx')) if os.path.basename(f) != SCHEDULE_FILE_NAME]
     for file in subject_files:
         try:
