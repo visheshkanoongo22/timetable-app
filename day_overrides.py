@@ -209,6 +209,20 @@ DAY_SPECIFIC_OVERRIDES = {
         'SCMC':   {'Venue': '309-F'},
         'B2BA':   {'Venue': 'E2'}, # <-- NEW
     },
+    # --- NEW CHANGES (09.12.2025) ---
+    date(2025, 12, 9): {
+        'IMCA':   {'Venue': 'T3'},
+        'VALUC':  {'Venue': 'T3'},
+        'VALUD':  {'Venue': 'T3'},
+        'ML&AIA': {'Venue': '216'},
+        'ML&AIB': {'Venue': '216'},
+        'SMKTB':  {'Venue': '216'},
+        'VALUA':  {'Venue': 'E3'},
+        'VALUB':  {'Venue': 'E3'},
+        'DV&VSD': {'Venue': 'E3'},
+        'DC':     {'Venue': 'E3'},
+    },
+
     date(2025, 12, 12): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
