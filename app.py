@@ -697,10 +697,10 @@ def render_mess_menu_expander():
     for idx, d in enumerate(valid_dates):
         label = d.strftime("%a %d %b")  # e.g. Mon 08 Dec
         if d == today:
-            label += " (Today)"
+            label += ""
             default_index = idx
         elif d == today + pd.Timedelta(days=1):
-            label += " (Tomorrow)"
+            label += ""
         options.append(label)
 
     with st.expander("Mess Menu for the Week", expanded=False):
