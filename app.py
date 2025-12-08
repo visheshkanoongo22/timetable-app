@@ -673,71 +673,65 @@ def load_all_schedules(file_list):
 
 # Mess Menu
 def render_mess_menu_expander():
-    """Show weekly mess menu with a day selector instead of many dropdowns."""
+    """Show weekly mess menu with daily dropdowns.
+       After 11 PM, show next week starting from tomorrow.
+    """
     local_tz = pytz.timezone(TIMEZONE)
     now_dt = datetime.now(local_tz)
     today = now_dt.date()
 
-    # If it's 23:00 or later, make 'tomorrow' the logical start of the week
+    # If it's 23:00 or later, switch to next week starting tomorrow
     start_date = today
     if now_dt.hour >= 23:
         start_date = today + pd.Timedelta(days=1)
 
-    # Week range (7 days from start_date)
+    # Get the week range (7 days from start_date)
     week_dates = [start_date + pd.Timedelta(days=i) for i in range(7)]
 
-    # Keep only days that actually have a menu
-    valid_dates = [d for d in week_dates if d in MESS_MENU]
-    if not valid_dates:
-        return  # nothing to show
+    # Check if any menu exists in this week
+    has_menu = any(date in MESS_MENU for date in week_dates)
+    if not has_menu:
+        return  # No menu data for this week
 
-    # Prepare labels for selector
-    options = []
-    default_index = 0
-    for idx, d in enumerate(valid_dates):
-        label = d.strftime("%a %d %b")  # e.g. Mon 08 Dec
-        if d == today:
-            label += ""
-            default_index = idx
-        elif d == today + pd.Timedelta(days=1):
-            label += ""
-        options.append(label)
+    # Format week range for display
+    week_start_str = start_date.strftime("%d %b")
+    week_end = week_dates[-1]
+    week_end_str = week_end.strftime("%d %b %Y")
 
-    with st.expander("Mess Menu for the Week", expanded=False):
-        # Day picker (radio is compact & clear; use selectbox if you prefer)
-        selected_label = st.radio(
-            "Select a day:",
-            options,
-            index=default_index,
-            horizontal=True,
-        )
+    with st.expander(f"Mess Menu for the Week", expanded=False):
+        for date in week_dates:
+            if date not in MESS_MENU:
+                continue  # Skip days without menu
 
-        # Map back from label to date
-        selected_idx = options.index(selected_label)
-        selected_date = valid_dates[selected_idx]
-        menu_data = MESS_MENU[selected_date]
+            menu_data = MESS_MENU[date]
+            day_label = date.strftime("%A, %d %B %Y")
 
-        st.markdown(
-            f"**Menu for {selected_date.strftime('%A, %d %B %Y')}**"
-        )
+            # Add indicator for today
+            if date == today:
+                day_label = f"{day_label} (Today)"
+            elif date == today + pd.Timedelta(days=1):
+                day_label = f"{day_label} (Tomorrow)"
 
-        col1, col2, col3, col4 = st.columns(4)
+            # Nested expander for each day
+            with st.expander(day_label, expanded=(date == start_date)):
+                col1, col2, col3, col4 = st.columns(4)
 
-        with col1:
-            st.markdown("#### Breakfast")
-            st.markdown(menu_data.get("Breakfast", "Not available"))
+                with col1:
+                    st.markdown("#### Breakfast")
+                    st.markdown(menu_data.get("Breakfast", "Not available"))
 
-        with col2:
-            st.markdown("#### Lunch")
-            st.markdown(menu_data.get("Lunch", "Not available"))
+                with col2:
+                    st.markdown("#### Lunch")
+                    st.markdown(menu_data.get("Lunch", "Not available"))
 
-        with col3:
-            st.markdown("#### Hi-Tea")
-            st.markdown(menu_data.get("Hi-Tea", "Not available"))
+                with col3:
+                    st.markdown("#### Hi-Tea")
+                    st.markdown(menu_data.get("Hi-Tea", "Not available"))
 
-        with col4:
-            st.markdown("#### Dinner")
-            st.markdown(menu_data.get("Dinner", "Not available"))
+                with col4:
+                    st.markdown("#### Dinner")
+                    st.markdown(menu_data.get("Dinner", "Not available"))
+
 
 
             
