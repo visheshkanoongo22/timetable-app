@@ -673,43 +673,64 @@ def load_all_schedules(file_list):
 
 # Mess Menu
 def render_mess_menu_expander():
-    """Show mess menu as a collapsible dropdown on the login page.
-       After 11 PM, show tomorrow's menu instead of today's.
+    """Show weekly mess menu with daily dropdowns.
+       After 11 PM, show next week starting from tomorrow.
     """
     local_tz = pytz.timezone(TIMEZONE)
     now_dt = datetime.now(local_tz)
     today = now_dt.date()
 
-    # If it's 23:00 or later, switch to tomorrow's menu
-    target_date = today
+    # If it's 23:00 or later, switch to next week starting tomorrow
+    start_date = today
     if now_dt.hour >= 23:
-        target_date = today + pd.Timedelta(days=1)
+        start_date = today + pd.Timedelta(days=1)
 
-    if target_date not in MESS_MENU:
-        return  # nothing to show
+    # Get the week range (7 days from start_date)
+    week_dates = [start_date + pd.Timedelta(days=i) for i in range(7)]
 
-    menu_data = MESS_MENU[target_date]
+    # Check if any menu exists in this week
+    has_menu = any(date in MESS_MENU for date in week_dates)
+    if not has_menu:
+        return  # No menu data for this week
 
-    label_date = target_date.strftime("%a, %d %b %Y")
-    with st.expander(f"Mess Menu for ({label_date}) <- NEW!", expanded=False):
-        col1, col2, col3, col4 = st.columns(4)
+    # Format week range for display
+    week_start_str = start_date.strftime("%d %b")
+    week_end = week_dates[-1]
+    week_end_str = week_end.strftime("%d %b %Y")
 
-        with col1:
-            st.markdown("#### Breakfast")
-            st.markdown(menu_data.get("Breakfast", "Not available"))
+    with st.expander(f"🍽️ Mess Menu for the Week ({week_start_str} - {week_end_str})", expanded=False):
+        for date in week_dates:
+            if date not in MESS_MENU:
+                continue  # Skip days without menu
 
-        with col2:
-            st.markdown("#### Lunch")
-            st.markdown(menu_data.get("Lunch", "Not available"))
+            menu_data = MESS_MENU[date]
+            day_label = date.strftime("%A, %d %B %Y")
 
-        with col3:
-            st.markdown("#### Hi-Tea")
-            st.markdown(menu_data.get("Hi-Tea", "Not available"))
+            # Add indicator for today
+            if date == today:
+                day_label = f"📍 {day_label} (Today)"
+            elif date == today + pd.Timedelta(days=1):
+                day_label = f"📍 {day_label} (Tomorrow)"
 
-        with col4:
-            st.markdown("#### Dinner")
-            st.markdown(menu_data.get("Dinner", "Not available"))
+            # Nested expander for each day
+            with st.expander(day_label, expanded=(date == start_date)):
+                col1, col2, col3, col4 = st.columns(4)
 
+                with col1:
+                    st.markdown("#### 🌅 Breakfast")
+                    st.markdown(menu_data.get("Breakfast", "Not available"))
+
+                with col2:
+                    st.markdown("#### ☀️ Lunch")
+                    st.markdown(menu_data.get("Lunch", "Not available"))
+
+                with col3:
+                    st.markdown("#### 🍪 Hi-Tea")
+                    st.markdown(menu_data.get("Hi-Tea", "Not available"))
+
+                with col4:
+                    st.markdown("#### 🌙 Dinner")
+                    st.markdown(menu_data.get("Dinner", "Not available"))
 
 
 
