@@ -673,25 +673,54 @@ def load_all_schedules(file_list):
 
 # Mess Menu
 def render_mess_menu_expander():
-    """Show mess menu as a collapsible dropdown on the login page.
-       After 11 PM, show tomorrow's menu instead of today's.
-    """
+    """Show weekly mess menu with a day selector instead of many dropdowns."""
     local_tz = pytz.timezone(TIMEZONE)
     now_dt = datetime.now(local_tz)
     today = now_dt.date()
 
-    # If it's 23:00 or later, switch to tomorrow's menu
-    target_date = today
+    # If it's 23:00 or later, make 'tomorrow' the logical start of the week
+    start_date = today
     if now_dt.hour >= 23:
-        target_date = today + pd.Timedelta(days=1)
+        start_date = today + pd.Timedelta(days=1)
 
-    if target_date not in MESS_MENU:
+    # Week range (7 days from start_date)
+    week_dates = [start_date + pd.Timedelta(days=i) for i in range(7)]
+
+    # Keep only days that actually have a menu
+    valid_dates = [d for d in week_dates if d in MESS_MENU]
+    if not valid_dates:
         return  # nothing to show
 
-    menu_data = MESS_MENU[target_date]
+    # Prepare labels for selector
+    options = []
+    default_index = 0
+    for idx, d in enumerate(valid_dates):
+        label = d.strftime("%a %d %b")  # e.g. Mon 08 Dec
+        if d == today:
+            label += " (Today)"
+            default_index = idx
+        elif d == today + pd.Timedelta(days=1):
+            label += " (Tomorrow)"
+        options.append(label)
 
-    label_date = target_date.strftime("%a, %d %b %Y")
-    with st.expander(f"Mess Menu for ({label_date}) <- NEW!", expanded=False):
+    with st.expander("Mess Menu for the Week", expanded=False):
+        # Day picker (radio is compact & clear; use selectbox if you prefer)
+        selected_label = st.radio(
+            "Select a day:",
+            options,
+            index=default_index,
+            horizontal=True,
+        )
+
+        # Map back from label to date
+        selected_idx = options.index(selected_label)
+        selected_date = valid_dates[selected_idx]
+        menu_data = MESS_MENU[selected_date]
+
+        st.markdown(
+            f"**Menu for {selected_date.strftime('%A, %d %B %Y')}**"
+        )
+
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
@@ -709,10 +738,6 @@ def render_mess_menu_expander():
         with col4:
             st.markdown("#### Dinner")
             st.markdown(menu_data.get("Dinner", "Not available"))
-
-
-
-
             
 # --- (FIXED) Function to calculate and display stats ---
 def calculate_and_display_stats():
