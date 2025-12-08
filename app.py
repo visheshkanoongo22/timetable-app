@@ -708,9 +708,9 @@ def render_mess_menu_expander():
 
             # Add indicator for today
             if date == today:
-                day_label = f"📍 {day_label} (Today)"
+                day_label = f"{day_label} (Today)"
             elif date == today + pd.Timedelta(days=1):
-                day_label = f"📍 {day_label} (Tomorrow)"
+                day_label = f"{day_label} (Tomorrow)"
 
             # Nested expander for each day
             with st.expander(day_label, expanded=(date == start_date)):
