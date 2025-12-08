@@ -676,7 +676,9 @@ else:
                 st.rerun()
         
         # --- DISPLAY STATS ON LOGIN PAGE ---
-        display_mess_menu()
+        # --- DISPLAY STATS ON LOGIN PAGE ---
+        render_mess_menu_expander()
+        calculate_and_display_stats()
         calculate_and_display_stats()
 
     # --- DISPLAY TIMETABLE PAGE ---
