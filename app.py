@@ -673,16 +673,25 @@ def load_all_schedules(file_list):
 
 # Mess Menu
 def render_mess_menu_expander():
-    """Show today's mess menu as a collapsible dropdown on the login page."""
+    """Show mess menu as a collapsible dropdown on the login page.
+       After 11 PM, show tomorrow's menu instead of today's.
+    """
     local_tz = pytz.timezone(TIMEZONE)
-    today = datetime.now(local_tz).date()
+    now_dt = datetime.now(local_tz)
+    today = now_dt.date()
 
-    if today not in MESS_MENU:
-        return  # nothing for today
+    # If it's 23:00 or later, switch to tomorrow's menu
+    target_date = today
+    if now_dt.hour >= 23:
+        target_date = today + pd.Timedelta(days=1)
 
-    menu_data = MESS_MENU[today]
+    if target_date not in MESS_MENU:
+        return  # nothing to show
 
-    with st.expander("Today's Mess Menu <- NEW!", expanded=False):
+    menu_data = MESS_MENU[target_date]
+
+    label_date = target_date.strftime("%a, %d %b %Y")
+    with st.expander(f"Mess Menu for ({label_date}) <- NEW!", expanded=False):
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
@@ -700,6 +709,8 @@ def render_mess_menu_expander():
         with col4:
             st.markdown("#### Dinner")
             st.markdown(menu_data.get("Dinner", "Not available"))
+
+
 
 
             
