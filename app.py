@@ -1,4 +1,3 @@
-
 # 1. IMPORTS
 import pandas as pd
 import os
@@ -16,6 +15,38 @@ import gc
 import streamlit.runtime.caching as st_cache
 import time 
 
+# --- IMPORT DATA FROM EXTERNAL FILES ---
+from day_overrides import DAY_SPECIFIC_OVERRIDES
+from additional_classes import ADDITIONAL_CLASSES
+from mess_menu import MESS_MENU
+
+# --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
+AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
+
+# Store the start time in session_state
+if "start_time" not in st.session_state:
+    st.session_state.start_time = time.time()
+
+elapsed = time.time() - st.session_state.start_time
+
+if elapsed > AUTO_REFRESH_INTERVAL:
+    with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
+        st_cache.clear_cache()
+        gc.collect()
+        st.session_state.clear()  # Clears all stored state (logs user out)
+        time.sleep(2)  # short pause for smooth refresh
+        st.experimental_rerun()
+# --- END NEW BLOCK ---
+
+
+# --- Cache Clearing Logic ---
+if "run_counter" not in st.session_state:
+    st.session_state.run_counter = 0
+st.session_state.run_counter += 1
+
+if st.session_state.run_counter % 100 == 0:
+    st_cache.clear_cache()
+    gc.collect()
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -32,8 +63,8 @@ COURSE_DETAILS_MAP = {
     'DC': {'Faculty': 'Sapan Oza', 'Venue': 'T6'}, 'DM(A)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'},
     'DM(B)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'}, "DRM('C)": {'Faculty': 'Pankaj Agrawal', 'Venue': 'T5'},
     'DRM(A)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'}, 'DRM(B)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'},
-    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'T5'}, 'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
-    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'T5'},
+    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'E2'}, 'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
+    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'E2'},
     'IMC(A)': {'Faculty': 'Sanjay Jain', 'Venue': 'T1'}, 'IMC(B)': {'Faculty': 'Riddhi Ambavale', 'Venue': 'T7'},
     'INB(A)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'INB(B)': {'Faculty': 'M C Gupta', 'Venue': 'T7'},
     'INB(C)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'LSS(A)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'},
@@ -48,596 +79,14 @@ COURSE_DETAILS_MAP = {
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
 
-# --- DAY-SPECIFIC OVERRIDES & ADDITIONS ---
-DAY_SPECIFIC_OVERRIDES = {
-    date(2025, 11, 8): {
-        'DC': {'Venue': '216'}, 'VALUC': {'Venue': '216'}, 'VALUD': {'Venue': '216'}, 'IMCB': {'Venue': '216'},
-    },
-    date(2025, 11, 10): {
-        'B2BB': {'Venue': 'E1'}, 'B2BC': {'Venue': 'E1'}, 'DV&VSC': {'Venue': 'E2'},
-        'DMB': {'Venue': '214'}, 'DMA': {'Venue': '214'}, 'OMSD': {'Venue': '214'},
-    },
-    date(2025, 11, 11): {
-        'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 'IMCA': {'Venue': 'T3'}
-    },
-    date(2025, 11, 12): {
-        'INBA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}
-    },
-    date(2025, 11, 13): {
-        'SMKTA': {'Venue': 'T7'},
-        'BS':    {'Venue': 'T7'},
-        'ANA':   {'Venue': 'T7'},
-        'ANB':   {'Venue': 'T7'},
-        'LSSA':  {'Venue': 'T1'},
-        'B2BA':  {'Venue': 'E1'},
-        'DVVSC': {'Venue': 'E2'},
-        'OMSD':  {'Venue': 'T3'},
-        'B2BB':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'B2BC':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'IMCA':  {'Venue': 'T3'},
-    },
-    date(2025, 11, 14): {
-        'B2BB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, 
-        'B2BC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'SCMB': {'Venue': 'T4'}, 
-    },
-    date(2025, 11, 15): {
-        'DADM': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'VALUC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'VALUD': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'LSSA': {'Venue': 'E2'},
-        'IMCA': {'Venue': 'T6'}, 
-    },
-    date(2025, 11, 16): { 
-        'IMCB': {'Venue': 'T7'}, 
-    },
-    date(2025, 11, 17): {
-        'DV&VSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
-        'B2BB':  {'Venue': 'E1'},
-        'B2BC':  {'Venue': 'E1'},
-        'B2BA':  {'Venue': 'E2'},
-        'OMSD':  {'Venue': '214'},
-        'TEOMA': {'Venue': '216'},
-        'TEOMB': {'Venue': '216'},
-    },
-    date(2025, 11, 18): {
-        'DV&VSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-    },
-    date(2025, 11, 19): {
-        'DV&VSD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'DV&VSA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'SMKTA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'SMKTB': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'VALUB': {'Time': '02:30-03:30PM'},
-        'BS':    {'Venue': 'T4'},
-    },
-    date(2025, 11, 20): {
-        'DV&VSC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
-        'IMCA':   {'Venue': 'T3'}, 
-        'IMCB':   {'Venue': 'T3'}, 
-        'B2BB':   {'Venue': 'E2'}, 
-        'B2BC':   {'Venue': 'E2'}, 
-        'DMA':    {'Venue': 'T6'}, 
-        'DMB':    {'Venue': 'T6'}, 
-        'OMSD':   {'Venue': 'T3'}, 
-        'ML&AIA': {'Venue': 'T7'},
-        'SMKTB':  {'Venue': 'T7'},
-        'B2BA':   {'Venue': 'T7'},
-        'SMKTA':  {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'},
-    },
-    date(2025, 11, 21): {
-        'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'DRMC':   {'Venue': 'T7'},
-        'B2BB':   {'Venue': 'E1'}, 
-        'B2BC':   {'Venue': 'E1'}, 
-        'B2BA':   {'Venue': 'E2'}, 
-        'DMA':    {'Venue': 'T6'}, 
-        'DMB':    {'Venue': 'T6'}, 
-    },
-    date(2025, 11, 22): {
-        'DC':    {'Venue': '214'},
-        'SMKTB': {'Venue': '214'},
-        'IMCB':  {'Venue': '214'},
-        'VALUC': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-        'VALUD': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
-    },
-    date(2025, 11, 24): {
-        'DV&VSC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'DRMC':   {'Venue': 'T7'},
-        'B2BB':   {'Venue': 'E3'},
-        'B2BC':   {'Venue': 'E3'},
-        'B2BA':   {'Venue': 'E1'},
-        'DMA':    {'Venue': '215'},
-        'DMB':    {'Venue': '215'},
-        'OMSD':   {'Venue': '215'},
-    },
-    date(2025, 11, 25): {
-        'IMCA':  {'Venue': 'T1'},
-        'VALUC': {'Venue': 'E1'},
-        'VALUD': {'Venue': 'E1'},
-        'DC':    {'Venue': '215'},
-    },
-    date(2025, 11, 26): {
-        'VALUA': {'Time': '01:30-02:30PM'},
-        'VALUB': {'Time': '01:30-02:30PM'},
-        'VALUC': {'Time': '01:30-02:30PM'},
-        'VALUD': {'Time': '01:30-02:30PM'},
-        'DV&VSA': {'Venue': 'T7'},
-        'IMCB':   {'Venue': 'T6'},
-    },
-    date(2025, 11, 27): {
-        'IMCA': {'Venue': 'T3'},
-        'B2BB': {'Venue': 'E1'},
-        'B2BC': {'Venue': 'E1'},
-        'B2BA': {'Venue': 'E2'},
-        'DMA':  {'Venue': 'T6'},
-        'DMB':  {'Venue': 'T6'},
-        'OMSD': {'Venue': 'T6'},
-    },
-    date(2025, 11, 28): {
-        'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'DRMA':  {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'DRMB':  {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'B2BB':  {'Venue': 'E1'},
-        'B2BC':  {'Venue': 'E1'},
-        'B2BA':  {'Venue': 'E2'},
-        'DMA':   {'Venue': '214'},
-        'DMB':   {'Venue': '214'},
-    },
-    date(2025, 12, 1): {
-        'B2BB':   {'Venue': '208 B'},
-        'B2BC':   {'Venue': '208 B'},
-        'B2BA':   {'Venue': 'E1'},
-        'DV&VSC': {'Venue': 'E2'},
-        'DMA':    {'Venue': '215'},
-        'DMB':    {'Venue': '215'},
-        'OMSD':   {'Venue': '215'},
-    },
-    date(2025, 12, 2): {
-        'IMCA':   {'Venue': 'T3'},
-        'DV&VSD': {'Venue': 'T5'},
-        'DC':     {'Venue': 'T3'},
-        'VALUC':  {'Venue': 'T3'},
-        'VALUD':  {'Venue': 'T3'},
-        'DV&VSA': {'Venue': 'T1'},
-    },
-    # --- MODIFIED (03.12.2025) ---
-    date(2025, 12, 3): {
-        'DV&VSA': {'Time': '06:10-07:10PM'},
-        'DV&VSD': {'Time': '06:10-07:10PM', 'Venue': 'E1'},
-        'IMCB':   {'Time': '08:30-09:30PM', 'Venue': 'E2'},
-        'VALUC':  {'Venue': 'E2'},
-        'VALUD':  {'Venue': 'E2'},
-        'DADM':   {'Venue': 'E2'},
-    },
-    date(2025, 12, 4): {
-        'IMCA': {'Venue': 'T3'},
-        'DMA':  {'Venue': 'T3'},
-        'DMB':  {'Venue': 'T3'},
-        'OMSD': {'Venue': 'T3'},
-        'B2BB': {'Venue': 'E2'},
-        'B2BC': {'Venue': 'E2'},
-        'B2BA': {'Venue': 'E1'},
-    },
-    date(2025, 12, 5): {
-        'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'ANA':   {'Venue': '214'},
-        'ANB':   {'Venue': '214'},
-        'DMA':   {'Venue': '214'},
-        'DMB':   {'Venue': '214'},
-        'VALUA': {'Venue': '214'},
-        'B2BB':  {'Venue': 'E3'},
-        'B2BC':  {'Venue': 'E3'},
-        'B2BA':  {'Venue': 'E1'},
-        'SCMA':  {'Venue': '309-F'}, # <-- NEW
-        'SCMB':  {'Venue': '309-F'}, # <-- NEW
-        'SCMC':  {'Venue': '309-F'}, # <-- NEW
-    },
-    # --- MODIFIED (06.12.2025) ---
-    date(2025, 12, 6): {
-        # Partial Cancellation Logic
-        'IMCA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled', 'Target_Time': '8-9AM'},
-        'IMCB':  {'Venue': 'E3'},
-    },
-    date(2025, 12, 8): {
-        'DRMC':   {'Venue': 'T7'},
-        'B2BB':   {'Venue': 'E3'},
-        'B2BC':   {'Venue': 'E3'},
-        'DV&VSC': {'Venue': 'E3'},
-        'DMA':    {'Venue': '215'},
-        'DMB':    {'Venue': '215'},
-        'OMSD':   {'Venue': '215'},
-        'SCMA':   {'Venue': '309-F'}, # <-- NEW
-        'SCMB':   {'Venue': '309-F'}, # <-- NEW
-        'SCMC':   {'Venue': '309-F'}, # <-- NEW
-    },
-    date(2025, 12, 12): {
-        'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-    },
-    date(2025, 12, 15): {
-        'DRMC': {'Venue': 'PREPONED', 'Faculty': 'Session Preponed'}, 
-    },
-    date(2025, 12, 19): {
-        'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-    }
-}
-
-from datetime import date
-
-# --- ADDITIONAL CLASSES ---
-ADDITIONAL_CLASSES = [
-    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': 'SCM(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 8), 'Time': '10:20-11:20AM', 'Subject': "SCM('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 13), 'Time': '6:10-7:10PM', 'Subject': 'INB(A)', 'Faculty': 'M C Gupta', 'Venue': 'T6 (Rescheduled)'},
-    {'Date': date(2025, 11, 29), 'Time': '8:30-9:30PM', 'Subject': "DRM('C)", 'Faculty': 'Pankaj Agrawal', 'Venue': 'T5 (Preponed)'}, 
-    {'Date': date(2025, 12, 6), 'Time': '6:10-7:10PM', 'Subject': 'B2B(B)', 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'}, 
-    {'Date': date(2025, 12, 6), 'Time': '7:20-8:20PM', 'Subject': "B2B('C)", 'Faculty': 'Rupam Deb', 'Venue': 'E2 (Rescheduled)'},
-    
-    # --- VALUATION 14.11.2025 ---
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '7:20-8:20PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 14), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    
-    # --- DV&VS 16.11.2025 ---
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '5-6PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 16), 'Time': '6:10-7:10PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- VALUATION 21.11.2025 ---
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': "VALU('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '7:20-8:20PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 21), 'Time': '8:30-9:30PM', 'Subject': 'VALU(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- NEW: DV&VS 23.11.2025 (Sunday) ---
-    {'Date': date(2025, 11, 23), 'Time': '2:00-3:00PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '3:00-4:00PM', 'Subject': 'DV&VS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '2:00-3:00PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '3:00-4:00PM', 'Subject': 'DV&VS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': "DV&VS('C)", 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '5:00-6:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 23), 'Time': '6:00-7:00PM', 'Subject': 'DV&VS(D)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- NEW: LSS Sessions (26.11.2025 & 28.11.2025) ---
-    {'Date': date(2025, 11, 26), 'Time': '8:30-9:30PM', 'Subject': 'LSS(A)', 'Faculty': 'Rajesh Jain', 'Venue': 'T3'},
-    {'Date': date(2025, 11, 26), 'Time': '8:30-9:30PM', 'Subject': 'LSS(B)', 'Faculty': 'Rajesh Jain', 'Venue': 'T1'},
-    
-    {'Date': date(2025, 11, 28), 'Time': '7:20-8:20PM', 'Subject': 'LSS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 28), 'Time': '8:30-9:30PM', 'Subject': 'LSS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 28), 'Time': '7:20-8:20PM', 'Subject': 'LSS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 11, 28), 'Time': '8:30-9:30PM', 'Subject': 'LSS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- NEW: VALUATION (B/D) 26.11.2025 ---
-    {'Date': date(2025, 11, 26), 'Time': '2:40-3:40PM', 'Subject': 'VALU(B)', 'Faculty': 'Extra Session', 'Venue': 'TBA'},
-
-    # --- DV&VS(C) Rescheduled ---
-    {'Date': date(2025, 11, 28), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-    {'Date': date(2025, 11, 28), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'E2 (Rescheduled)'},
-    {'Date': date(2025, 12, 5), 'Time': '3:50-4:50PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'T5 (Rescheduled)'},
-    {'Date': date(2025, 12, 5), 'Time': '5-6PM', 'Subject': "DV&VS('C)", 'Faculty': 'Anand Kumar', 'Venue': 'T5 (Rescheduled)'},
-
-
-    #---- DVVS (A&D) Extra sessions---
-    {'Date': date(2025, 12, 3), 'Time': '7:20-8:20PM', 'Subject': "DV&VS(D)", 'Faculty': 'Anand Kumar', 'Venue': 'E1'},
-    {'Date': date(2025, 12, 3), 'Time': '7:20-8:20PM', 'Subject': "DV&VS(A)", 'Faculty': 'Somayya Madakkam', 'Venue': 'E3'},
-    
-    # --- SMKT Guest Sessions 03.12.2025 ---
-    {'Date': date(2025, 12, 3), 'Time': '3:50-4:50PM', 'Subject': 'SMKT(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 3), 'Time': '5:00-6:00PM', 'Subject': 'SMKT(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 3), 'Time': '3:50-4:50PM', 'Subject': 'SMKT(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 3), 'Time': '5:00-6:00PM', 'Subject': 'SMKT(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- DADM Extra Sessions 03.12.2025 ---
-    {'Date': date(2025, 12, 3), 'Time': '3:50-4:50PM', 'Subject': 'DADM', 'Faculty': 'Extra Session', 'Venue': 'TBA'},
-    {'Date': date(2025, 12, 3), 'Time': '5:00-6:00PM', 'Subject': 'DADM', 'Faculty': 'Extra Session', 'Venue': 'TBA'},
-
-    # --- IMC(A) Sessions 06.12.2025 (ADDED) ---
-    {'Date': date(2025, 12, 6), 'Time': '3:50-4:50PM', 'Subject': 'IMC(A)', 'Faculty': 'Sanjay Jain', 'Venue': 'E2'},
-    {'Date': date(2025, 12, 6), 'Time': '5:00-6:00PM', 'Subject': 'IMC(A)', 'Faculty': 'Sanjay Jain', 'Venue': 'E2'},
- 
-    # --- DADM Guest Sessions 07.12.2025 ---
-    {'Date': date(2025, 12, 7), 'Time': '10:20-11:20AM', 'Subject': 'DADM', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 7), 'Time': '11:30-12:30PM', 'Subject': 'DADM', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- CC&AU Guest Sessions 13.12.2025 ---
-    {'Date': date(2025, 12, 13), 'Time': '6:10-7:10PM', 'Subject': 'CC&AU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 13), 'Time': '7:20-8:20PM', 'Subject': 'CC&AU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 13), 'Time': '6:10-7:10PM', 'Subject': 'CC&AU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 13), 'Time': '7:20-8:20PM', 'Subject': 'CC&AU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- CC&AU Guest Sessions 14.12.2025 ---
-    {'Date': date(2025, 12, 14), 'Time': '10:20-11:20AM', 'Subject': 'CC&AU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 14), 'Time': '11:30-12:30PM', 'Subject': 'CC&AU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 14), 'Time': '10:20-11:20AM', 'Subject': 'CC&AU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 14), 'Time': '11:30-12:30PM', 'Subject': 'CC&AU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-]
-
-
-from datetime import date
-
-# --- MESS MENU DATA ---
-MESS_MENU = {
-    date(2025, 12, 6): {
-        "Breakfast": """
-        * Dal Pakwan with Chutney
-        * Fruit + Daliya + Khakhra
-        """,
-        "Lunch": """
-        * Gobi Tamatar Capsicum Curry
-        * Veg Kofta
-        * Dal Fry & Jeera Rice
-        * Roti
-        * Green Salad, Onion Lemon
-        * Plain Curd
-        """,
-        "Hi-Tea": """
-        * Tea / coffee
-        """,
-        "Dinner": """
-        * Chole Bhature & Kulcha
-        * Dal Fry & Jeera Rice
-        * Roti
-        * Green Chilli Fry
-        * Ring Onion
-        * Masala Papad
-        * Buttermilk
-        """
-    },
-    date(2025, 12, 7): {
-        "Breakfast": """
-        * Mix Paratha with Curd + Pickle
-        * Fruit + Toast
-        """,
-        "Lunch": """
-        * Masala Dosa
-        * Mix Uttapam
-        * Idli Sambhar & Vada Sambhar
-        * Lemon Rice & Aloo Vada
-        * Coconut Chutney
-        * Sweet Lassi
-        """,
-        "Hi-Tea": """
-        * Tea / coffee
-        """,
-        "Dinner": """
-        * Paneer Pasanda
-        * Chana Methi Masala
-        * Dal Fry & Jeera Rice
-        * Roti
-        * Onion + Lemon
-        * Frymes
-        * **Ice Cream**
-        """
-    },
-        # Friday (5/12/2025) – TODAY
-    date(2025, 12, 5): {
-        "Breakfast": """
-        * Vada sambar chutney
-        * Fruit + veg sandwich + khakhra
-        * Poha
-        """,
-        "Lunch": """
-        * Paneer Angara Masala
-        * Cabbage mutter dry
-        * Dal fry
-        * Plain rice
-        * Roti
-        * Green salad
-        * Onion lemon
-        * Buttermilk
-        """,
-        "Hi-Tea": """
-        * Tea / coffee
-        """,
-        "Dinner": """
-        * Broccoli soup
-        * Live dhokla
-        * Aloo pakoda
-        * Plain kadhi
-        * Plain khichdi
-        * Methi thepla
-        * Lasoon khichadi
-        * Roti + frymes
-        * Onion lemon
-        * Gulab jamun
-        """
-    },
-# Monday (08/12/2025)
-    date(2025, 12, 8): {
-        "Breakfast": """
-        * Indori Poha, Lemon Onion, Sev
-        * Fruit + Mix Sprout + Veg Sandwich
-        """,
-        "Lunch": """
-        * Gajar Methi Mutter
-        * Kadi Pakoda
-        * Dal Fry & Plain Rice
-        * Roti
-        * Green Salad, Onion + Lemon
-        * Lemon Water
-        """,
-        "Hi-Tea": """
-        * Tea / Coffee
-        """,
-        "Dinner": """
-        * Cheese Kofta Masala
-        * Aloo Chips Masala
-        * Dal Fry & Jeera Rice
-        * Roti
-        * Onion + Lemon
-        * Frymes
-        """
-    },
-    
-    # Tuesday (09/12/2025)
-    date(2025, 12, 9): {
-        "Breakfast": """
-        * Sandwich Dhokla with Green Chutney
-        * Fruit + Methi ka Thepla with Curd & Pickle
-        """,
-        "Lunch": """
-        * Paneer Handi Masala
-        * Loki Chana Dal
-        * Dal Fry & Plain Rice
-        * Roti
-        * Chana Chaat Salad
-        * Onion + Lemon
-        * Butter Milk
-        """,
-        "Hi-Tea": """
-        * Tea / Coffee
-        """,
-        "Dinner": """
-        * **Sweet: Jalebi**
-        * Pav Bhaji & Veg Pulav
-        * Boondi Raita
-        * Manchurian Noodles
-        * Sev Roll with Chutney
-        * Roasted Papad
-        * Onion + Lemon
-        """
-    },
-    
-    # Wednesday (10/12/2025)
-    date(2025, 12, 10): {
-        "Breakfast": """
-        * Masala Mix Uttapam, Sambhar, Chutney
-        * Fruit Poha Sambhar + Toast
-        """,
-        "Lunch": """
-        * Veg Makhanwala
-        * Kala Chana Dry
-        * Dal Mix Tadka & Jeera Rice
-        * Roti
-        * Green Salad, Onion Lemon
-        * Plain Curd
-        """,
-        "Hi-Tea": """
-        * Tea / Coffee
-        """,
-        "Dinner": """
-        * **Soup: Cheese Corn**
-        * Chinese Samosa
-        * Aloo Mutter Tamatar
-        * Plain Kadi & Rajwadi Khichdi
-        * Lasan ki Chatni
-        * Methi Thepla & Roti
-        * **Sweet: Pineapple Halwa**
-        """
-    },
-    
-    # Thursday (11/12/2025)
-    date(2025, 12, 11): {
-        "Breakfast": """
-        * Sev Khamani with Green Chutney
-        * Fruit Bread Pakoda + Khakhra + Bhakhri
-        """,
-        "Lunch": """
-        * Palak Corn Capsicum
-        * Rajma Masala
-        * Dal Tadka & Mutter Rice
-        * Roti
-        * Green Salad, Onion Lemon
-        * Butter Milk
-        """,
-        "Hi-Tea": """
-        * Tea / Coffee
-        """,
-        "Dinner": """
-        * Gobi Mutter Tamatar
-        * Moong Masala
-        * Hot Pot Rice
-        * Palak Paneer Paratha
-        * Masala Papad, Onion Lemon
-        * Plain Curd
-        * Roti
-        """
-    },
-    
-    # Friday (12/12/2025)
-    date(2025, 12, 12): {
-        "Breakfast": """
-        * Dabeli with Chutney
-        * Fruit + Masala Maggi + Corn Flakes
-        """,
-        "Lunch": """
-        * Paneer Bhurji Masala
-        * Jeera Aloo Masala
-        * Dal Fry & Plain Rice
-        * Roti
-        * Green Salad, Onion Lemon
-        * Lemon Water
-        """,
-        "Hi-Tea": """
-        * Tea / Coffee
-        """,
-        "Dinner": """
-        * **Dal Batti Rajasthani**
-        * **Sweet: Churma**
-        * Besan ka Gatta Masala
-        * Lasan ki Chatni, Ghee & Gud
-        * Plain Rice
-        * Onion Lemon, Butter Milk
-        * Roti
-        """
-    },
-    
-    # Saturday (13/12/2025)
-    date(2025, 12, 13): {
-        "Breakfast": """
-        * Puri Bhaji
-        * Fruit Daliya + Veg Sandwich
-        """,
-        "Lunch": """
-        * Veg Jalfrezi Masala Dry
-        * Paneer Kofta
-        * Dal Mix Tadka & Jeera Rice
-        * Roti
-        * Green Salad, Onion Lemon
-        * Butter Milk
-        """,
-        "Hi-Tea": """
-        * Tea / Coffee
-        """,
-        "Dinner": """
-        * Mix Pakoda
-        * **Sarso ka Saag**
-        * Sev Tamatar
-        * Plain Kadi & Rajwadi Khichdi
-        * Lasan ki Chatni
-        * **Makai ki Roti**
-        * Ghee + Gud
-        * Onion + Lemon, Butter Milk
-        """
-    },
-}
-
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
         return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").upper()
     return ""
 
-# --- MODIFIED: Use @st.cache_resource ---
-@st.cache_resource
+# --- MODIFIED: Changed from @st.cache_resource to @st.cache_data for DataFrames ---
+@st.cache_data
 def load_and_clean_schedule(file_path, is_stats_file=False):
     try:
         df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3)
@@ -654,8 +103,8 @@ def load_and_clean_schedule(file_path, is_stats_file=False):
             st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
         return pd.DataFrame()
 
-# --- (FIXED) Function to load ALL schedules ---
-@st.cache_resource
+# --- MODIFIED: Changed from @st.cache_resource to @st.cache_data ---
+@st.cache_data
 def load_all_schedules(file_list):
     all_dfs = []
     for file_path in file_list:
@@ -668,53 +117,30 @@ def load_all_schedules(file_list):
         return pd.DataFrame()
         
     combined_df = pd.concat(all_dfs)
-    # --- THIS IS THE FIX: We DO NOT drop duplicates. We sum from all files.
+    # We DO NOT drop duplicates. We sum from all files.
     combined_df = combined_df.sort_values(by=[0]) # Sort by date
     return combined_df
 
-# Mess Menu
-def render_mess_menu_expander():
-    """Show mess menu as a collapsible dropdown on the login page.
-       After 11 PM, show tomorrow's menu instead of today's.
-    """
+# --- NEW: Function to display Mess Menu ---
+def display_mess_menu():
     local_tz = pytz.timezone(TIMEZONE)
-    now_dt = datetime.now(local_tz)
-    today = now_dt.date()
+    today = datetime.now(local_tz).date()
+    
+    # Check if we have a menu for today
+    if today in MESS_MENU:
+        menu = MESS_MENU[today]
+        with st.expander(f"🍽️ Mess Menu for Today ({today.strftime('%d %b')})"):
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                st.markdown("#### 🥞 Breakfast")
+                st.markdown(menu.get("Breakfast", "-"))
+            with c2:
+                st.markdown("#### 🍛 Lunch")
+                st.markdown(menu.get("Lunch", "-"))
+            with c3:
+                st.markdown("#### 🍲 Dinner")
+                st.markdown(menu.get("Dinner", "-"))
 
-    # If it's 23:00 or later, switch to tomorrow's menu
-    target_date = today
-    if now_dt.hour >= 23:
-        target_date = today + pd.Timedelta(days=1)
-
-    if target_date not in MESS_MENU:
-        return  # nothing to show
-
-    menu_data = MESS_MENU[target_date]
-
-    label_date = target_date.strftime("%a, %d %b %Y")
-    with st.expander(f"Mess Menu for ({label_date}) <- NEW!", expanded=False):
-        col1, col2, col3, col4 = st.columns(4)
-
-        with col1:
-            st.markdown("#### Breakfast")
-            st.markdown(menu_data.get("Breakfast", "Not available"))
-
-        with col2:
-            st.markdown("#### Lunch")
-            st.markdown(menu_data.get("Lunch", "Not available"))
-
-        with col3:
-            st.markdown("#### Hi-Tea")
-            st.markdown(menu_data.get("Hi-Tea", "Not available"))
-
-        with col4:
-            st.markdown("#### Dinner")
-            st.markdown(menu_data.get("Dinner", "Not available"))
-
-
-
-
-            
 # --- (FIXED) Function to calculate and display stats ---
 def calculate_and_display_stats():
     # --- Separator REMOVED ---
@@ -862,10 +288,16 @@ def calculate_and_display_stats():
                             st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
                     st.markdown("") # Add a little space
 
+# --- MODIFIED: Added check to ignore temp files starting with ~ ---
 @st.cache_data
 def get_all_student_data(folder_path='.'):
     student_data_map = {}
-    subject_files = [f for f in glob.glob(os.path.join(folder_path, '*.xlsx')) if os.path.basename(f) != SCHEDULE_FILE_NAME]
+    subject_files = [
+        f for f in glob.glob(os.path.join(folder_path, '*.xlsx')) 
+        if os.path.basename(f) != SCHEDULE_FILE_NAME 
+        and not os.path.basename(f).startswith('~')
+    ]
+    
     for file in subject_files:
         try:
             df = pd.read_excel(file, header=None)
@@ -1194,11 +626,8 @@ else:
                 st.session_state.just_submitted = True # <-- Set scroll flag
                 st.rerun()
         
-        
-# --- DISPLAY MESS MENU DROPDOWN (ABOVE STATS) ---
-        render_mess_menu_expander()
-        
         # --- DISPLAY STATS ON LOGIN PAGE ---
+        display_mess_menu()
         calculate_and_display_stats()
 
     # --- DISPLAY TIMETABLE PAGE ---
@@ -1262,11 +691,23 @@ else:
                                         details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'}).copy()
                                         is_venue_override = False
                                         
+                                        # --- CHECK FOR OVERRIDES ---
                                         if date in DAY_SPECIFIC_OVERRIDES:
                                             if norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
-                                                if 'Venue' in DAY_SPECIFIC_OVERRIDES[date][norm_sec]:
-                                                    is_venue_override = True
-                                                details.update(DAY_SPECIFIC_OVERRIDES[date][norm_sec])
+                                                override_data = DAY_SPECIFIC_OVERRIDES[date][norm_sec]
+                                                
+                                                # --- NEW: Time-Specific Cancellation Logic ---
+                                                should_apply_override = True
+                                                if 'Target_Time' in override_data:
+                                                    # If the override specifies a time (e.g. "8-9AM"), 
+                                                    # ONLY apply it if the current time slot matches exactly.
+                                                    if override_data['Target_Time'] != time:
+                                                        should_apply_override = False
+                                                
+                                                if should_apply_override:
+                                                    if 'Venue' in override_data:
+                                                        is_venue_override = True
+                                                    details.update(override_data)
                                                 
                                         found_classes.append({
                                             "Date": date, "Day": day, 
@@ -1620,7 +1061,6 @@ else:
                 else:
                     st.warning("No classes found for your registered sections in the master schedule.")
             
-
 # --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
-st.caption("")
+st.caption("_Made by Vishesh_")
