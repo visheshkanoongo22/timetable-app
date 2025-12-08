@@ -698,7 +698,7 @@ def render_mess_menu_expander():
     week_end = week_dates[-1]
     week_end_str = week_end.strftime("%d %b %Y")
 
-    with st.expander(f"🍽️ Mess Menu for the Week ({week_start_str} - {week_end_str})", expanded=False):
+    with st.expander(f"Mess Menu for the Week ({week_start_str} - {week_end_str})", expanded=False):
         for date in week_dates:
             if date not in MESS_MENU:
                 continue  # Skip days without menu
@@ -717,19 +717,19 @@ def render_mess_menu_expander():
                 col1, col2, col3, col4 = st.columns(4)
 
                 with col1:
-                    st.markdown("#### 🌅 Breakfast")
+                    st.markdown("#### Breakfast")
                     st.markdown(menu_data.get("Breakfast", "Not available"))
 
                 with col2:
-                    st.markdown("#### ☀️ Lunch")
+                    st.markdown("#### Lunch")
                     st.markdown(menu_data.get("Lunch", "Not available"))
 
                 with col3:
-                    st.markdown("#### 🍪 Hi-Tea")
+                    st.markdown("#### Hi-Tea")
                     st.markdown(menu_data.get("Hi-Tea", "Not available"))
 
                 with col4:
-                    st.markdown("#### 🌙 Dinner")
+                    st.markdown("#### Dinner")
                     st.markdown(menu_data.get("Dinner", "Not available"))
 
 
