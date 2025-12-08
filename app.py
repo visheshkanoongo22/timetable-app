@@ -121,25 +121,74 @@ def load_all_schedules(file_list):
     combined_df = combined_df.sort_values(by=[0]) # Sort by date
     return combined_df
 
-# --- NEW: Function to display Mess Menu ---
-def display_mess_menu():
+def render_mess_menu_expander():
+    """Show weekly mess menu with a day selector instead of many dropdowns."""
     local_tz = pytz.timezone(TIMEZONE)
-    today = datetime.now(local_tz).date()
-    
-    # Check if we have a menu for today
-    if today in MESS_MENU:
-        menu = MESS_MENU[today]
-        with st.expander(f"🍽️ Mess Menu for Today ({today.strftime('%d %b')})"):
-            c1, c2, c3 = st.columns(3)
-            with c1:
-                st.markdown("#### 🥞 Breakfast")
-                st.markdown(menu.get("Breakfast", "-"))
-            with c2:
-                st.markdown("#### 🍛 Lunch")
-                st.markdown(menu.get("Lunch", "-"))
-            with c3:
-                st.markdown("#### 🍲 Dinner")
-                st.markdown(menu.get("Dinner", "-"))
+    now_dt = datetime.now(local_tz)
+    today = now_dt.date()
+
+    # If it's 23:00 or later, make 'tomorrow' the logical start of the week
+    start_date = today
+    if now_dt.hour >= 23:
+        start_date = today + pd.Timedelta(days=1)
+
+    # Week range (7 days from start_date)
+    week_dates = [start_date + pd.Timedelta(days=i) for i in range(7)]
+
+    # Keep only days that actually have a menu
+    valid_dates = [d for d in week_dates if d in MESS_MENU]
+    if not valid_dates:
+        return  # nothing to show
+
+    # Prepare labels for selector
+    options = []
+    default_index = 0
+    for idx, d in enumerate(valid_dates):
+        label = d.strftime("%a %d %b")  # e.g. Mon 08 Dec
+        if d == today:
+            label += " (Today)"
+            default_index = idx
+        elif d == today + pd.Timedelta(days=1):
+            label += " (Tomorrow)"
+        options.append(label)
+
+    with st.expander("Mess Menu for the Week", expanded=False):
+        # Day picker (radio is compact & clear; use selectbox if you prefer)
+        selected_label = st.radio(
+            "Select a day:",
+            options,
+            index=default_index,
+            horizontal=True,
+        )
+
+        # Map back from label to date
+        selected_idx = options.index(selected_label)
+        selected_date = valid_dates[selected_idx]
+        menu_data = MESS_MENU[selected_date]
+
+        st.markdown(
+            f"**Menu for {selected_date.strftime('%A, %d %B %Y')}**"
+        )
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.markdown("#### Breakfast")
+            st.markdown(menu_data.get("Breakfast", "Not available"))
+
+        with col2:
+            st.markdown("#### Lunch")
+            st.markdown(menu_data.get("Lunch", "Not available"))
+
+        with col3:
+            st.markdown("#### Hi-Tea")
+            st.markdown(menu_data.get("Hi-Tea", "Not available"))
+
+        with col4:
+            st.markdown("#### Dinner")
+            st.markdown(menu_data.get("Dinner", "Not available"))
+
+
 
 # --- (FIXED) Function to calculate and display stats ---
 def calculate_and_display_stats():
