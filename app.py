@@ -330,7 +330,7 @@ def calculate_and_display_stats():
                             if section_name == "Main":
                                 st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Total Sessions: {count}/{max_lectures}")
                             else:
-                                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count}/{max_lectures} sessions")
+                                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count}/{max_lectures}")
                         st.markdown("") # Add a little space
 
             display_course_stats(col1, sorted_courses[:midpoint])
