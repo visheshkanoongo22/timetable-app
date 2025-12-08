@@ -313,29 +313,28 @@ def calculate_and_display_stats():
             midpoint = len(sorted_courses) // 2 + (len(sorted_courses) % 2)
             col1, col2 = st.columns(2)
 
-            with col1:
-                for course_name in sorted_courses[:midpoint]:
-                    st.markdown(f"**{course_name}**")
-                    sections = grouped_counts[course_name]
-                    for section_name in sorted(sections.keys()):
-                        count = sections[section_name]
-                        if section_name == "Main":
-                            st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Total Sessions: {count}")
-                        else:
-                            st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
-                    st.markdown("") # Add a little space
+            def display_course_stats(column, course_list):
+                with column:
+                    for course_name in course_list:
+                        st.markdown(f"**{course_name}**")
+                        sections = grouped_counts[course_name]
+                        
+                        # --- MAX LECTURE LOGIC ---
+                        max_lectures = 30
+                        # Check for DV&VS or BS
+                        if "DV&VS" in course_name or course_name == "BS":
+                            max_lectures = 40
+                            
+                        for section_name in sorted(sections.keys()):
+                            count = sections[section_name]
+                            if section_name == "Main":
+                                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Total Sessions: {count}/{max_lectures}")
+                            else:
+                                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count}/{max_lectures} sessions")
+                        st.markdown("") # Add a little space
 
-            with col2:
-                for course_name in sorted_courses[midpoint:]:
-                    st.markdown(f"**{course_name}**")
-                    sections = grouped_counts[course_name]
-                    for section_name in sorted(sections.keys()):
-                        count = sections[section_name]
-                        if section_name == "Main":
-                            st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Total Sessions: {count}")
-                        else:
-                            st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
-                    st.markdown("") # Add a little space
+            display_course_stats(col1, sorted_courses[:midpoint])
+            display_course_stats(col2, sorted_courses[midpoint:])
 
 # --- MODIFIED: Added check to ignore temp files starting with ~ ---
 @st.cache_data
