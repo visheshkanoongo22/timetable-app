@@ -58,6 +58,70 @@ MESS_MENU = {
     # --- NEW WEEK (08/12 - 13/12) ---
     
     # Monday (08/12/2025)
+    from datetime import date
+
+# --- MESS MENU DATA ---
+MESS_MENU = {
+    # --- PREVIOUS WEEKEND ---
+    # Saturday (6/12/2025)
+    date(2025, 12, 6): {
+        "Breakfast": """
+        * Dal Pakwan with Chutney
+        * Fruit + Daliya + Khakhra
+        """,
+        "Lunch": """
+        * Gobi Tamatar Capsicum Curry
+        * Veg Kofta
+        * Dal Fry & Jeera Rice
+        * Roti
+        * Green Salad, Onion Lemon
+        * Plain Curd
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Chole Bhature & Kulcha
+        * Dal Fry & Jeera Rice
+        * Roti
+        * Green Chilli Fry
+        * Ring Onion
+        * Masala Papad
+        * Buttermilk
+        """
+    },
+    # Sunday (7/12/2025)
+    date(2025, 12, 7): {
+        "Breakfast": """
+        * Mix Paratha with Curd + Pickle
+        * Fruit + Toast
+        """,
+        "Lunch": """
+        * **South Indian Special:**
+        * Masala Dosa
+        * Mix Uttapam
+        * Idli Sambhar & Vada Sambhar
+        * Lemon Rice & Aloo Vada
+        * Coconut Chutney
+        * Sweet Lassi
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Paneer Pasanda
+        * Chana Methi Masala
+        * Dal Fry & Jeera Rice
+        * Roti
+        * Onion + Lemon
+        * Frymes
+        * **Ice Cream**
+        """
+    },
+
+    # --- NEW WEEK (08/12 - 13/12) ---
+    
+    # Monday (08/12/2025)
     date(2025, 12, 8): {
         "Breakfast": """
         * Indori Poha, Lemon Onion, Sev
@@ -70,7 +134,9 @@ MESS_MENU = {
         * Roti
         * Green Salad, Onion + Lemon
         * Lemon Water
-        * **Hi-Tea:** Tea / Coffee
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
         """,
         "Dinner": """
         * Cheese Kofta Masala
@@ -95,7 +161,9 @@ MESS_MENU = {
         * Chana Chaat Salad
         * Onion + Lemon
         * Butter Milk
-        * **Hi-Tea:** Tea / Coffee
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
         """,
         "Dinner": """
         * **Sweet Jalebi**
@@ -120,7 +188,9 @@ MESS_MENU = {
         * Roti
         * Green Salad, Onion Lemon
         * Plain Curd
-        * **Hi-Tea:** Tea / Coffee
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
         """,
         "Dinner": """
         * **Cheese Corn Soup**
@@ -145,7 +215,9 @@ MESS_MENU = {
         * Roti
         * Green Salad, Onion Lemon
         * Butter Milk
-        * **Hi-Tea:** Tea / Coffee
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
         """,
         "Dinner": """
         * Gobi Mutter Tamatar
@@ -170,7 +242,9 @@ MESS_MENU = {
         * Roti
         * Green Salad, Onion Lemon
         * Lemon Water
-        * **Hi-Tea:** Tea / Coffee
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
         """,
         "Dinner": """
         * **Dal Batti Rajasthani**
@@ -195,7 +269,9 @@ MESS_MENU = {
         * Roti
         * Green Salad, Onion Lemon
         * Butter Milk
-        * **Hi-Tea:** Tea / Coffee
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
         """,
         "Dinner": """
         * Mix Pakoda
