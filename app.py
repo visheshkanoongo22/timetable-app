@@ -698,7 +698,7 @@ def render_mess_menu_expander():
     week_end = week_dates[-1]
     week_end_str = week_end.strftime("%d %b %Y")
 
-    with st.expander(f"Mess Menu for the Week ({week_start_str} - {week_end_str})", expanded=False):
+    with st.expander(f"Mess Menu for the Week", expanded=False):
         for date in week_dates:
             if date not in MESS_MENU:
                 continue  # Skip days without menu
