@@ -279,5 +279,5 @@ MESS_MENU = {
         * Ghee + Gud
         * Onion + Lemon, Butter Milk
         """
-    },
+    }
 }
