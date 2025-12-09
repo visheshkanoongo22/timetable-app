@@ -224,13 +224,21 @@ DAY_SPECIFIC_OVERRIDES = {
         'DV&VSA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- NEW
         'DV&VSB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- NEW
     },
+
     date(2025, 12, 10): {
         'DV&VSA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'DV&VSB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
-        'SCMA':   {'Venue': '309-F'}, # <-- NEW
-        'SCMB':   {'Venue': '309-F'}, # <-- NEW
-        'SCMC':   {'Venue': '309-F'}, # <-- NEW
+        'SCMA':   {'Venue': '309-F'},
+        'SCMB':   {'Venue': '309-F'},
+        'SCMC':   {'Venue': '309-F'},
+        'VALUC':  {'Venue': 'T3'}, # <-- NEW
+        'VALUD':  {'Venue': 'T3'}, # <-- NEW
+        'IMCB':   {'Venue': 'T3'}, # <-- NEW
+        'SMKTA':  {'Venue': 'T3'}, # <-- NEW
+        'DV&VSD': {'Venue': 'E3'}, # <-- NEW
+        'SMKTB':  {'Venue': 'T1'}, # <-- NEW
     },
+
     date(2025, 12, 11): {
         'DV&VSA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'DV&VSB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
