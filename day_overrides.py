@@ -195,7 +195,6 @@ DAY_SPECIFIC_OVERRIDES = {
         # New venue for IMC(B)
         'IMCB': {'Venue': 'E3'}, 
     },
-    # --- MODIFIED HERE (08.12.2025) ---
     date(2025, 12, 8): {
         'DRMC':   {'Venue': 'T7'},
         'B2BB':   {'Venue': 'E3'},
@@ -207,9 +206,10 @@ DAY_SPECIFIC_OVERRIDES = {
         'SCMA':   {'Venue': '309-F'},
         'SCMB':   {'Venue': '309-F'},
         'SCMC':   {'Venue': '309-F'},
-        'B2BA':   {'Venue': 'E2'}, # <-- NEW
+        'B2BA':   {'Venue': 'E2'},
+        'DV&VSA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- NEW
+        'DV&VSB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- NEW
     },
-    # --- NEW CHANGES (09.12.2025) ---
     date(2025, 12, 9): {
         'IMCA':   {'Venue': 'T3'},
         'VALUC':  {'Venue': 'T3'},
@@ -221,6 +221,17 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUB':  {'Venue': 'E3'},
         'DV&VSD': {'Venue': 'E3'},
         'DC':     {'Venue': 'E3'},
+        'DV&VSA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- NEW
+        'DV&VSB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- NEW
+    },
+    # --- NEW CANCELLATIONS (10 & 11 Dec) ---
+    date(2025, 12, 10): {
+        'DV&VSA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DV&VSB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+    },
+    date(2025, 12, 11): {
+        'DV&VSA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'DV&VSB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     },
 
     date(2025, 12, 12): {
