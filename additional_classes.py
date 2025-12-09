@@ -88,29 +88,7 @@ ADDITIONAL_CLASSES = [
     # --- DADM Guest Sessions 07.12.2025 ---
     {'Date': date(2025, 12, 7), 'Time': '10:20-11:20AM', 'Subject': 'DADM', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 12, 7), 'Time': '11:30-12:30PM', 'Subject': 'DADM', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    # --- SMKT Guest Session 10.12.2025 ---
-    {'Date': date(2025, 12, 10), 'Time': '7:20-8:20PM', 'Subject': 'SMKT(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 10), 'Time': '7:20-8:20PM', 'Subject': 'SMKT(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- DADM Guest Sessions 13.12.2025 ---
-    {'Date': date(2025, 12, 13), 'Time': '10:20-11:20AM', 'Subject': 'DADM', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 13), 'Time': '11:30-12:30PM', 'Subject': 'DADM', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- ML&AI Guest Sessions 14.12.2025 ---
-    {'Date': date(2025, 12, 14), 'Time': '5:00-6:00PM', 'Subject': 'ML&AI(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 14), 'Time': '6:10-7:10PM', 'Subject': 'ML&AI(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 14), 'Time': '5:00-6:00PM', 'Subject': 'ML&AI(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 14), 'Time': '6:10-7:10PM', 'Subject': 'ML&AI(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- ML&AI Guest Sessions 15.12.2025 ---
-    {'Date': date(2025, 12, 15), 'Time': '8:30-9:30PM', 'Subject': 'ML&AI(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 15), 'Time': '8:30-9:30PM', 'Subject': 'ML&AI(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-    # --- ML&AI Guest Sessions 16.12.2025 ---
-    {'Date': date(2025, 12, 16), 'Time': '8:30-9:30PM', 'Subject': 'ML&AI(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-    {'Date': date(2025, 12, 16), 'Time': '8:30-9:30PM', 'Subject': 'ML&AI(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
-
-
+    
     # --- CC&AU Guest Sessions 13.12.2025 ---
     {'Date': date(2025, 12, 13), 'Time': '6:10-7:10PM', 'Subject': 'CC&AU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 12, 13), 'Time': '7:20-8:20PM', 'Subject': 'CC&AU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
