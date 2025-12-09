@@ -224,10 +224,12 @@ DAY_SPECIFIC_OVERRIDES = {
         'DV&VSA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- NEW
         'DV&VSB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'}, # <-- NEW
     },
-    # --- NEW CANCELLATIONS (10 & 11 Dec) ---
     date(2025, 12, 10): {
         'DV&VSA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'DV&VSB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'SCMA':   {'Venue': '309-F'}, # <-- NEW
+        'SCMB':   {'Venue': '309-F'}, # <-- NEW
+        'SCMC':   {'Venue': '309-F'}, # <-- NEW
     },
     date(2025, 12, 11): {
         'DV&VSA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
