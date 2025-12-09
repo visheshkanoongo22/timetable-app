@@ -18,7 +18,7 @@ import time
 from day_overrides import DAY_SPECIFIC_OVERRIDES
 from additional_classes import ADDITIONAL_CLASSES
 from mess_menu import MESS_MENU
-from exam_schedule import EXAM_SCHEDULE_DATA  # <--- NEW IMPORT
+from exam_schedule import EXAM_SCHEDULE_DATA
 
 # --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
 AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
@@ -85,7 +85,6 @@ def normalize_string(text):
         return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").upper()
     return ""
 
-# --- MODIFIED: Changed from @st.cache_resource to @st.cache_data for DataFrames ---
 @st.cache_data
 def load_and_clean_schedule(file_path, is_stats_file=False):
     try:
@@ -95,20 +94,18 @@ def load_and_clean_schedule(file_path, is_stats_file=False):
         schedule_df.dropna(subset=[0], inplace=True)
         return schedule_df
     except FileNotFoundError:
-        if not is_stats_file: # Only show error for the main schedule file
-            st.error(f"FATAL ERROR: The main schedule file '{file_path}' was not found. Please make sure it's in the same folder as the app.")
+        if not is_stats_file:
+            st.error(f"FATAL ERROR: The main schedule file '{file_path}' was not found.")
         return pd.DataFrame()
     except Exception as e:
         if not is_stats_file:
             st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
         return pd.DataFrame()
 
-# --- MODIFIED: Changed from @st.cache_resource to @st.cache_data ---
 @st.cache_data
 def load_all_schedules(file_list):
     all_dfs = []
     for file_path in file_list:
-        # Use the existing function, but suppress errors for old files
         df = load_and_clean_schedule(file_path, is_stats_file=True) 
         if not df.empty:
             all_dfs.append(df)
@@ -117,19 +114,16 @@ def load_all_schedules(file_list):
         return pd.DataFrame()
         
     combined_df = pd.concat(all_dfs)
-    # We DO NOT drop duplicates. We sum from all files.
-    combined_df = combined_df.sort_values(by=[0]) # Sort by date
+    combined_df = combined_df.sort_values(by=[0])
     return combined_df
 
 # --- NEW: Function to display Exam Schedule ---
 def display_exam_schedule(student_sections):
-    # 1. Normalize student sections to get base codes (e.g., 'VALU(A)' -> 'VALU')
+    # 1. Normalize student sections to get base codes
     student_base_codes = set()
     for sec in student_sections:
-        # Remove anything in parenthesis and whitespace
         base = re.sub(r"\(.*$", "", sec).strip()
         student_base_codes.add(base)
-        # Handle special case: B2B('C) might normalize weirdly if not careful
         if "B2B" in sec: student_base_codes.add("B2B")
         if "DV&VS" in sec: student_base_codes.add("DV&VS")
         if "ML&AI" in sec: student_base_codes.add("ML&AI")
@@ -150,7 +144,8 @@ def display_exam_schedule(student_sections):
         my_exams.sort(key=lambda x: x['Date'])
         
         for exam in my_exams:
-            date_str = exam['Date'].strftime('%d %b %Y (%A)')
+            # FORMAT CHANGE: Removed Day Name (%A)
+            date_str = exam['Date'].strftime('%d %b %Y')
             st.markdown(f"""
             <div style="
                 background-color: rgba(255, 255, 255, 0.05); 
@@ -160,36 +155,32 @@ def display_exam_schedule(student_sections):
                 border-left: 4px solid #60A5FA;">
                 <div style="font-weight: 700; font-size: 1.1em; color: #fff;">{exam['Full_Name']}</div>
                 <div style="display: flex; justify-content: space-between; color: #94A3B8; font-size: 0.9em; margin-top: 4px;">
-                    <span>{date_str}</span>
-                    <span>{exam['Time']}</span>
+                    <span>📅 {date_str}</span>
+                    <span>⏰ {exam['Time']}</span>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
 def render_mess_menu_expander():
-    """Show weekly mess menu with a day selector instead of many dropdowns."""
+    """Show weekly mess menu with a day selector."""
     local_tz = pytz.timezone(TIMEZONE)
     now_dt = datetime.now(local_tz)
     today = now_dt.date()
 
-    # If it's 23:00 or later, make 'tomorrow' the logical start of the week
     start_date = today
     if now_dt.hour >= 23:
         start_date = today + pd.Timedelta(days=1)
 
-    # Week range (7 days from start_date)
     week_dates = [start_date + pd.Timedelta(days=i) for i in range(7)]
-
-    # Keep only days that actually have a menu
     valid_dates = [d for d in week_dates if d in MESS_MENU]
     if not valid_dates:
-        return  # nothing to show
+        return 
 
-    # Prepare labels for selector
     options = []
     default_index = 0
     for idx, d in enumerate(valid_dates):
-        label = d.strftime("%a %d %b")  # e.g. Mon 08 Dec
+        # FORMAT CHANGE: Removed Day Name (%a)
+        label = d.strftime("%d %b") 
         if d == today:
             label += " (Today)"
             default_index = idx
@@ -198,7 +189,6 @@ def render_mess_menu_expander():
         options.append(label)
 
     with st.expander("🍽️ Mess Menu for the Week", expanded=False):
-        # Day picker (radio is compact & clear; use selectbox if you prefer)
         selected_label = st.radio(
             "Select a day:",
             options,
@@ -206,13 +196,13 @@ def render_mess_menu_expander():
             horizontal=True,
         )
 
-        # Map back from label to date
         selected_idx = options.index(selected_label)
         selected_date = valid_dates[selected_idx]
         menu_data = MESS_MENU[selected_date]
 
+        # FORMAT CHANGE: Removed Day Name (%A)
         st.markdown(
-            f"**Menu for {selected_date.strftime('%A, %d %B %Y')}**"
+            f"**Menu for {selected_date.strftime('%d %B %Y')}**"
         )
 
         col1, col2, col3, col4 = st.columns(4)
@@ -233,14 +223,9 @@ def render_mess_menu_expander():
             st.markdown("#### Dinner")
             st.markdown(menu_data.get("Dinner", "Not available"))
 
-
-
-# --- (FIXED) Function to calculate and display stats ---
 def calculate_and_display_stats():
-    # --- Separator REMOVED ---
     with st.expander("Sessions Taken till Now"):
         with st.spinner("Calculating session statistics..."):
-            # --- MODIFIED: Load only the main schedule file ---
             all_schedules_df = load_and_clean_schedule(SCHEDULE_FILE_NAME) 
             
             if all_schedules_df.empty:
@@ -253,47 +238,38 @@ def calculate_and_display_stats():
             
             class_counts = defaultdict(int)
             
-            # Time slots mapping columns to end times for comparison
             time_slot_end_times = {
                 2: "9:00AM", 3: "10:10AM", 4: "11:20AM", 5: "12:30PM",
                 6: "1:30PM", 7: "2:30PM", 8: "3:40PM", 9: "4:50PM",
                 10: "6:00PM", 11: "7:10PM", 12: "8:20PM", 13: "9:30PM"
             }
             
-            # Create a normalized map of all known courses
             normalized_course_map = {normalize_string(k): k for k in COURSE_DETAILS_MAP.keys()}
             
-            # --- THIS IS THE START OF THE FIXED LOGIC ---
-            # We iterate over the full concatenated dataframe
             for _, row in all_schedules_df.iterrows():
                 class_date = row[0]
                 
                 if class_date > today_date:
-                    continue # Skip all future dates
+                    continue 
 
                 for col_idx, end_time_str in time_slot_end_times.items():
-                    # Check if the class has already happened
-                    is_in_past = False # Reset for each time slot
+                    is_in_past = False 
                     if class_date < today_date:
-                        # This class was on a previous day
                         is_in_past = True
                     elif class_date == today_date:
-                        # This class is today. We must check the time.
                         try:
                             class_end_dt = local_tz.localize(pd.to_datetime(f"{class_date.strftime('%Y-%m-%d')} {end_time_str}"))
                             is_in_past = class_end_dt < now_dt
                         except Exception:
-                            is_in_past = False # Error parsing, skip
+                            is_in_past = False 
                     
                     if is_in_past:
                         cell_value = str(row[col_idx])
                         if cell_value and cell_value != 'nan':
                             normalized_cell = normalize_string(cell_value)
                             
-                            # Check every known class against the cell
                             for norm_name, orig_name in normalized_course_map.items():
                                 if norm_name in normalized_cell:
-                                    # --- CHECK FOR OVERRIDES ---
                                     is_overridden = False
                                     if class_date in DAY_SPECIFIC_OVERRIDES and norm_name in DAY_SPECIFIC_OVERRIDES[class_date]:
                                         override_details = DAY_SPECIFIC_OVERRIDES[class_date][norm_name]
@@ -303,23 +279,21 @@ def calculate_and_display_stats():
                                         if "POSTPONED" in venue_text or "POSTPONED" in faculty_text or \
                                            "CANCELLED" in venue_text or "CANCELLED" in faculty_text or \
                                            "PREPONED" in venue_text or "PREPONED" in faculty_text:
-                                            is_overridden = True # Don't count this class
+                                            is_overridden = True 
                                             
                                     if not is_overridden:
                                         class_counts[orig_name] += 1
 
-            # 2. Add classes from ADDITIONAL_CLASSES
             for added_class in ADDITIONAL_CLASSES:
                 class_date = added_class['Date']
                 if class_date > today_date:
-                    continue # Skip future classes
+                    continue 
                 
                 is_in_past = False
                 if class_date < today_date:
                     is_in_past = True
                 elif class_date == today_date:
                     try:
-                        # Need to parse the time from the 'Time' string
                         _, end_time_str = added_class['Time'].split('-')
                         class_end_dt = local_tz.localize(pd.to_datetime(f"{class_date.strftime('%Y-%m-%d')} {end_time_str}"))
                         is_in_past = class_end_dt < now_dt
@@ -327,7 +301,6 @@ def calculate_and_display_stats():
                         is_in_past = False
                 
                 if is_in_past:
-                    # Check if this class is a valid subject
                     norm_name = normalize_string(added_class['Subject'])
                     if norm_name in normalized_course_map:
                         orig_name = normalized_course_map[norm_name]
@@ -339,21 +312,18 @@ def calculate_and_display_stats():
 
             st.markdown("This shows the total number of sessions held *to date*, accounting for all schedule changes.")
             
-            # --- NEW: Grouping Logic ---
             grouped_counts = defaultdict(dict)
             for full_name, count in class_counts.items():
-                # Find the course and section
                 match = re.match(r"(.*?)\((.*)\)", full_name)
                 if match:
                     course_name = match.group(1)
-                    section_name = match.group(2).replace("'", "") # Clean up 'C -> C
+                    section_name = match.group(2).replace("'", "") 
                 else:
                     course_name = full_name
-                    section_name = "Main" # For subjects like 'BS'
+                    section_name = "Main" 
                 
                 grouped_counts[course_name][section_name] = count
             
-            # --- NEW: Display Logic ---
             sorted_courses = sorted(grouped_counts.keys())
             midpoint = len(sorted_courses) // 2 + (len(sorted_courses) % 2)
             col1, col2 = st.columns(2)
@@ -364,9 +334,7 @@ def calculate_and_display_stats():
                         st.markdown(f"**{course_name}**")
                         sections = grouped_counts[course_name]
                         
-                        # --- MAX LECTURE LOGIC ---
                         max_lectures = 30
-                        # Check for DV&VS or BS
                         if "DV&VS" in course_name or course_name == "BS":
                             max_lectures = 40
                             
@@ -376,12 +344,11 @@ def calculate_and_display_stats():
                                 st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Total Sessions: {count}/{max_lectures}")
                             else:
                                 st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count}/{max_lectures} sessions")
-                        st.markdown("") # Add a little space
+                        st.markdown("") 
 
             display_course_stats(col1, sorted_courses[:midpoint])
             display_course_stats(col2, sorted_courses[midpoint:])
 
-# --- MODIFIED: Added check to ignore temp files starting with ~ ---
 @st.cache_data
 def get_all_student_data(folder_path='.'):
     student_data_map = {}
@@ -415,7 +382,6 @@ def get_all_student_data(folder_path='.'):
     return student_data_map
     
 def get_class_end_datetime(class_info, local_tz):
-    """Parses class info to get its end datetime."""
     try:
         time_str = class_info['Time']
         date_obj = class_info['Date']
@@ -438,7 +404,6 @@ def generate_ics_content(found_classes):
     c = Calendar(creator="-//Student Timetable Script//EN")
     local_tz = pytz.timezone(TIMEZONE)
     for class_info in found_classes:
-        # --- MODIFIED: Skip all special status classes ---
         venue_text = class_info.get('Venue', '').upper()
         faculty_text = class_info.get('Faculty', '').upper()
         if ("POSTPONED" in venue_text or "POSTPONED" in faculty_text or
@@ -472,6 +437,7 @@ def generate_ics_content(found_classes):
         except Exception:
             continue
     return c.serialize()
+
 # 4. STREAMLIT WEB APP INTERFACE
 st.set_page_config(
     page_title="MBA Timetable Assistant", 
@@ -482,31 +448,17 @@ st.markdown("""
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0F172A">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 """, unsafe_allow_html=True)
-# --- CSS STYLING ---
+
 local_css_string = """
 <style>
-    /* ... (your existing CSS from root to .results-container) ... */
     * { color-scheme: dark !important; }
-    
-    /* --- NEW: Force browser background dark --- */
-    html, body {
-        background-color: var(--bg) !important;
-    }
-    
+    html, body { background-color: var(--bg) !important; }
     [data-testid="stAppViewContainer"], [data-testid="stSidebar"] {
         background-color: var(--bg) !important; color: #ffffff !important;
     }
-    
-    /* --- CHANGE 1: Force-hide the Streamlit header bar --- */
-    [data-testid="stHeader"] {
-        display: none;
-        visibility: hidden;
-        height: 0;
-    }
-    
+    [data-testid="stHeader"] { display: none; visibility: hidden; height: 0; }
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
     :root{
         --bg:#0F172A; --card:#1E293B; --muted:#94A3B8; --accent-start:#60A5FA; --accent-end:#818CF8;
@@ -518,27 +470,15 @@ local_css_string = """
                     radial-gradient(1000px 500px at 90% 90%, rgba(129,140,248,0.06), transparent 10%), var(--bg);
         color: #ffffff; font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     }
-    .main-header {
-        font-size: 2.4rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem;
-    }
+    .main-header { font-size: 2.4rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; }
     .header-sub { text-align:center; color:var(--muted); margin-top:0rem; margin-bottom:2rem; font-size:1.0rem; }
     .welcome-box {
         background: var(--card); border: 1px solid var(--glass-border); padding: 1rem 1.25rem;
         border-radius: 14px; margin-bottom: 1.5rem; color: var(--muted); font-size: 0.95rem;
     }
     .welcome-box strong { color: #ffffff; font-weight: 600; }
-    
-    /* --- NEW WELCOME MESSAGE --- */
-    .welcome-message {
-        margin-top: 0rem; /* Was -2rem, now 0rem */
-        margin-bottom: 1rem; 
-        font-size: 1.1rem; 
-        color: var(--muted); 
-    }
-    .welcome-message strong {
-        color: #ffffff; /* Make the roll number white */
-    }
-
+    .welcome-message { margin-top: 0rem; margin-bottom: 1rem; font-size: 1.1rem; color: var(--muted); }
+    .welcome-message strong { color: #ffffff; }
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
         border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
@@ -573,13 +513,7 @@ local_css_string = """
     .meta .time { display:block; font-weight:600; color:#fff; font-size:0.97rem; }
     .meta .venue, .meta .faculty { display:block; font-size:0.85rem; color:var(--muted); }
     .venue-changed { color: var(--venue-change-color) !important; font-weight: 600; }
-    
-    /* --- NEW: Strikethrough Class --- */
-    .strikethrough {
-        text-decoration: line-through;
-        opacity: 0.6;
-    }
-    
+    .strikethrough { text-decoration: line-through; opacity: 0.6; }
     .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
         background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); color: var(--bg);
         font-weight:700; padding: 0.5rem 0.9rem; border-radius:10px; border:none;
@@ -589,18 +523,11 @@ local_css_string = """
     .stDownloadButton>button:hover, div[data-testid="stForm"] button[kind="primary"]:hover, .stButton>button:hover {
         transform: translateY(-3px); box-shadow: 0 14px 30px rgba(96,165,250,0.15);
     }
-    
-    /* --- MODIFIED: Smaller Change Button --- */
     .stButton>button {
-        width: auto; 
-        padding: 0.25rem 0.6rem; /* Smaller padding */
-        font-size: 0.8rem; /* Smaller font */
-        background: var(--card);
-        color: var(--muted); 
-        border: 1px solid var(--glass-border);
+        width: auto; padding: 0.25rem 0.6rem; font-size: 0.8rem;
+        background: var(--card); color: var(--muted); border: 1px solid var(--glass-border);
     }
     .stButton>button:hover { color: var(--accent-start); border-color: var(--accent-start); }
-    
     a { color: var(--accent-start); font-weight:600; }
     .css-1d391kg, .css-1v3fvcr, .css-18ni7ap { color: #ffffff; }
     .stTextInput>div>div>input, .stTextInput>div>div>textarea {
@@ -613,82 +540,46 @@ local_css_string = """
     }
     .results-container h3 { color: #E2E8F0; margin-top: 0; margin-bottom: 1rem; font-size: 1.3rem; }
     .results-container h3:not(:first-child) { margin-top: 1.5rem; }
-    
-    /* --- MODIFIED: Mobile View Adjustments --- */
     @media (max-width: 600px) {
-        /* Reduce padding on cards */
-        .day-card {
-            padding: 0.8rem; /* Further reduced padding */
-            margin-bottom: 1rem;
-        }
-        .results-container {
-            padding: 0.8rem;
-        }
-        /* Reduce font sizes */
-        .main-header { font-size: 1.6rem; } /* Further reduced */
-        .header-sub { font-size: 0.8rem; margin-bottom: 1.5rem; } /* Further reduced */
-        .day-header { font-size: 0.9rem; } /* Further reduced */
-        .subject-name { font-size: 0.9rem; } /* Further reduced */
-        .meta .time { font-size: 0.85rem; } /* Further reduced */
-        .meta .venue, .meta .faculty { font-size: 0.75rem; } /* Further reduced */
-        /* Reduce padding on class entries */
-        .class-entry {
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
-        }
-        .meta { 
-            min-width: 120px; 
-            font-size: 0.85rem; /* Further reduced */
-        }
-        /* Make buttons slightly smaller */
+        .day-card { padding: 0.8rem; margin-bottom: 1rem; }
+        .results-container { padding: 0.8rem; }
+        .main-header { font-size: 1.6rem; }
+        .header-sub { font-size: 0.8rem; margin-bottom: 1.5rem; }
+        .day-header { font-size: 0.9rem; }
+        .subject-name { font-size: 0.9rem; }
+        .meta .time { font-size: 0.85rem; }
+        .meta .venue, .meta .faculty { font-size: 0.75rem; }
+        .class-entry { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .meta { min-width: 120px; font-size: 0.85rem; }
         .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.9rem;
+            padding: 0.4rem 0.8rem; font-size: 0.9rem;
         }
-        /* Make change button even smaller on mobile */
-        .stButton>button {
-            padding: 0.25rem 0.6rem;
-            font-size: 0.8rem;
-        }
+        .stButton>button { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
     }
 </style>
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
-# --- INITIALIZE SESSION STATE ---
 if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'roll_number' not in st.session_state:
     st.session_state.roll_number = ""
 if 'search_clear_counter' not in st.session_state:
     st.session_state.search_clear_counter = 0
-if 'just_submitted' not in st.session_state: # <-- For one-time scroll
+if 'just_submitted' not in st.session_state: 
     st.session_state.just_submitted = False
 
-
-# --- APP HEADER ---
 if not st.session_state.submitted:
-    # Only show headers on the login page
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub">Made by Vishesh</div>', unsafe_allow_html=True)
-else:
-    # On the main app page, show nothing here.
-    # The "welcome-message" div will be the first thing shown.
-    pass
 
-
-# --- MAIN APP LOGIC ---
-# Load student data (needed for both login and stats)
 student_data_map = get_all_student_data()
 
 if not student_data_map:
-    # Fatal error, can't even show stats
-    # Show headers even on error
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
     st.error("FATAL ERROR: Could not load any student data. Please check your Excel files.")
 else:
-    # --- DISPLAY LOGIN PAGE ---
     if not st.session_state.submitted:
         st.markdown(
             """
@@ -703,7 +594,6 @@ else:
             submitted_button = st.form_submit_button("Generate Timetable")
             
             if submitted_button:
-                # --- SMART ROLL NUMBER LOGIC ---
                 final_roll = roll_number_input
                 if roll_number_input.isdigit():
                     val = int(roll_number_input)
@@ -713,46 +603,35 @@ else:
                         final_roll = f"24MBA{roll_number_input}"
                 
                 st.session_state.roll_number = final_roll
-                # -------------------------------
-                
                 st.session_state.submitted = True
-                st.session_state.just_submitted = True # <-- Set scroll flag
+                st.session_state.just_submitted = True 
                 st.rerun()
         
-        # --- DISPLAY STATS ON LOGIN PAGE ---
         render_mess_menu_expander()
         calculate_and_display_stats()
 
-    # --- DISPLAY TIMETABLE PAGE ---
     else:
         roll_to_process = st.session_state.roll_number
         
-        # Handle empty submission
         if not roll_to_process:
             st.session_state.submitted = False
             st.rerun()
-        # Handle invalid roll number
         elif roll_to_process not in student_data_map:
             st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
             st.session_state.submitted = False
             st.session_state.roll_number = ""
             st.rerun()
-        # Handle valid roll number
         else:
             student_info = student_data_map[roll_to_process]
             student_name, student_sections = student_info['name'], student_info['sections']
             
-            # Load the main schedule file *only after* login
             master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
             
             if master_schedule_df.empty:
-                # Error is already handled by load_and_clean_schedule
                 pass
             else:
-                # Display header with "Change" button
                 col1, col2 = st.columns([3, 1])
                 with col1:
-                    # --- MODIFIED: Welcome message uses roll number ---
                     st.markdown(f"""
                     <div class="welcome-message">
                         Displaying schedule for: <strong>{roll_to_process}</strong>
@@ -762,11 +641,10 @@ else:
                     if st.button("Change Roll Number"):
                         st.session_state.submitted = False
                         st.session_state.roll_number = ""
-                        st.session_state.search_clear_counter = 0 # Reset search
-                        st.session_state.just_submitted = False # Reset scroll flag
+                        st.session_state.search_clear_counter = 0 
+                        st.session_state.just_submitted = False 
                         st.rerun()
                 
-                # --- NEW: DISPLAY EXAM SCHEDULE ---
                 display_exam_schedule(student_sections)
 
                 with st.spinner(f'Compiling classes for {student_name}...'):
@@ -787,16 +665,12 @@ else:
                                         details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'}).copy()
                                         is_venue_override = False
                                         
-                                        # --- CHECK FOR OVERRIDES ---
                                         if date in DAY_SPECIFIC_OVERRIDES:
                                             if norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
                                                 override_data = DAY_SPECIFIC_OVERRIDES[date][norm_sec]
                                                 
-                                                # --- NEW: Time-Specific Cancellation Logic ---
                                                 should_apply_override = True
                                                 if 'Target_Time' in override_data:
-                                                    # If the override specifies a time (e.g. "8-9AM"), 
-                                                    # ONLY apply it if the current time slot matches exactly.
                                                     if override_data['Target_Time'] != time:
                                                         should_apply_override = False
                                                 
@@ -807,7 +681,7 @@ else:
                                                 
                                         found_classes.append({
                                             "Date": date, "Day": day, 
-                                            "Time": details.get('Time', time), # <-- UPDATED: Use overridden time if present
+                                            "Time": details.get('Time', time),
                                             "Subject": orig_sec,
                                             "Faculty": details.get('Faculty', 'N/A'),
                                             "Venue": details.get('Venue', '-'),
@@ -818,21 +692,15 @@ else:
                         norm_added_subject = normalize_string(added_class['Subject'])
                         if norm_added_subject in normalized_student_section_map:
                             
-                            # --- THIS IS THE FIX ---
-                            # Check for special status. If found, we still add the class
-                            # so the strikethrough logic can display it correctly.
-                            # We just need to mark it as an "override".
-                            
                             venue_text = added_class.get('Venue', '').upper()
                             faculty_text = added_class.get('Faculty', '').upper()
-                            is_override = False # Default
+                            is_override = False 
                             
                             if ("POSTPONED" in venue_text or "POSTPONED" in faculty_text or
                                 "CANCELLED" in venue_text or "CANCELLED" in faculty_text or
                                 "PREPONED" in venue_text or "PREPONED" in faculty_text or
                                 "(RESCHEDULED)" in venue_text or "(PREPONED)" in venue_text):
                                 is_override = True
-                            # --- END OF FIX ---
 
                             day_of_week = added_class['Date'].strftime('%A')
                             found_classes.append({
@@ -840,17 +708,15 @@ else:
                                 "Subject": added_class['Subject'], 
                                 "Faculty": added_class.get('Faculty', 'N/A'),
                                 "Venue": added_class.get('Venue', '-'), 
-                                "is_venue_override": is_override # <-- Use the new flag
+                                "is_venue_override": is_override 
                             })
 
                     found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
                     
-                # --- ORGANIZED RESULTS SECTION ---
                 if found_classes:
                     ics_content = generate_ics_content(found_classes)
                     sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
                     
-                    # --- NEW: Combined Download & Import Expander ---
                     with st.expander("Download & Import to Calendar"):
                         st.download_button(
                             label="Download .ics Calendar File",
@@ -872,13 +738,10 @@ else:
                     
                     sorted_dates = sorted(schedule_by_date.keys())
                     
-                    # --- SORTING LOGIC: Handles both '8-9AM' and '5:00-6:00PM' formats
                     def get_sort_key(class_item):
                         time_str = class_item['Time'].upper()
                         try:
-                            # Extract start hour and minute
                             start_part = time_str.split('-')[0].strip()
-                            
                             if ':' in start_part:
                                 h_str, m_str = start_part.split(':')
                                 h = int(re.search(r'\d+', h_str).group())
@@ -887,17 +750,9 @@ else:
                                 h = int(re.search(r'\d+', start_part).group())
                                 m = 0
                             
-                            # Heuristic for 24-hour sorting
-                            # 1. If hour is 1-7 (e.g., 1PM, 5PM), it's afternoon/evening -> Add 12
-                            if h < 8: 
-                                h += 12
-                            # 2. If hour is 8, 9, 10 (e.g., 8PM) AND string has "PM" but not "AM" -> Add 12
-                            # (This fixes the 8:30PM vs 8:00AM issue)
+                            if h < 8: h += 12
                             elif h in [8, 9, 10] and "PM" in time_str and "AM" not in time_str:
                                 h += 12
-                            
-                            # 12PM (Noon) stays 12. 11AM stays 11.
-                            
                             return h * 60 + m
                         except:
                             return 9999
@@ -922,11 +777,9 @@ else:
                     past_dates = sorted([d for d in all_dates if d < today], reverse=True)
                     upcoming_dates = sorted([d for d in all_dates if d >= today])
 
-                    # --- 1. RENDER PAST CLASSES (IN AN EXPANDER) ---
                     with st.expander("Show Previous Classes"):
-                        # --- SEARCH BAR MOVED HERE ---
                         search_query = st_keyup(
-                            label=None, # <-- Label removed
+                            label=None,
                             placeholder="Search past classes...",
                             debounce=300, 
                             key=f"search_bar_past_{st.session_state.search_clear_counter}" 
@@ -948,7 +801,6 @@ else:
                         for date_obj in past_dates:
                             classes_today = schedule_by_date.get(date_obj, [])
                             
-                            # --- Filter logic for past classes ---
                             if search_query:
                                 classes_today = [
                                     c for c in classes_today if
@@ -960,17 +812,17 @@ else:
                                     found_past_search = True
                             
                             if not classes_today:
-                                continue # Skip empty days
+                                continue 
                             
+                            # FORMAT CHANGE: Removed Day Name (%A)
                             st.markdown(f'''
                                 <div class="day-card" id="date-card-past-{date_obj.toordinal()}">
                                     <div class="day-header">
-                                        {date_obj.strftime("%A, %d %B %Y")}
+                                        {date_obj.strftime("%d %B %Y")}
                                     </div>
                             ''', unsafe_allow_html=True)
                             
                             for class_info in classes_today:
-                                # --- STRIKETHROUGH LOGIC ---
                                 venue_text = class_info.get("Venue", "-")
                                 faculty_text = class_info.get("Faculty", "-")
                                 venue_text_upper = venue_text.upper()
@@ -1033,19 +885,11 @@ else:
                         if search_query and not found_past_search:
                             st.warning(f"No past classes found matching your search for '{search_query}'.")
 
-                    
-                    # --- 2. RENDER UPCOMING CLASSES ---
-                    
-                    # --- SEARCH ANCHOR ---
                     st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
-
-                    # --- "Upcoming Classes" subheader REMOVED ---
 
                     if not upcoming_dates:
                          st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
 
-                    
-                    # --- "Holiday" fix. Iterate over all upcoming dates first ---
                     for idx, date_obj in enumerate(upcoming_dates):
                         is_today = (date_obj == today)
                         today_class = "today" if is_today else ""
@@ -1057,11 +901,11 @@ else:
                         classes_today = schedule_by_date.get(date_obj, [])
                         
                         if not classes_today:
-                            # This is the "No classes scheduled" card for holidays/weekends
+                            # FORMAT CHANGE: Removed Day Name (%A)
                             st.markdown(f'''
                                 <div class="day-card {today_class}" id="{card_id}">
                                     <div class="day-header">
-                                        {date_obj.strftime("%A, %d %B %Y")}
+                                        {date_obj.strftime("%d %B %Y")}
                                     </div>
                                     <div class="class-entry">
                                         <div class="left">
@@ -1072,25 +916,24 @@ else:
                                 </div>
                             ''', unsafe_allow_html=True)
                         else:
-                            # Render the day card with classes
+                            # FORMAT CHANGE: Removed Day Name (%A)
                             if is_today:
                                 st.markdown(f'''
                                     <div class="day-card {today_class}" id="{card_id}">
                                         <div class="today-badge">TODAY</div>
                                         <div class="day-header">
-                                            {date_obj.strftime("%A, %d %B %Y")}
+                                            {date_obj.strftime("%d %B %Y")}
                                         </div>
                                 ''', unsafe_allow_html=True)
                             else:
                                 st.markdown(f'''
                                     <div class="day-card {today_class}" id="{card_id}">
                                         <div class="day-header">
-                                            {date_obj.strftime("%A, %d %B %Y")}
+                                            {date_obj.strftime("%d %B %Y")}
                                         </div>
                                 ''', unsafe_allow_html=True)
 
                             for class_info in classes_today:
-                                # --- STRIKETHROUGH LOGIC (COPIED FOR UPCOMING) ---
                                 venue_display = ""
                                 venue_text = class_info.get("Venue", "-")
                                 faculty_text = class_info.get("Faculty", "-")
@@ -1151,12 +994,9 @@ else:
                                 ''', unsafe_allow_html=True)
                             
                             st.markdown('</div>', unsafe_allow_html=True)
-
-                    # --- AUTO-SCROLL SCRIPT (REMOVED) ---
                     
                 else:
                     st.warning("No classes found for your registered sections in the master schedule.")
             
-# --- ADDED CAPTION AT THE VERY END ---
 st.markdown("---")
 st.caption("_Made by Vishesh_")
