@@ -160,8 +160,8 @@ def display_exam_schedule(student_sections):
                 border-left: 4px solid #60A5FA;">
                 <div style="font-weight: 700; font-size: 1.1em; color: #fff;">{exam['Full_Name']}</div>
                 <div style="display: flex; justify-content: space-between; color: #94A3B8; font-size: 0.9em; margin-top: 4px;">
-                    <span>📅 {date_str}</span>
-                    <span>⏰ {exam['Time']}</span>
+                    <span>{date_str}</span>
+                    <span>{exam['Time']}</span>
                 </div>
             </div>
             """, unsafe_allow_html=True)
