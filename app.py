@@ -18,8 +18,36 @@ import time
 from day_overrides import DAY_SPECIFIC_OVERRIDES
 from additional_classes import ADDITIONAL_CLASSES
 from mess_menu import MESS_MENU
+from exam_schedule import EXAM_SCHEDULE_DATA  # <--- NEW IMPORT
 
-# 2. CONFIGURATION
+# --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
+AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
+
+# Store the start time in session_state
+if "start_time" not in st.session_state:
+    st.session_state.start_time = time.time()
+
+elapsed = time.time() - st.session_state.start_time
+
+if elapsed > AUTO_REFRESH_INTERVAL:
+    with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
+        st.cache_data.clear()      
+        st.cache_resource.clear()  
+        gc.collect()
+        st.session_state.clear() 
+        time.sleep(2) 
+        st.rerun()
+
+# --- Cache Clearing Logic ---
+if "run_counter" not in st.session_state:
+    st.session_state.run_counter = 0
+st.session_state.run_counter += 1
+
+if st.session_state.run_counter % 100 == 0:
+    st.cache_data.clear()      
+    st.cache_resource.clear()  
+    gc.collect()
+
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
 # --- List of all schedule files, from oldest to newest ---
@@ -35,8 +63,8 @@ COURSE_DETAILS_MAP = {
     'DC': {'Faculty': 'Sapan Oza', 'Venue': 'T6'}, 'DM(A)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'},
     'DM(B)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'}, "DRM('C)": {'Faculty': 'Pankaj Agrawal', 'Venue': 'T5'},
     'DRM(A)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'}, 'DRM(B)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'},
-    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'T5'}, 'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
-    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'T5'},
+    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'E2'}, 'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
+    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'E2'},
     'IMC(A)': {'Faculty': 'Sanjay Jain', 'Venue': 'T1'}, 'IMC(B)': {'Faculty': 'Riddhi Ambavale', 'Venue': 'T7'},
     'INB(A)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'INB(B)': {'Faculty': 'M C Gupta', 'Venue': 'T7'},
     'INB(C)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'LSS(A)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'},
@@ -93,6 +121,51 @@ def load_all_schedules(file_list):
     combined_df = combined_df.sort_values(by=[0]) # Sort by date
     return combined_df
 
+# --- NEW: Function to display Exam Schedule ---
+def display_exam_schedule(student_sections):
+    # 1. Normalize student sections to get base codes (e.g., 'VALU(A)' -> 'VALU')
+    student_base_codes = set()
+    for sec in student_sections:
+        # Remove anything in parenthesis and whitespace
+        base = re.sub(r"\(.*$", "", sec).strip()
+        student_base_codes.add(base)
+        # Handle special case: B2B('C) might normalize weirdly if not careful
+        if "B2B" in sec: student_base_codes.add("B2B")
+        if "DV&VS" in sec: student_base_codes.add("DV&VS")
+        if "ML&AI" in sec: student_base_codes.add("ML&AI")
+        if "CC&AU" in sec: student_base_codes.add("CC&AU")
+
+    # 2. Filter exams
+    my_exams = []
+    for exam in EXAM_SCHEDULE_DATA:
+        if exam['Subject_Code'] in student_base_codes:
+            my_exams.append(exam)
+    
+    if not my_exams:
+        return
+
+    # 3. Display
+    with st.expander("📝 End Term Examinations (Term V)"):
+        # Sort by date
+        my_exams.sort(key=lambda x: x['Date'])
+        
+        for exam in my_exams:
+            date_str = exam['Date'].strftime('%d %b %Y (%A)')
+            st.markdown(f"""
+            <div style="
+                background-color: rgba(255, 255, 255, 0.05); 
+                padding: 10px; 
+                border-radius: 8px; 
+                margin-bottom: 8px; 
+                border-left: 4px solid #60A5FA;">
+                <div style="font-weight: 700; font-size: 1.1em; color: #fff;">{exam['Full_Name']}</div>
+                <div style="display: flex; justify-content: space-between; color: #94A3B8; font-size: 0.9em; margin-top: 4px;">
+                    <span>📅 {date_str}</span>
+                    <span>⏰ {exam['Time']}</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
 def render_mess_menu_expander():
     """Show weekly mess menu with a day selector instead of many dropdowns."""
     local_tz = pytz.timezone(TIMEZONE)
@@ -124,7 +197,7 @@ def render_mess_menu_expander():
             label += " (Tomorrow)"
         options.append(label)
 
-    with st.expander("Mess Menu for the Week", expanded=False):
+    with st.expander("🍽️ Mess Menu for the Week", expanded=False):
         # Day picker (radio is compact & clear; use selectbox if you prefer)
         selected_label = st.radio(
             "Select a day:",
@@ -302,7 +375,7 @@ def calculate_and_display_stats():
                             if section_name == "Main":
                                 st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Total Sessions: {count}/{max_lectures}")
                             else:
-                                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count}/{max_lectures}")
+                                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count}/{max_lectures} sessions")
                         st.markdown("") # Add a little space
 
             display_course_stats(col1, sorted_courses[:midpoint])
@@ -647,7 +720,6 @@ else:
                 st.rerun()
         
         # --- DISPLAY STATS ON LOGIN PAGE ---
-        # --- DISPLAY STATS ON LOGIN PAGE ---
         render_mess_menu_expander()
         calculate_and_display_stats()
 
@@ -694,6 +766,9 @@ else:
                         st.session_state.just_submitted = False # Reset scroll flag
                         st.rerun()
                 
+                # --- NEW: DISPLAY EXAM SCHEDULE ---
+                display_exam_schedule(student_sections)
+
                 with st.spinner(f'Compiling classes for {student_name}...'):
                     NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
                     normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
