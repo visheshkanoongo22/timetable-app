@@ -12,7 +12,6 @@ from collections import defaultdict
 import streamlit.components.v1 as components
 from streamlit_extras.st_keyup import st_keyup # For live search
 import gc 
-import streamlit.runtime.caching as st_cache
 import time 
 
 # --- IMPORT DATA FROM EXTERNAL FILES ---
@@ -31,13 +30,12 @@ elapsed = time.time() - st.session_state.start_time
 
 if elapsed > AUTO_REFRESH_INTERVAL:
     with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
-        st_cache.clear_cache()
+        st.cache_data.clear()      # <--- Corrected
+        st.cache_resource.clear()  # <--- Corrected
         gc.collect()
-        st.session_state.clear()  # Clears all stored state (logs user out)
-        time.sleep(2)  # short pause for smooth refresh
-        st.experimental_rerun()
-# --- END NEW BLOCK ---
-
+        st.session_state.clear() 
+        time.sleep(2) 
+        st.rerun()
 
 # --- Cache Clearing Logic ---
 if "run_counter" not in st.session_state:
@@ -45,9 +43,11 @@ if "run_counter" not in st.session_state:
 st.session_state.run_counter += 1
 
 if st.session_state.run_counter % 100 == 0:
-    st_cache.clear_cache()
+    st.cache_data.clear()      # <--- Corrected
+    st.cache_resource.clear()  # <--- Corrected
     gc.collect()
 
+# 2. CONFIGURATION
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
 # --- List of all schedule files, from oldest to newest ---
