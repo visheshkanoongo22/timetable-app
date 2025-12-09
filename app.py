@@ -19,34 +19,6 @@ from day_overrides import DAY_SPECIFIC_OVERRIDES
 from additional_classes import ADDITIONAL_CLASSES
 from mess_menu import MESS_MENU
 
-# --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
-AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
-
-# Store the start time in session_state
-if "start_time" not in st.session_state:
-    st.session_state.start_time = time.time()
-
-elapsed = time.time() - st.session_state.start_time
-
-if elapsed > AUTO_REFRESH_INTERVAL:
-    with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
-        st.cache_data.clear()      # <--- Corrected
-        st.cache_resource.clear()  # <--- Corrected
-        gc.collect()
-        st.session_state.clear() 
-        time.sleep(2) 
-        st.rerun()
-
-# --- Cache Clearing Logic ---
-if "run_counter" not in st.session_state:
-    st.session_state.run_counter = 0
-st.session_state.run_counter += 1
-
-if st.session_state.run_counter % 100 == 0:
-    st.cache_data.clear()      # <--- Corrected
-    st.cache_resource.clear()  # <--- Corrected
-    gc.collect()
-
 # 2. CONFIGURATION
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
