@@ -622,7 +622,7 @@ else:
                 cookie_manager.set("student_roll_number", final_roll, expires_at=datetime.now() + pd.Timedelta(days=30))
                 
                 # 3. CRITICAL WAIT: Give browser time to save cookie before reloading
-                time.sleep(5)
+                time.sleep(2)
                 
                 st.rerun()
         
