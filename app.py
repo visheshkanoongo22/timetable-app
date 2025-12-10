@@ -10,23 +10,27 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
-from streamlit_extras.st_keyup import st_keyup # For live search
+from streamlit_extras.st_keyup import st_keyup 
 import gc 
 import time 
 
-# --- NEW IMPORT FOR COOKIES ---
-import extra_streamlit_components as stx
-
 # --- IMPORT DATA FROM EXTERNAL FILES ---
-from day_overrides import DAY_SPECIFIC_OVERRIDES
-from additional_classes import ADDITIONAL_CLASSES
-from mess_menu import MESS_MENU
-from exam_schedule import EXAM_SCHEDULE_DATA
+# (Assuming these files exist in your directory as per your previous setup)
+try:
+    from day_overrides import DAY_SPECIFIC_OVERRIDES
+    from additional_classes import ADDITIONAL_CLASSES
+    from mess_menu import MESS_MENU
+    from exam_schedule import EXAM_SCHEDULE_DATA
+except ImportError:
+    # Fallback dummy data if files are missing for testing
+    DAY_SPECIFIC_OVERRIDES = {}
+    ADDITIONAL_CLASSES = []
+    MESS_MENU = {}
+    EXAM_SCHEDULE_DATA = []
 
 # --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
-AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
+AUTO_REFRESH_INTERVAL = 10 * 60 
 
-# Store the start time in session_state
 if "start_time" not in st.session_state:
     st.session_state.start_time = time.time()
 
