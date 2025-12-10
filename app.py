@@ -1,3 +1,4 @@
+
 # 1. IMPORTS
 import pandas as pd
 import os
@@ -10,27 +11,20 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
-from streamlit_extras.st_keyup import st_keyup 
+from streamlit_extras.st_keyup import st_keyup # For live search
 import gc 
 import time 
 
 # --- IMPORT DATA FROM EXTERNAL FILES ---
-# (Assuming these files exist in your directory as per your previous setup)
-try:
-    from day_overrides import DAY_SPECIFIC_OVERRIDES
-    from additional_classes import ADDITIONAL_CLASSES
-    from mess_menu import MESS_MENU
-    from exam_schedule import EXAM_SCHEDULE_DATA
-except ImportError:
-    # Fallback dummy data if files are missing for testing
-    DAY_SPECIFIC_OVERRIDES = {}
-    ADDITIONAL_CLASSES = []
-    MESS_MENU = {}
-    EXAM_SCHEDULE_DATA = []
+from day_overrides import DAY_SPECIFIC_OVERRIDES
+from additional_classes import ADDITIONAL_CLASSES
+from mess_menu import MESS_MENU
+from exam_schedule import EXAM_SCHEDULE_DATA
 
 # --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
-AUTO_REFRESH_INTERVAL = 10 * 60 
+AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
 
+# Store the start time in session_state
 if "start_time" not in st.session_state:
     st.session_state.start_time = time.time()
 
@@ -57,6 +51,7 @@ if st.session_state.run_counter % 100 == 0:
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
+# --- List of all schedule files, from oldest to newest ---
 SCHEDULE_FILES = ['schedule1.xlsx', 'schedule2.xlsx', 'schedule3.xlsx', 'schedule.xlsx'] 
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
@@ -90,39 +85,6 @@ def normalize_string(text):
     if isinstance(text, str):
         return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").upper()
     return ""
-
-# --- NEW: Cookie Management Function ---
-def manage_cookies():
-    """Handle cookie operations for remembering roll number"""
-    try:
-        # Try to get existing cookie
-        saved_roll = cookie_manager.get(cookie="student_roll")
-        
-        # If we have a cookie and no roll number in session state, use it
-        if saved_roll and not st.session_state.get('roll_number') and not st.session_state.get('just_submitted'):
-            st.session_state.roll_number = saved_roll
-            st.session_state.submitted = True
-            
-        # If user just submitted a new roll number, save it to cookie
-        elif st.session_state.get('just_submitted') and st.session_state.get('roll_number'):
-            cookie_manager.set("student_roll", st.session_state.roll_number, max_age=86400*30)  # 30 days
-            st.session_state.just_submitted = False
-            
-        # If user wants to logout, clear the cookie
-        elif st.session_state.get('logout_requested', False):
-            cookie_manager.delete("student_roll")
-            # Clear specific keys instead of full clear to avoid breaking stx component
-            keys_to_clear = ['submitted', 'roll_number', 'just_submitted', 'search_clear_counter']
-            for key in keys_to_clear:
-                if key in st.session_state:
-                    del st.session_state[key]
-            
-            st.session_state.logout_requested = False
-            st.rerun()
-            
-    except Exception as e:
-        # If cookie manager fails, fall back to session state only
-        st.warning("Cookie functionality not available. Please enable cookies for best experience.")
 
 @st.cache_data
 def load_and_clean_schedule(file_path, is_stats_file=False):
@@ -607,12 +569,6 @@ if 'search_clear_counter' not in st.session_state:
     st.session_state.search_clear_counter = 0
 if 'just_submitted' not in st.session_state: 
     st.session_state.just_submitted = False
-# --- NEW: Flag for logout ---
-if 'logout_requested' not in st.session_state:
-    st.session_state.logout_requested = False
-
-# --- COOKIE LOGIC INJECTION ---
-manage_cookies()
 
 if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
@@ -683,10 +639,11 @@ else:
                     </div>
                     """, unsafe_allow_html=True)
                 with col2:
-                    # --- UPDATED BUTTON LOGIC ---
                     if st.button("Change Roll Number"):
-                        # Set a flag to indicate logout request
-                        st.session_state.logout_requested = True
+                        st.session_state.submitted = False
+                        st.session_state.roll_number = ""
+                        st.session_state.search_clear_counter = 0 
+                        st.session_state.just_submitted = False 
                         st.rerun()
                 
                 display_exam_schedule(student_sections)
@@ -722,7 +679,7 @@ else:
                                                     if 'Venue' in override_data:
                                                         is_venue_override = True
                                                     details.update(override_data)
-                                        
+                                                
                                         found_classes.append({
                                             "Date": date, "Day": day, 
                                             "Time": details.get('Time', time),
