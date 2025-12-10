@@ -239,10 +239,12 @@ DAY_SPECIFIC_OVERRIDES = {
         'SMKTB':  {'Venue': 'T1'}, # <-- NEW
         'BS':  {'Venue': 'E2'}, # <-- NEW
     },
-
     date(2025, 12, 11): {
         'DV&VSA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'DV&VSB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'IMCA':   {'Venue': 'T3'},   # <-- NEW
+        'B2BB':   {'Venue': '214'},  # <-- NEW
+        'B2BA':   {'Venue': 'E3'},   # <-- NEW
     },
 
     date(2025, 12, 12): {
