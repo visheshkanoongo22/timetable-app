@@ -24,16 +24,7 @@ from mess_menu import MESS_MENU
 from exam_schedule import EXAM_SCHEDULE_DATA
 
 # --- SETUP COOKIE MANAGER ---
-# --- SETUP COOKIE MANAGER ---
 cookie_manager = stx.CookieManager(key="cookie_manager")
-
-# --- SYNC: Load Cookie into Session State ---
-cookie_roll = cookie_manager.get(cookie="student_roll_number")
-
-# If session is empty but cookie exists, force login
-if cookie_roll and st.session_state.get("roll_number") != cookie_roll:
-    st.session_state.roll_number = cookie_roll
-    st.session_state.submitted = True
 
 # --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
 AUTO_REFRESH_INTERVAL = 10 * 60 
@@ -556,17 +547,30 @@ local_css_string = """
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
-# --- CORRECTED SAFE SESSION INITIALIZATION ---
+# --- SAFE SESSION INITIALIZATION ---
 # 1. Fetch cookie (returns None on first load, returns value on second load)
 cookie_roll = cookie_manager.get(cookie="student_roll_number")
 
-# 2. Check if we need to auto-login from cookie
-# If we have a cookie, and the session state is currently empty or doesn't match, update it.
-if cookie_roll and st.session_state.get("roll_number") != cookie_roll:
+# 2. HANDLE LOGOUT PENDING (Prevention of Auto-Login loop)
+# If the user just clicked logout, we want to ignore the cookie for this run
+if "logout_pending" in st.session_state and st.session_state.logout_pending:
+    # Double check deletion here to be safe
+    try:
+        cookie_manager.delete("student_roll_number")
+    except KeyError:
+        pass
+    
+    # Clear the pending flag for the NEXT run, but keep session cleared for THIS run
+    st.session_state.logout_pending = False
+    st.session_state.roll_number = ""
+    st.session_state.submitted = False
+
+# 3. Check if we need to auto-login from cookie (Only if NOT logging out)
+elif cookie_roll and st.session_state.get("roll_number") != cookie_roll:
     st.session_state.roll_number = cookie_roll
     st.session_state.submitted = True
 
-# 3. Initialize default session state ONLY if it doesn't exist yet
+# 4. Initialize default session state ONLY if it doesn't exist yet
 if "roll_number" not in st.session_state:
     st.session_state.roll_number = ""
 
@@ -602,7 +606,7 @@ else:
             unsafe_allow_html=True
         )
         with st.form("roll_number_form"):
-            roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463").strip().upper()
+            roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
             submitted_button = st.form_submit_button("Generate Timetable")
             
             if submitted_button:
@@ -614,20 +618,22 @@ else:
                     elif 100 <= val <= 999:
                         final_roll = f"24MBA{roll_number_input}"
                 
-                # 1. Update Session State
+                # --- SAVE ROLL TO SESSION AND BROWSER COOKIE ---
                 st.session_state.roll_number = final_roll
-                st.session_state.submitted = True
                 
-                # 2. Save Cookie to Browser
+                # Save to user's browser (valid for 30 days)
                 cookie_manager.set("student_roll_number", final_roll, expires_at=datetime.now() + pd.Timedelta(days=30))
                 
-                # 3. CRITICAL WAIT: Give browser time to save cookie before reloading
-                time.sleep(2)
+                st.session_state.submitted = True
+                st.session_state.just_submitted = True 
                 
+                # 2 second delay ONLY for login to ensure save
+                time.sleep(2)
                 st.rerun()
         
         render_mess_menu_expander()
         calculate_and_display_stats()
+
     else:
         roll_to_process = st.session_state.roll_number
         
@@ -648,7 +654,7 @@ else:
             
             st.session_state.submitted = False
             st.session_state.roll_number = ""
-            time.sleep(2)
+            time.sleep(1)
             st.rerun()
 
         # 3. Handle Valid Student Data
@@ -675,19 +681,19 @@ else:
                     if st.button("Change Roll Number"):
                         # --- SAFE SECURE LOGOUT ---
                         try:
-                            cookie_manager.delete("student_roll_number")
+                            cookie_manager.delete("student_roll_number") 
                         except KeyError:
                             pass 
 
-                        # 1. Clear Session
+                        # SET PENDING FLAG (Prevent auto-login loop)
+                        st.session_state.logout_pending = True
+                        
                         st.session_state.submitted = False
                         st.session_state.roll_number = ""
                         st.session_state.search_clear_counter = 0 
                         st.session_state.just_submitted = False 
                         
-                        # 2. CRITICAL WAIT: Give browser time to delete cookie
-                        time.sleep(0.5)
-                        
+                        # IMMEDIATE RERUN (No sleep needed thanks to flag)
                         st.rerun()
                 
                 display_exam_schedule(student_sections)
