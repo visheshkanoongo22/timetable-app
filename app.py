@@ -25,10 +25,11 @@ from exam_schedule import EXAM_SCHEDULE_DATA
 
 # --- SETUP COOKIE MANAGER ---
 # This allows us to save the roll number on the user's specific device
-@st.cache_resource(experimental_allow_widgets=True)
+# ✅ CORRECT
+@st.cache_resource
 def get_manager():
     return stx.CookieManager()
-
+    
 cookie_manager = get_manager()
 
 # --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
