@@ -20,26 +20,6 @@ from additional_classes import ADDITIONAL_CLASSES
 from mess_menu import MESS_MENU
 from exam_schedule import EXAM_SCHEDULE_DATA
 
-# --- PERSISTENCE HELPER FUNCTIONS (ADDED) ---
-ROLL_STORE_FILE = "last_roll.txt"
-
-def load_last_roll():
-    try:
-        if os.path.exists(ROLL_STORE_FILE):
-            with open(ROLL_STORE_FILE, "r", encoding="utf-8") as f:
-                roll = f.read().strip()
-                return roll
-    except Exception:
-        pass
-    return ""
-
-def save_last_roll(roll):
-    try:
-        with open(ROLL_STORE_FILE, "w", encoding="utf-8") as f:
-            f.write(roll.strip())
-    except Exception:
-        pass
-
 # --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
 AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
 
@@ -51,19 +31,10 @@ elapsed = time.time() - st.session_state.start_time
 
 if elapsed > AUTO_REFRESH_INTERVAL:
     with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
-        # Preserve last roll across hard refresh (MODIFIED)
-        last_roll = st.session_state.get("roll_number", "")
-        
         st.cache_data.clear()      
         st.cache_resource.clear()  
         gc.collect()
         st.session_state.clear() 
-        
-        # Restore the roll number after clear (MODIFIED)
-        if last_roll:
-            st.session_state["roll_number"] = last_roll
-            st.session_state["submitted"] = True
-            
         time.sleep(2) 
         st.rerun()
 
@@ -92,8 +63,8 @@ COURSE_DETAILS_MAP = {
     'DC': {'Faculty': 'Sapan Oza', 'Venue': 'T6'}, 'DM(A)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'},
     'DM(B)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'}, "DRM('C)": {'Faculty': 'Pankaj Agrawal', 'Venue': 'T5'},
     'DRM(A)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'}, 'DRM(B)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'},
-    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'T5'}, 'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
-    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'T5'},
+    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'E2'}, 'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
+    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'E2'},
     'IMC(A)': {'Faculty': 'Sanjay Jain', 'Venue': 'T1'}, 'IMC(B)': {'Faculty': 'Riddhi Ambavale', 'Venue': 'T7'},
     'INB(A)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'INB(B)': {'Faculty': 'M C Gupta', 'Venue': 'T7'},
     'INB(C)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'LSS(A)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'},
@@ -589,18 +560,10 @@ local_css_string = """
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
-# --- MODIFIED: INITIALIZE SESSION STATE WITH PERSISTENCE ---
-if 'roll_number' not in st.session_state:
-    # Try to load from disk
-    st.session_state.roll_number = load_last_roll()
-
 if 'submitted' not in st.session_state:
-    # If we found a roll number, we are 'submitted'
-    if st.session_state.roll_number:
-        st.session_state.submitted = True
-    else:
-        st.session_state.submitted = False
-
+    st.session_state.submitted = False
+if 'roll_number' not in st.session_state:
+    st.session_state.roll_number = ""
 if 'search_clear_counter' not in st.session_state:
     st.session_state.search_clear_counter = 0
 if 'just_submitted' not in st.session_state: 
@@ -639,10 +602,7 @@ else:
                     elif 100 <= val <= 999:
                         final_roll = f"24MBA{roll_number_input}"
                 
-                # --- MODIFIED: SAVE TO STATE AND FILE ---
                 st.session_state.roll_number = final_roll
-                save_last_roll(final_roll) # Persist to file
-                
                 st.session_state.submitted = True
                 st.session_state.just_submitted = True 
                 st.rerun()
