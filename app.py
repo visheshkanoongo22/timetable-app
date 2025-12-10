@@ -24,32 +24,33 @@ from mess_menu import MESS_MENU
 from exam_schedule import EXAM_SCHEDULE_DATA
 
 # -----------------------------------------------------------------------------
-# --- SESSION & COOKIE LOGIC ---
+# --- SESSION & COOKIE LOGIC (FOOLPROOF URL METHOD) ---
 # -----------------------------------------------------------------------------
 
 # 1. Initialize Cookie Manager
 cookie_manager = stx.CookieManager(key="cookie_manager")
 
-# 2. Initialize Logout Flag
-if "logout_pending" not in st.session_state:
-    st.session_state.logout_pending = False
+# 2. Check URL for explicit logout flag
+# If this param exists, we ignore all cookies
+params = st.query_params
+is_logged_out_param = params.get("logged_out") == "true"
 
 # 3. Fetch Cookie
 cookie_roll = cookie_manager.get(cookie="student_roll_number")
 
 # 4. AUTO-LOGIN LOGIC
 # We only auto-login if:
-# A) The user isn't in the middle of logging out
-# B) There is a valid, non-empty cookie found
-# C) The cookie value is different from current session
-if not st.session_state.logout_pending:
+# A) The URL does NOT say we are logged out
+# B) There is a valid cookie
+if not is_logged_out_param:
     if cookie_roll and str(cookie_roll).strip() != "" and st.session_state.get("roll_number") != cookie_roll:
         st.session_state.roll_number = cookie_roll
         st.session_state.submitted = True
 else:
-    # If pending logout, checks if cookie is gone/empty to reset flag
-    if not cookie_roll or str(cookie_roll).strip() == "":
-        st.session_state.logout_pending = False
+    # If the URL says we are logged out, ensure we stay that way
+    if "roll_number" in st.session_state and st.session_state.roll_number:
+        st.session_state.roll_number = ""
+        st.session_state.submitted = False
 
 # 5. Initialize Session Defaults
 if "roll_number" not in st.session_state:
@@ -626,8 +627,8 @@ else:
                 # Save to user's browser (valid for 30 days)
                 cookie_manager.set("student_roll_number", final_roll, expires_at=datetime.now() + pd.Timedelta(days=30))
                 
-                # RESET THE LOGOUT PENDING FLAG so auto-login works next time
-                st.session_state.logout_pending = False
+                # CLEAR LOGOUT FLAG SO AUTO-LOGIN WORKS AGAIN
+                st.query_params.clear()
                 
                 st.session_state.submitted = True
                 st.session_state.just_submitted = True 
@@ -646,25 +647,18 @@ else:
             st.rerun()
 
         # 2. Handle Invalid Roll Number (Not found in data)
-        # 2. Handle Invalid Roll Number (Not found in data)
         elif roll_to_process not in student_data_map:
             st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
             
-            # Clear the invalid cookie completely
-            st.session_state.logout_pending = True
+            # Safe Cookie Delete & Logout Flag
             try:
                 cookie_manager.delete("student_roll_number")
-            except (KeyError, Exception):
-                try:
-                    cookie_manager.set("student_roll_number", None)
-                except Exception:
-                    pass
+            except KeyError:
+                pass 
+            st.query_params["logged_out"] = "true"
             
-            # Clear session
             st.session_state.submitted = False
             st.session_state.roll_number = ""
-            
-            time.sleep(0.5)
             st.rerun()
 
         # 3. Handle Valid Student Data
@@ -686,30 +680,35 @@ else:
                         Displaying schedule for: <strong>{roll_to_process}</strong>
                     </div>
                     """, unsafe_allow_html=True)
-
+                
                 with col2:
                     if st.button("Change Roll Number"):
-                        # --- FORCE CLEAR LOGOUT (The "Nuclear Option") ---
+                        # --- FOOLPROOF LOGOUT ---
+                        # 1. Delete cookie
                         try:
                             cookie_manager.delete("student_roll_number")
-                        except:
-                            pass
+                        except KeyError:
+                            pass 
                         
-                        # Also try overwriting just in case delete is slow
+                        # 2. Force overwrite cookie just in case delete fails
                         try:
                             cookie_manager.set("student_roll_number", "")
                         except:
                             pass
 
-                        st.session_state.clear() # Wipes all session vars (logout_pending, submitted, etc)
+                        # 3. SET URL PARAM (The most important part)
+                        # This flag persists across reloads and blocks auto-login
+                        st.query_params["logged_out"] = "true"
                         
-                        # NOTE: st.cache_data.clear() clears the *server* cache for the schedule files. 
-                        # This makes the logout slower but ensures a fresh read. 
-                        st.cache_data.clear() 
+                        # 4. Clear Session
+                        st.session_state.submitted = False
+                        st.session_state.roll_number = ""
+                        st.session_state.search_clear_counter = 0 
+                        st.session_state.just_submitted = False 
                         
-                        time.sleep(0.5) # Brief wait for browser to sync
+                        # 5. Immediate Rerun (No sleep needed because URL param saves us)
                         st.rerun()
-                                
+                
                 display_exam_schedule(student_sections)
 
                 with st.spinner(f'Compiling classes for {student_name}...'):
