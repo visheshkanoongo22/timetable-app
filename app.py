@@ -57,7 +57,6 @@ if st.session_state.run_counter % 100 == 0:
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
-# --- List of all schedule files, from oldest to newest ---
 SCHEDULE_FILES = ['schedule1.xlsx', 'schedule2.xlsx', 'schedule3.xlsx', 'schedule.xlsx'] 
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
@@ -85,13 +84,6 @@ COURSE_DETAILS_MAP = {
     'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
-
-# --- COOKIE MANAGER INITIALIZATION ---
-# Initialize cookie manager
-def get_cookie_manager():
-    return stx.CookieManager()
-
-cookie_manager = get_cookie_manager()
 
 # 3. FUNCTIONS
 def normalize_string(text):
