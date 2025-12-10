@@ -1,4 +1,3 @@
-
 # 1. IMPORTS
 import pandas as pd
 import os
@@ -14,6 +13,9 @@ import streamlit.components.v1 as components
 from streamlit_extras.st_keyup import st_keyup # For live search
 import gc 
 import time 
+
+# --- NEW IMPORT FOR COOKIES ---
+import extra_streamlit_components as stx
 
 # --- IMPORT DATA FROM EXTERNAL FILES ---
 from day_overrides import DAY_SPECIFIC_OVERRIDES
@@ -80,11 +82,51 @@ COURSE_DETAILS_MAP = {
     'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
 }
 
+# --- COOKIE MANAGER INITIALIZATION ---
+@st.cache_resource
+def get_cookie_manager():
+    return stx.CookieManager()
+
+cookie_manager = get_cookie_manager()
+
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
         return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").upper()
     return ""
+
+# --- NEW: Cookie Management Function ---
+def manage_cookies():
+    """Handle cookie operations for remembering roll number"""
+    try:
+        # Try to get existing cookie
+        saved_roll = cookie_manager.get(cookie="student_roll")
+        
+        # If we have a cookie and no roll number in session state, use it
+        if saved_roll and not st.session_state.get('roll_number') and not st.session_state.get('just_submitted'):
+            st.session_state.roll_number = saved_roll
+            st.session_state.submitted = True
+            
+        # If user just submitted a new roll number, save it to cookie
+        elif st.session_state.get('just_submitted') and st.session_state.get('roll_number'):
+            cookie_manager.set("student_roll", st.session_state.roll_number, max_age=86400*30)  # 30 days
+            st.session_state.just_submitted = False
+            
+        # If user wants to logout, clear the cookie
+        elif st.session_state.get('logout_requested', False):
+            cookie_manager.delete("student_roll")
+            # Clear specific keys instead of full clear to avoid breaking stx component
+            keys_to_clear = ['submitted', 'roll_number', 'just_submitted', 'search_clear_counter']
+            for key in keys_to_clear:
+                if key in st.session_state:
+                    del st.session_state[key]
+            
+            st.session_state.logout_requested = False
+            st.rerun()
+            
+    except Exception as e:
+        # If cookie manager fails, fall back to session state only
+        st.warning("Cookie functionality not available. Please enable cookies for best experience.")
 
 @st.cache_data
 def load_and_clean_schedule(file_path, is_stats_file=False):
@@ -569,6 +611,12 @@ if 'search_clear_counter' not in st.session_state:
     st.session_state.search_clear_counter = 0
 if 'just_submitted' not in st.session_state: 
     st.session_state.just_submitted = False
+# --- NEW: Flag for logout ---
+if 'logout_requested' not in st.session_state:
+    st.session_state.logout_requested = False
+
+# --- COOKIE LOGIC INJECTION ---
+manage_cookies()
 
 if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
@@ -639,11 +687,10 @@ else:
                     </div>
                     """, unsafe_allow_html=True)
                 with col2:
+                    # --- UPDATED BUTTON LOGIC ---
                     if st.button("Change Roll Number"):
-                        st.session_state.submitted = False
-                        st.session_state.roll_number = ""
-                        st.session_state.search_clear_counter = 0 
-                        st.session_state.just_submitted = False 
+                        # Set a flag to indicate logout request
+                        st.session_state.logout_requested = True
                         st.rerun()
                 
                 display_exam_schedule(student_sections)
@@ -679,7 +726,7 @@ else:
                                                     if 'Venue' in override_data:
                                                         is_venue_override = True
                                                     details.update(override_data)
-                                                
+                                        
                                         found_classes.append({
                                             "Date": date, "Day": day, 
                                             "Time": details.get('Time', time),
