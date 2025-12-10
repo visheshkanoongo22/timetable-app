@@ -83,7 +83,7 @@ COURSE_DETAILS_MAP = {
 }
 
 # --- COOKIE MANAGER INITIALIZATION ---
-@st.cache_resource
+# Initialize cookie manager
 def get_cookie_manager():
     return stx.CookieManager()
 
