@@ -14,7 +14,7 @@ from streamlit_extras.st_keyup import st_keyup
 import gc 
 import time 
 
-# --- NEW: Import Cookie Manager ---
+# --- Import Cookie Manager ---
 import extra_streamlit_components as stx
 
 # --- IMPORT DATA FROM EXTERNAL FILES ---
@@ -24,11 +24,8 @@ from mess_menu import MESS_MENU
 from exam_schedule import EXAM_SCHEDULE_DATA
 
 # --- SETUP COOKIE MANAGER ---
-# This allows us to save the roll number on the user's specific device
-# ✅ CORRECT
-# ✅ CORRECT (NEW WAY)
-# Initialize directly without caching
 cookie_manager = stx.CookieManager(key="cookie_manager")
+
 # --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
 AUTO_REFRESH_INTERVAL = 10 * 60 
 
@@ -39,9 +36,6 @@ elapsed = time.time() - st.session_state.start_time
 
 if elapsed > AUTO_REFRESH_INTERVAL:
     with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
-        # We do NOT need to manually save the roll here.
-        # The browser cookie will automatically restore the session 
-        # immediately after the refresh.
         st.cache_data.clear()      
         st.cache_resource.clear()  
         gc.collect()
@@ -531,7 +525,7 @@ local_css_string = """
         background: var(--card); border: 1px solid var(--glass-border); padding: 1.25rem;
         border-radius: 14px; margin-bottom: 1.5rem;
     }
-    .results-container h3 { color: #E2E8F0; margin-top: 0; margin-bottom: 1rem; font-size: 1.3rem; }
+    .results-container h3 { color: #E2E8F0; margin-top: 1.5rem; margin-bottom: 1rem; font-size: 1.3rem; }
     .results-container h3:not(:first-child) { margin-top: 1.5rem; }
     @media (max-width: 600px) {
         .day-card { padding: 0.8rem; margin-bottom: 1rem; }
@@ -553,18 +547,20 @@ local_css_string = """
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
-# --- SAFE SESSION INITIALIZATION (USING COOKIES) ---
-# 1. Fetch cookie (returns None if not set)
+# --- CORRECTED SAFE SESSION INITIALIZATION ---
+# 1. Fetch cookie (returns None on first load, returns value on second load)
 cookie_roll = cookie_manager.get(cookie="student_roll_number")
 
 # 2. Check if we need to auto-login from cookie
-if 'roll_number' not in st.session_state:
-    if cookie_roll:
-        st.session_state.roll_number = cookie_roll
-    else:
-        st.session_state.roll_number = ""
+# If we have a cookie, and the session state is currently empty or doesn't match, update it.
+if cookie_roll and st.session_state.get("roll_number") != cookie_roll:
+    st.session_state.roll_number = cookie_roll
+    st.session_state.submitted = True
 
-# 3. Determine if 'submitted' is true based on having a roll number
+# 3. Initialize default session state ONLY if it doesn't exist yet
+if "roll_number" not in st.session_state:
+    st.session_state.roll_number = ""
+
 if 'submitted' not in st.session_state:
     if st.session_state.roll_number:
         st.session_state.submitted = True
