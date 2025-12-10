@@ -24,28 +24,33 @@ from mess_menu import MESS_MENU
 from exam_schedule import EXAM_SCHEDULE_DATA
 
 # -----------------------------------------------------------------------------
-# --- SESSION STATE INITIALIZATION & LOGIC ---
+# --- SESSION & COOKIE LOGIC (OPTIMIZED) ---
 # -----------------------------------------------------------------------------
 
 # 1. Initialize Cookie Manager
 cookie_manager = stx.CookieManager(key="cookie_manager")
 
-# 2. Initialize Logout Flag (Defaults to False)
+# 2. Initialize Logout Flag
 if "logout_pending" not in st.session_state:
     st.session_state.logout_pending = False
 
-# 3. Fetch Cookie
+# 3. Fetch Cookie (Might be None if loading or deleted)
 cookie_roll = cookie_manager.get(cookie="student_roll_number")
 
-# 4. AUTO-LOGIN LOGIC
-# We ONLY auto-login if the user is NOT currently trying to log out
+# 4. AUTO-LOGIN LOGIC (Smart Check)
+# We only use the cookie if the user didn't JUST click logout
 if not st.session_state.logout_pending:
-    # If cookie exists but session is empty, log them in
+    # If cookie exists but we aren't logged in yet, do it now
     if cookie_roll and st.session_state.get("roll_number") != cookie_roll:
         st.session_state.roll_number = cookie_roll
         st.session_state.submitted = True
+else:
+    # If logout IS pending, and we see the cookie is now effectively gone (None),
+    # we can reset the flag for the future.
+    if cookie_roll is None:
+        st.session_state.logout_pending = False
 
-# 5. Initialize other session variables
+# 5. Initialize Session Defaults
 if "roll_number" not in st.session_state:
     st.session_state.roll_number = ""
 
@@ -626,8 +631,6 @@ else:
                 st.session_state.submitted = True
                 st.session_state.just_submitted = True 
                 
-                # 2 second delay ONLY for login to ensure save
-                time.sleep(2)
                 st.rerun()
         
         render_mess_menu_expander()
@@ -653,7 +656,6 @@ else:
             
             st.session_state.submitted = False
             st.session_state.roll_number = ""
-            time.sleep(1)
             st.rerun()
 
         # 3. Handle Valid Student Data
@@ -692,7 +694,6 @@ else:
                         st.session_state.search_clear_counter = 0 
                         st.session_state.just_submitted = False 
                         
-                        # IMMEDIATE RERUN (No sleep needed thanks to flag)
                         st.rerun()
                 
                 display_exam_schedule(student_sections)
