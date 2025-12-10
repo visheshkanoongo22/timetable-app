@@ -625,22 +625,27 @@ else:
     else:
         roll_to_process = st.session_state.roll_number
         
+        # 1. Handle Empty Roll Number
         if not roll_to_process:
             st.session_state.submitted = False
             st.rerun()
-        with col2:
-                    if st.button("Change Roll Number"):
-                        # --- SAFE SECURE LOGOUT ---
-                        try:
-                            cookie_manager.delete("student_roll_number") # Remove cookie
-                        except KeyError:
-                            pass # Cookie was already deleted, ignore error
 
-                        st.session_state.submitted = False
-                        st.session_state.roll_number = ""
-                        st.session_state.search_clear_counter = 0 
-                        st.session_state.just_submitted = False 
-                        st.rerun()
+        # 2. Handle Invalid Roll Number (Not found in data)
+        elif roll_to_process not in student_data_map:
+            st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
+            
+            # Safe Cookie Delete
+            try:
+                cookie_manager.delete("student_roll_number")
+            except KeyError:
+                pass 
+            
+            st.session_state.submitted = False
+            st.session_state.roll_number = ""
+            time.sleep(2)
+            st.rerun()
+
+        # 3. Handle Valid Student Data
         else:
             student_info = student_data_map[roll_to_process]
             student_name, student_sections = student_info['name'], student_info['sections']
@@ -648,19 +653,26 @@ else:
             master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
             
             if master_schedule_df.empty:
-                pass
+                st.warning("Master schedule is empty.")
             else:
+                # Create columns for Header + Logout Button
                 col1, col2 = st.columns([3, 1])
+                
                 with col1:
                     st.markdown(f"""
                     <div class="welcome-message">
                         Displaying schedule for: <strong>{roll_to_process}</strong>
                     </div>
                     """, unsafe_allow_html=True)
+                
                 with col2:
                     if st.button("Change Roll Number"):
-                        # --- SECURE LOGOUT ---
-                        cookie_manager.delete("student_roll_number") # Remove cookie
+                        # --- SAFE SECURE LOGOUT ---
+                        try:
+                            cookie_manager.delete("student_roll_number") 
+                        except KeyError:
+                            pass 
+
                         st.session_state.submitted = False
                         st.session_state.roll_number = ""
                         st.session_state.search_clear_counter = 0 
