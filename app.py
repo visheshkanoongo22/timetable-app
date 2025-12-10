@@ -10,9 +10,12 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
-from streamlit_extras.st_keyup import st_keyup # For live search
+from streamlit_extras.st_keyup import st_keyup 
 import gc 
 import time 
+
+# --- NEW: Import Cookie Manager ---
+import extra_streamlit_components as stx
 
 # --- IMPORT DATA FROM EXTERNAL FILES ---
 from day_overrides import DAY_SPECIFIC_OVERRIDES
@@ -20,10 +23,17 @@ from additional_classes import ADDITIONAL_CLASSES
 from mess_menu import MESS_MENU
 from exam_schedule import EXAM_SCHEDULE_DATA
 
-# --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
-AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
+# --- SETUP COOKIE MANAGER ---
+# This allows us to save the roll number on the user's specific device
+@st.cache_resource(experimental_allow_widgets=True)
+def get_manager():
+    return stx.CookieManager()
 
-# Store the start time in session_state
+cookie_manager = get_manager()
+
+# --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
+AUTO_REFRESH_INTERVAL = 10 * 60 
+
 if "start_time" not in st.session_state:
     st.session_state.start_time = time.time()
 
@@ -31,6 +41,9 @@ elapsed = time.time() - st.session_state.start_time
 
 if elapsed > AUTO_REFRESH_INTERVAL:
     with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
+        # We do NOT need to manually save the roll here.
+        # The browser cookie will automatically restore the session 
+        # immediately after the refresh.
         st.cache_data.clear()      
         st.cache_resource.clear()  
         gc.collect()
@@ -50,7 +63,6 @@ if st.session_state.run_counter % 100 == 0:
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
-# --- List of all schedule files, from oldest to newest ---
 SCHEDULE_FILES = ['schedule1.xlsx', 'schedule2.xlsx', 'schedule3.xlsx', 'schedule.xlsx'] 
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
@@ -117,9 +129,8 @@ def load_all_schedules(file_list):
     combined_df = combined_df.sort_values(by=[0])
     return combined_df
 
-# --- NEW: Function to display Exam Schedule ---
+# --- Function to display Exam Schedule ---
 def display_exam_schedule(student_sections):
-    # 1. Normalize student sections to get base codes
     student_base_codes = set()
     for sec in student_sections:
         base = re.sub(r"\(.*$", "", sec).strip()
@@ -129,7 +140,6 @@ def display_exam_schedule(student_sections):
         if "ML&AI" in sec: student_base_codes.add("ML&AI")
         if "CC&AU" in sec: student_base_codes.add("CC&AU")
 
-    # 2. Filter exams
     my_exams = []
     for exam in EXAM_SCHEDULE_DATA:
         if exam['Subject_Code'] in student_base_codes:
@@ -138,13 +148,10 @@ def display_exam_schedule(student_sections):
     if not my_exams:
         return
 
-    # 3. Display
     with st.expander("📝 End Term Examinations (Term V)"):
-        # Sort by date
         my_exams.sort(key=lambda x: x['Date'])
         
         for exam in my_exams:
-            # FORMAT CHANGE: Removed Day Name (%A)
             date_str = exam['Date'].strftime('%d %b %Y')
             st.markdown(f"""
             <div style="
@@ -162,7 +169,6 @@ def display_exam_schedule(student_sections):
             """, unsafe_allow_html=True)
 
 def render_mess_menu_expander():
-    """Show weekly mess menu with a day selector."""
     local_tz = pytz.timezone(TIMEZONE)
     now_dt = datetime.now(local_tz)
     today = now_dt.date()
@@ -179,7 +185,6 @@ def render_mess_menu_expander():
     options = []
     default_index = 0
     for idx, d in enumerate(valid_dates):
-        # FORMAT CHANGE: Removed Day Name (%a)
         label = d.strftime("%d %b") 
         if d == today:
             label += " (Today)"
@@ -200,25 +205,18 @@ def render_mess_menu_expander():
         selected_date = valid_dates[selected_idx]
         menu_data = MESS_MENU[selected_date]
 
-        # FORMAT CHANGE: Removed Day Name (%A)
-        st.markdown(
-            f"**Menu for {selected_date.strftime('%d %B %Y')}**"
-        )
+        st.markdown(f"**Menu for {selected_date.strftime('%d %B %Y')}**")
 
         col1, col2, col3, col4 = st.columns(4)
-
         with col1:
             st.markdown("#### Breakfast")
             st.markdown(menu_data.get("Breakfast", "Not available"))
-
         with col2:
             st.markdown("#### Lunch")
             st.markdown(menu_data.get("Lunch", "Not available"))
-
         with col3:
             st.markdown("#### Hi-Tea")
             st.markdown(menu_data.get("Hi-Tea", "Not available"))
-
         with col4:
             st.markdown("#### Dinner")
             st.markdown(menu_data.get("Dinner", "Not available"))
@@ -248,7 +246,6 @@ def calculate_and_display_stats():
             
             for _, row in all_schedules_df.iterrows():
                 class_date = row[0]
-                
                 if class_date > today_date:
                     continue 
 
@@ -267,7 +264,6 @@ def calculate_and_display_stats():
                         cell_value = str(row[col_idx])
                         if cell_value and cell_value != 'nan':
                             normalized_cell = normalize_string(cell_value)
-                            
                             for norm_name, orig_name in normalized_course_map.items():
                                 if norm_name in normalized_cell:
                                     is_overridden = False
@@ -311,7 +307,6 @@ def calculate_and_display_stats():
                 return
 
             st.markdown("This shows the total number of sessions held *to date*, accounting for all schedule changes.")
-            
             grouped_counts = defaultdict(dict)
             for full_name, count in class_counts.items():
                 match = re.match(r"(.*?)\((.*)\)", full_name)
@@ -560,10 +555,24 @@ local_css_string = """
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
-if 'submitted' not in st.session_state:
-    st.session_state.submitted = False
+# --- SAFE SESSION INITIALIZATION (USING COOKIES) ---
+# 1. Fetch cookie (returns None if not set)
+cookie_roll = cookie_manager.get(cookie="student_roll_number")
+
+# 2. Check if we need to auto-login from cookie
 if 'roll_number' not in st.session_state:
-    st.session_state.roll_number = ""
+    if cookie_roll:
+        st.session_state.roll_number = cookie_roll
+    else:
+        st.session_state.roll_number = ""
+
+# 3. Determine if 'submitted' is true based on having a roll number
+if 'submitted' not in st.session_state:
+    if st.session_state.roll_number:
+        st.session_state.submitted = True
+    else:
+        st.session_state.submitted = False
+
 if 'search_clear_counter' not in st.session_state:
     st.session_state.search_clear_counter = 0
 if 'just_submitted' not in st.session_state: 
@@ -602,7 +611,12 @@ else:
                     elif 100 <= val <= 999:
                         final_roll = f"24MBA{roll_number_input}"
                 
+                # --- SAVE ROLL TO SESSION AND BROWSER COOKIE ---
                 st.session_state.roll_number = final_roll
+                
+                # Save to user's browser (valid for 30 days)
+                cookie_manager.set("student_roll_number", final_roll, expires_at=datetime.now() + pd.Timedelta(days=30))
+                
                 st.session_state.submitted = True
                 st.session_state.just_submitted = True 
                 st.rerun()
@@ -617,9 +631,12 @@ else:
             st.session_state.submitted = False
             st.rerun()
         elif roll_to_process not in student_data_map:
+            # If cookie had an invalid roll number, clear it
             st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
+            cookie_manager.delete("student_roll_number")
             st.session_state.submitted = False
             st.session_state.roll_number = ""
+            time.sleep(2)
             st.rerun()
         else:
             student_info = student_data_map[roll_to_process]
@@ -639,6 +656,8 @@ else:
                     """, unsafe_allow_html=True)
                 with col2:
                     if st.button("Change Roll Number"):
+                        # --- SECURE LOGOUT ---
+                        cookie_manager.delete("student_roll_number") # Remove cookie
                         st.session_state.submitted = False
                         st.session_state.roll_number = ""
                         st.session_state.search_clear_counter = 0 
@@ -901,7 +920,6 @@ else:
                         classes_today = schedule_by_date.get(date_obj, [])
                         
                         if not classes_today:
-                            # FORMAT CHANGE: Removed Day Name (%A)
                             st.markdown(f'''
                                 <div class="day-card {today_class}" id="{card_id}">
                                     <div class="day-header">
@@ -916,7 +934,6 @@ else:
                                 </div>
                             ''', unsafe_allow_html=True)
                         else:
-                            # FORMAT CHANGE: Removed Day Name (%A)
                             if is_today:
                                 st.markdown(f'''
                                     <div class="day-card {today_class}" id="{card_id}">
