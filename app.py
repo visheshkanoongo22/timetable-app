@@ -27,10 +27,6 @@ from exam_schedule import EXAM_SCHEDULE_DATA
 # --- SESSION & COOKIE LOGIC ---
 # -----------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
-# --- SESSION & COOKIE LOGIC (FIXED) ---
-# -----------------------------------------------------------------------------
-
 # 1. Initialize Cookie Manager
 cookie_manager = stx.CookieManager(key="cookie_manager")
 
@@ -41,27 +37,20 @@ if "logout_pending" not in st.session_state:
 # 3. Fetch Cookie
 cookie_roll = cookie_manager.get(cookie="student_roll_number")
 
-# 4. AUTO-LOGIN LOGIC (FIXED)
+# 4. AUTO-LOGIN LOGIC
 # We only auto-login if:
 # A) The user isn't in the middle of logging out
 # B) There is a valid, non-empty cookie found
-# C) The cookie value is different from current session (or session is empty)
+# C) The cookie value is different from current session
 if not st.session_state.logout_pending:
-    # Check if cookie exists, is not None, and is not empty/whitespace
-    if cookie_roll and cookie_roll.strip() and st.session_state.get("roll_number") != cookie_roll:
+    if cookie_roll and str(cookie_roll).strip() != "" and st.session_state.get("roll_number") != cookie_roll:
         st.session_state.roll_number = cookie_roll
         st.session_state.submitted = True
 else:
-    # If we are pending logout, check if the cookie is properly cleared
-    # Cookie should be None, empty string, or not exist
-    if not cookie_roll or not cookie_roll.strip():
+    # If pending logout, checks if cookie is gone/empty to reset flag
+    if not cookie_roll or str(cookie_roll).strip() == "":
         st.session_state.logout_pending = False
-        # Ensure session is also cleared
-        if "roll_number" in st.session_state:
-            st.session_state.roll_number = ""
-        if "submitted" in st.session_state:
-            st.session_state.submitted = False
-            
+
 # 5. Initialize Session Defaults
 if "roll_number" not in st.session_state:
     st.session_state.roll_number = ""
@@ -700,30 +689,25 @@ else:
 
                 with col2:
                     if st.button("Change Roll Number"):
-                        # --- IMPROVED LOGOUT PROCESS ---
-                        # 1. Set logout flag FIRST to prevent auto-login during this process
-                        st.session_state.logout_pending = True
-                        
-                        # 2. Clear session state
-                        st.session_state.submitted = False
-                        st.session_state.roll_number = ""
-                        st.session_state.search_clear_counter = 0 
-                        st.session_state.just_submitted = False 
-                        
-                        # 3. Delete the cookie (this is the most reliable method)
+                        # --- FORCE CLEAR LOGOUT (The "Nuclear Option") ---
                         try:
                             cookie_manager.delete("student_roll_number")
-                        except (KeyError, Exception):
-                            # If delete fails, try setting to None as fallback
-                            try:
-                                cookie_manager.set("student_roll_number", None)
-                            except Exception:
-                                pass
+                        except:
+                            pass
                         
-                        # 4. Brief pause to allow cookie operations to complete
-                        time.sleep(0.5)
+                        # Also try overwriting just in case delete is slow
+                        try:
+                            cookie_manager.set("student_roll_number", "")
+                        except:
+                            pass
+
+                        st.session_state.clear() # Wipes all session vars (logout_pending, submitted, etc)
                         
-                        # 5. Rerun to show login screen
+                        # NOTE: st.cache_data.clear() clears the *server* cache for the schedule files. 
+                        # This makes the logout slower but ensures a fresh read. 
+                        st.cache_data.clear() 
+                        
+                        time.sleep(0.5) # Brief wait for browser to sync
                         st.rerun()
                                 
                 display_exam_schedule(student_sections)
