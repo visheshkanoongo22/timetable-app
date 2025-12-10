@@ -24,7 +24,7 @@ from mess_menu import MESS_MENU
 from exam_schedule import EXAM_SCHEDULE_DATA
 
 # -----------------------------------------------------------------------------
-# --- SESSION & COOKIE LOGIC (OPTIMIZED) ---
+# --- SESSION & COOKIE LOGIC (ROBUST LOGOUT FIX) ---
 # -----------------------------------------------------------------------------
 
 # 1. Initialize Cookie Manager
@@ -34,23 +34,27 @@ cookie_manager = stx.CookieManager(key="cookie_manager")
 if "logout_pending" not in st.session_state:
     st.session_state.logout_pending = False
 
-# 3. Fetch Cookie (Might be None if loading or deleted)
+# 3. Fetch Cookie
 cookie_roll = cookie_manager.get(cookie="student_roll_number")
 
-# 4. AUTO-LOGIN LOGIC (Smart Check)
-# We only use the cookie if the user didn't JUST click logout
+# 4. VALIDATE COOKIE (The Fix: Treat empty strings as logged out)
+is_cookie_valid = cookie_roll is not None and str(cookie_roll).strip() != ""
+
+# 5. AUTO-LOGIN LOGIC
+# Only auto-login if:
+# A) The user didn't just click logout
+# B) The cookie is valid (not empty)
 if not st.session_state.logout_pending:
-    # If cookie exists but we aren't logged in yet, do it now
-    if cookie_roll and st.session_state.get("roll_number") != cookie_roll:
+    if is_cookie_valid and st.session_state.get("roll_number") != cookie_roll:
         st.session_state.roll_number = cookie_roll
         st.session_state.submitted = True
 else:
-    # If logout IS pending, and we see the cookie is now effectively gone (None),
-    # we can reset the flag for the future.
-    if cookie_roll is None:
+    # If we are pending logout, but the cookie is now effectively gone/empty,
+    # we can turn off the pending flag for the future.
+    if not is_cookie_valid:
         st.session_state.logout_pending = False
 
-# 5. Initialize Session Defaults
+# 6. Initialize Session Defaults
 if "roll_number" not in st.session_state:
     st.session_state.roll_number = ""
 
@@ -680,20 +684,26 @@ else:
                 
                 with col2:
                     if st.button("Change Roll Number"):
-                        # --- SAFE SECURE LOGOUT ---
-                        try:
-                            cookie_manager.delete("student_roll_number") 
-                        except KeyError:
-                            pass 
-
-                        # SET PENDING FLAG (Prevent auto-login loop)
-                        st.session_state.logout_pending = True
+                        # --- ROBUST LOGOUT SEQUENCE ---
+                        # 1. Overwrite with empty string (Instant invalidation)
+                        cookie_manager.set("student_roll_number", "")
                         
+                        # 2. Delete (Cleanup attempt)
+                        try:
+                            cookie_manager.delete("student_roll_number")
+                        except KeyError:
+                            pass
+                        
+                        # 3. Set Flag & Clear Session
+                        st.session_state.logout_pending = True
                         st.session_state.submitted = False
                         st.session_state.roll_number = ""
                         st.session_state.search_clear_counter = 0 
                         st.session_state.just_submitted = False 
                         
+                        # 4. Tiny sleep to ensure the "Set" command reaches browser
+                        # (0.3s is usually unnoticeable but crucial for sync)
+                        time.sleep(0.3)
                         st.rerun()
                 
                 display_exam_schedule(student_sections)
