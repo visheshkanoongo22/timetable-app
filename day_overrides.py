@@ -237,6 +237,7 @@ DAY_SPECIFIC_OVERRIDES = {
         'SMKTA':  {'Venue': 'T3'}, # <-- NEW
         'DV&VSD': {'Venue': 'E3'}, # <-- NEW
         'SMKTB':  {'Venue': 'T1'}, # <-- NEW
+        'BS':  {'Venue': 'E2'}, # <-- NEW
     },
 
     date(2025, 12, 11): {
