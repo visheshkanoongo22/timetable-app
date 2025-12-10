@@ -23,8 +23,42 @@ from additional_classes import ADDITIONAL_CLASSES
 from mess_menu import MESS_MENU
 from exam_schedule import EXAM_SCHEDULE_DATA
 
-# --- SETUP COOKIE MANAGER ---
+# -----------------------------------------------------------------------------
+# --- SESSION STATE INITIALIZATION & LOGIC ---
+# -----------------------------------------------------------------------------
+
+# 1. Initialize Cookie Manager
 cookie_manager = stx.CookieManager(key="cookie_manager")
+
+# 2. Initialize Logout Flag (Defaults to False)
+if "logout_pending" not in st.session_state:
+    st.session_state.logout_pending = False
+
+# 3. Fetch Cookie
+cookie_roll = cookie_manager.get(cookie="student_roll_number")
+
+# 4. AUTO-LOGIN LOGIC
+# We ONLY auto-login if the user is NOT currently trying to log out
+if not st.session_state.logout_pending:
+    # If cookie exists but session is empty, log them in
+    if cookie_roll and st.session_state.get("roll_number") != cookie_roll:
+        st.session_state.roll_number = cookie_roll
+        st.session_state.submitted = True
+
+# 5. Initialize other session variables
+if "roll_number" not in st.session_state:
+    st.session_state.roll_number = ""
+
+if 'submitted' not in st.session_state:
+    if st.session_state.roll_number:
+        st.session_state.submitted = True
+    else:
+        st.session_state.submitted = False
+
+if 'search_clear_counter' not in st.session_state:
+    st.session_state.search_clear_counter = 0
+if 'just_submitted' not in st.session_state: 
+    st.session_state.just_submitted = False
 
 # --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
 AUTO_REFRESH_INTERVAL = 10 * 60 
@@ -547,44 +581,6 @@ local_css_string = """
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
-# --- SAFE SESSION INITIALIZATION ---
-# 1. Fetch cookie (returns None on first load, returns value on second load)
-cookie_roll = cookie_manager.get(cookie="student_roll_number")
-
-# 2. HANDLE LOGOUT PENDING (Prevention of Auto-Login loop)
-# If the user just clicked logout, we want to ignore the cookie for this run
-if "logout_pending" in st.session_state and st.session_state.logout_pending:
-    # Double check deletion here to be safe
-    try:
-        cookie_manager.delete("student_roll_number")
-    except KeyError:
-        pass
-    
-    # Clear the pending flag for the NEXT run, but keep session cleared for THIS run
-    st.session_state.logout_pending = False
-    st.session_state.roll_number = ""
-    st.session_state.submitted = False
-
-# 3. Check if we need to auto-login from cookie (Only if NOT logging out)
-elif cookie_roll and st.session_state.get("roll_number") != cookie_roll:
-    st.session_state.roll_number = cookie_roll
-    st.session_state.submitted = True
-
-# 4. Initialize default session state ONLY if it doesn't exist yet
-if "roll_number" not in st.session_state:
-    st.session_state.roll_number = ""
-
-if 'submitted' not in st.session_state:
-    if st.session_state.roll_number:
-        st.session_state.submitted = True
-    else:
-        st.session_state.submitted = False
-
-if 'search_clear_counter' not in st.session_state:
-    st.session_state.search_clear_counter = 0
-if 'just_submitted' not in st.session_state: 
-    st.session_state.just_submitted = False
-
 if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub">Made by Vishesh</div>', unsafe_allow_html=True)
@@ -623,6 +619,9 @@ else:
                 
                 # Save to user's browser (valid for 30 days)
                 cookie_manager.set("student_roll_number", final_roll, expires_at=datetime.now() + pd.Timedelta(days=30))
+                
+                # RESET THE LOGOUT PENDING FLAG so auto-login works next time
+                st.session_state.logout_pending = False
                 
                 st.session_state.submitted = True
                 st.session_state.just_submitted = True 
