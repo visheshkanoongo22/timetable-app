@@ -628,14 +628,19 @@ else:
         if not roll_to_process:
             st.session_state.submitted = False
             st.rerun()
-        elif roll_to_process not in student_data_map:
-            # If cookie had an invalid roll number, clear it
-            st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
-            cookie_manager.delete("student_roll_number")
-            st.session_state.submitted = False
-            st.session_state.roll_number = ""
-            time.sleep(2)
-            st.rerun()
+        with col2:
+                    if st.button("Change Roll Number"):
+                        # --- SAFE SECURE LOGOUT ---
+                        try:
+                            cookie_manager.delete("student_roll_number") # Remove cookie
+                        except KeyError:
+                            pass # Cookie was already deleted, ignore error
+
+                        st.session_state.submitted = False
+                        st.session_state.roll_number = ""
+                        st.session_state.search_clear_counter = 0 
+                        st.session_state.just_submitted = False 
+                        st.rerun()
         else:
             student_info = student_data_map[roll_to_process]
             student_name, student_sections = student_info['name'], student_info['sections']
