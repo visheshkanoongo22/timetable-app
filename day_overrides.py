@@ -252,11 +252,16 @@ DAY_SPECIFIC_OVERRIDES = {
         'OMSD':   {'Venue': '215'}, # <-- NEW
     },
 
-
     date(2025, 12, 12): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'B2BB':  {'Venue': 'E5'},   # <-- NEW
+        'B2BC':  {'Venue': 'E5'},   # <-- NEW
+        'B2BA':  {'Venue': 'E2'},   # <-- NEW
+        'DMA':   {'Venue': '215'},  # <-- NEW
+        'DMB':   {'Venue': '215'},  # <-- NEW
     },
+
     date(2025, 12, 15): {
         'DRMC': {'Venue': 'PREPONED', 'Faculty': 'Session Preponed'}, 
     },
