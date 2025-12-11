@@ -174,7 +174,7 @@ MESS_MENU = {
     date(2025, 12, 12): {
         "Breakfast": """
         * Dabeli with Chutney
-        * Fruit Masala Maggi + Corn Flakes
+        * Fruit + Masala Maggi + Corn Flakes
         """,
         "Lunch": """
         * Paneer Bhurji Masala
