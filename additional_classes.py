@@ -117,6 +117,10 @@ ADDITIONAL_CLASSES = [
     {'Date': date(2025, 12, 13), 'Time': '6:10-7:10PM', 'Subject': 'CC&AU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 12, 13), 'Time': '7:20-8:20PM', 'Subject': 'CC&AU(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
 
+# --- LSS Guest Session 13.12.2025 ---
+    {'Date': date(2025, 12, 13), 'Time': '8:30-9:30PM', 'Subject': 'LSS(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    {'Date': date(2025, 12, 13), 'Time': '8:30-9:30PM', 'Subject': 'LSS(B)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
+    
     # --- CC&AU Guest Sessions 14.12.2025 ---
     {'Date': date(2025, 12, 14), 'Time': '10:20-11:20AM', 'Subject': 'CC&AU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
     {'Date': date(2025, 12, 14), 'Time': '11:30-12:30PM', 'Subject': 'CC&AU(A)', 'Faculty': 'Guest Session', 'Venue': 'Online'},
