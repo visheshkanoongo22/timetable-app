@@ -459,7 +459,7 @@ local_css_string = """
     [data-testid="stAppViewContainer"], [data-testid="stSidebar"] {
         background-color: var(--bg) !important; color: #ffffff !important;
     }
-    #[data-testid="stHeader"] { display: none; visibility: hidden; height: 0; }
+    [data-testid="stHeader"] { display: none; visibility: hidden; height: 0; }
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
     :root{
         --bg:#0F172A; --card:#1E293B; --muted:#94A3B8; --accent-start:#60A5FA; --accent-end:#818CF8;
