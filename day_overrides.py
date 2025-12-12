@@ -260,7 +260,9 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BA':  {'Venue': 'E2'},   # <-- NEW
         'DMA':   {'Venue': '215'},  # <-- NEW
         'DMB':   {'Venue': '215'},  # <-- NEW
-    },
+        'TEOMA': {'Venue': '216'}, # <-- NEW
+        'TEOMB': {'Venue': '216'}, # <-- NEW
+   },
 
     date(2025, 12, 15): {
         'DRMC': {'Venue': 'PREPONED', 'Faculty': 'Session Preponed'}, 
