@@ -264,6 +264,16 @@ DAY_SPECIFIC_OVERRIDES = {
         'TEOMB': {'Venue': '216'}, # <-- NEW
    },
 
+    # --- 13.12.2025 (Saturday) ---
+    date(2025, 12, 13): {
+        'DC':    {'Venue': 'T3'},
+        'DADM':  {'Venue': 'T3'},
+        'VALUC': {'Venue': 'T3'},
+        'VALUD': {'Venue': 'T3'},
+        'IMCB':  {'Venue': 'T3'},
+        'SMKTB': {'Venue': '214'},
+    },
+
     date(2025, 12, 15): {
         'DRMC': {'Venue': 'PREPONED', 'Faculty': 'Session Preponed'}, 
     },
