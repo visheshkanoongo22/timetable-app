@@ -819,7 +819,7 @@ else:
                             st.markdown(f'''
                                 <div class="day-card" id="date-card-past-{date_obj.toordinal()}">
                                     <div class="day-header">
-                                        {date_obj.strftime("%d %B %Y")}
+                                        {date_obj.strftime("%d %B %Y, %A")}
                                     </div>
                             ''', unsafe_allow_html=True)
                             
@@ -906,7 +906,7 @@ else:
                             st.markdown(f'''
                                 <div class="day-card {today_class}" id="{card_id}">
                                     <div class="day-header">
-                                        {date_obj.strftime("%d %B %Y")}
+                                        {date_obj.strftime("%d %B %Y, %A")}
                                     </div>
                                     <div class="class-entry">
                                         <div class="left">
@@ -923,14 +923,14 @@ else:
                                     <div class="day-card {today_class}" id="{card_id}">
                                         <div class="today-badge">TODAY</div>
                                         <div class="day-header">
-                                            {date_obj.strftime("%d %B %Y")}
+                                            {date_obj.strftime("%d %B %Y, %A")}
                                         </div>
                                 ''', unsafe_allow_html=True)
                             else:
                                 st.markdown(f'''
                                     <div class="day-card {today_class}" id="{card_id}">
                                         <div class="day-header">
-                                            {date_obj.strftime("%d %B %Y")}
+                                            {date_obj.strftime("%d %B %Y, %A")}
                                         </div>
                                 ''', unsafe_allow_html=True)
 
