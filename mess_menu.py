@@ -224,5 +224,39 @@ MESS_MENU = {
         * Ghee + Gud
         * Onion + Lemon, Butter Milk
         """
+    },
+    
+    date(2025, 12, 14): {
+        "Breakfast": """
+        * Mix Paratha with Curd & Pickle
+        * Fruit
+        * Toast
+        """,
+        "Lunch": """
+        * Masala Dosa
+        * Mix Uttapam
+        * Idli Sambhar
+        * Vada Sambhar
+        * Lemon Rice
+        * Aloo Vada
+        * Coconut Chutney
+        * Lassi
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Hara Bhara Kabab
+        * Chinese Samosa
+        * Paneer Pesawari
+        * Mushroom Mutter
+        * Dal Makhani
+        * Jeera Rice
+        * Palak Paratha
+        * Puri
+        * Frymes
+        * Gajar Halwa
+        * Kesar Badam Milk
+        """
     }
 }
