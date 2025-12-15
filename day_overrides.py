@@ -283,6 +283,9 @@ DAY_SPECIFIC_OVERRIDES = {
         'DMA':    {'Venue': '215'},
         'OMSD':   {'Venue': '215'},
     },
+    date(2025, 12, 16): {
+        'IMCA':   {'Venue': 'T3'},
+    },
     date(2025, 12, 19): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
