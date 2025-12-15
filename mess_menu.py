@@ -291,5 +291,167 @@ MESS_MENU = {
         * Onion, Lemon
         * Butter Milk
         """
+    },
+    # Tuesday (16/12/2025)
+    date(2025, 12, 16): {
+        "Breakfast": """
+        * Sandwich Dhokla with Green Chutney
+        * Fruit
+        * Methi Ka Thepla with Curd & Pickle
+        """,
+        "Lunch": """
+        * Palak Paneer Masala
+        * Rajma Masala
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion + Lemon
+        * Butter Milk
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Tomato Soup
+        * **Sweet: Gulab Jamun**
+        * Aloo Paneer Paratha
+        * Plain Curd
+        * Manchurian Fried Rice
+        * Papdi Chat
+        * Pani Puri
+        * Masala Papad
+        * Chana Jor Garam
+        * Mix Pickle
+        """
+    },
+
+    # Wednesday (17/12/2025)
+    date(2025, 12, 17): {
+        "Breakfast": """
+        * Mix Uttapam (Sambhar, Chutney)
+        * Fruit + Idli Sambhar Chutney + Toast
+        """,
+        "Lunch": """
+        * Gajar Mutter Dry
+        * Kadi Pakoda
+        * Dal Tadka
+        * Plain Rice
+        * Roti
+        * Chana Chat Salad
+        * Onion + Lemon
+        * Lemon Water
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Aloo Capsicum
+        * Moong Masala
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Onion + Lemon
+        * Frymes
+        """
+    },
+
+    # Thursday (18/12/2025)
+    date(2025, 12, 18): {
+        "Breakfast": """
+        * Vada Pav with Chutney
+        * Fruit + Masala Maggi + Cornflakes
+        """,
+        "Lunch": """
+        * Veg Tawa Sabji
+        * Paneer Handi Masala
+        * Dal Fry
+        * Jeera Rice
+        * Roti
+        * Green Salad
+        * Onion + Lemon
+        * Plain Curd
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Broccoli Soup
+        * Live Dhokla
+        * Aloo Rasevala
+        * Plain Kadi
+        * Rajwadi Khichdi
+        * Methi Ka Thepla
+        * Roti
+        * Lasun Ki Chatni
+        * Frymes
+        * **Sweet: Suji Ka Halwa**
+        """
+    },
+
+    # Friday (19/12/2025)
+    date(2025, 12, 19): {
+        "Breakfast": """
+        * Dal Pakwan with Chutney
+        * Fruit
+        * Aloo Mutter Sandwich + Toast
+        """,
+        "Lunch": """
+        * Veg Jaipuri
+        * Kala Chana
+        * Dal Mix Tadka
+        * Jeera Rice
+        * Roti
+        * Green Salad
+        * Onion + Lemon
+        * Butter Milk
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * **Sweet: Jalebi**
+        * Pav Bhaji
+        * Veg Pulao
+        * Boondi Raita
+        * Manchurian Noodles
+        * Sev Roll with Chutney
+        * Roasted Papad
+        * Onion + Lemon
+        """
+    },
+
+    # Saturday (20/12/2025)
+    date(2025, 12, 20): {
+        "Breakfast": """
+        * Suji Ka Upma with Coconut Chutney
+        * Fruit + Moong
+        * Oat Chilla with Chutney
+        """,
+        "Lunch": """
+        * Gobi Mutter Capsicum
+        * Malai Kofta
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion + Lemon
+        * Lemon Water
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Hot 'n' Sour Soup
+        * Mix Pakoda
+        * Chole Bhature
+        * Kulcha
+        * Dal Mix Tadka
+        * Jeera Rice
+        * Roti
+        * Green Chilli Fry
+        * Onion + Lemon
+        * Masala Papad
+        """
     }
 }
