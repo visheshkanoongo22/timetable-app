@@ -273,9 +273,15 @@ DAY_SPECIFIC_OVERRIDES = {
         'IMCB':  {'Venue': 'T3'},
         'SMKTB': {'Venue': '214'},
     },
-
+    # --- 15.12.2025 (Monday) ---
     date(2025, 12, 15): {
-        'DRMC': {'Venue': 'PREPONED', 'Faculty': 'Session Preponed'}, 
+        'B2BB':   {'Venue': 'E1'},
+        'B2BC':   {'Venue': 'E1'},
+        'DV&VSC': {'Venue': 'E1'},
+        'B2BA':   {'Venue': 'E2'},
+        'DMB':    {'Venue': '215'},
+        'DMA':    {'Venue': '215'},
+        'OMSD':   {'Venue': '215'},
     },
     date(2025, 12, 19): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
