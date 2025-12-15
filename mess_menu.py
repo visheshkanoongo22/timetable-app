@@ -258,5 +258,38 @@ MESS_MENU = {
         * Gajar Halwa
         * Kesar Badam Milk
         """
+    },
+    date(2025, 12, 15): {
+        "Breakfast": """
+        * Badaka Poha, Lemon Onion, Sev
+        * Vegetable Sandwich
+        * Jemny Sprout
+        * Tea, Milk, Coffee
+        * Fruit
+        """,
+        "Lunch": """
+        * Mix Veg Masala Dry
+        * Kadi Pakoda
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion, Lemon
+        * Lemon Water
+        """,
+        "Hi-Tea": """
+        * Tea, Milk, Coffee
+        """,
+        "Dinner": """
+        * Bengan ka Bharta
+        * Lasaniya Aloo
+        * Mix Dal Tadka
+        * Mutter Rice
+        * Bajre ki Roti
+        * Lasoon ki Chutney
+        * Frymes
+        * Onion, Lemon
+        * Butter Milk
+        """
     }
 }
