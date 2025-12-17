@@ -295,6 +295,7 @@ DAY_SPECIFIC_OVERRIDES = {
         'VALUD': {'Venue': 'T3'},
         'IMCB':  {'Venue': 'T3'},
         'IMCA':  {'Venue': 'T1'},
+        'INBA': {'Venue': 'POSTPONED', 'Faculty': 'Session Postponed'}, 
     },
 
     date(2025, 12, 19): {
