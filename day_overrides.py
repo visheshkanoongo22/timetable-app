@@ -289,6 +289,14 @@ DAY_SPECIFIC_OVERRIDES = {
         'DV&VSD': {'Venue': 'T5'},
         'DC':     {'Venue': 'T3'},
     },
+    # --- 17.12.2025 (Wednesday) ---
+    date(2025, 12, 17): {
+        'VALUC': {'Venue': 'T3'},
+        'VALUD': {'Venue': 'T3'},
+        'IMCB':  {'Venue': 'T3'},
+        'IMCA':  {'Venue': 'T1'},
+    },
+
     date(2025, 12, 19): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
