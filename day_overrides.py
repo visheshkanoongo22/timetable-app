@@ -313,5 +313,9 @@ DAY_SPECIFIC_OVERRIDES = {
     date(2025, 12, 19): {
         'VALUA': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'VALUB': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'B2BB': {'Venue': 'T3'},
+        'B2BC': {'Venue': 'T3'},
+        'DMA':  {'Venue': '215'},
+        'DMB':  {'Venue': '215'},
     }
 }
