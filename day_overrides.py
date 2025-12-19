@@ -317,5 +317,8 @@ DAY_SPECIFIC_OVERRIDES = {
         'B2BC': {'Venue': 'T3'},
         'DMA':  {'Venue': '215'},
         'DMB':  {'Venue': '215'},
+        'INBA': {'Venue': 'CANCELLED', 'Faculty': 'Session Postponed'}, # <-- NEW
+        'INBB': {'Venue': 'CANCELLED', 'Faculty': 'Session Postponed'}, # <-- NEW
+        'INBC': {'Venue': 'CANCELLED', 'Faculty': 'Session Postponed'}, # <-- NEW
     }
 }
