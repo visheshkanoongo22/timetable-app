@@ -325,5 +325,6 @@ DAY_SPECIFIC_OVERRIDES = {
     date(2025, 12, 20): {
         'VALUC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
         'VALUD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'IMCA': {'Venue': 'T3'}, 
     }
 }
