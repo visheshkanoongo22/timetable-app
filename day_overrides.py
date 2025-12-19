@@ -320,5 +320,10 @@ DAY_SPECIFIC_OVERRIDES = {
         'INBA': {'Venue': 'CANCELLED', 'Faculty': 'Session Postponed'}, # <-- NEW
         'INBB': {'Venue': 'CANCELLED', 'Faculty': 'Session Postponed'}, # <-- NEW
         'INBC': {'Venue': 'CANCELLED', 'Faculty': 'Session Postponed'}, # <-- NEW
+    },
+# --- 20.12.2025 (Saturday) ---
+    date(2025, 12, 20): {
+        'VALUC': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
+        'VALUD': {'Venue': 'CANCELLED', 'Faculty': 'Session Cancelled'},
     }
 }
