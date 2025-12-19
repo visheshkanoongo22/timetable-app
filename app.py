@@ -140,7 +140,7 @@ def display_exam_schedule(student_sections):
         return
 
     # 3. Display
-    with st.expander("📝 End Term Examinations (Term V)"):
+    with st.expander("📝 End Term Examinations (Term V)", expanded=True):
         # Sort by date
         my_exams.sort(key=lambda x: x['Date'])
         
