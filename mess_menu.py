@@ -453,5 +453,41 @@ MESS_MENU = {
         * Onion + Lemon
         * Masala Papad
         """
+    },
+  date(2025, 12, 21): {
+        "Breakfast": """
+        * Gobi Paneer Aloo Paratha
+        * Plain Curd
+        * Pickle
+        * Cornflakes
+        * Bread Butter
+        * Bread Jam
+        * Tea, Milk, Coffee
+        * Fruit
+        """,
+        "Lunch": """
+        * Masala Dosa
+        * Mix Uttapam
+        * Medu Vada
+        * Sambhar
+        * Aloo Vada
+        * Lemon Rice
+        * Idli
+        * Coconut Chutney
+        * Sweet Lassi
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Paneer Do Pyaza
+        * Soya Mutter Dry
+        * Dal Fry
+        * Jeera Rice
+        * Roti
+        * Onion + Lemon
+        * Frymes
+        * **Ice Cream**
+        """
     }
 }
