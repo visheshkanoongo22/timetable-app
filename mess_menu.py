@@ -489,5 +489,158 @@ MESS_MENU = {
         * Frymes
         * **Ice Cream**
         """
+    },
+    # Monday (22/12/2025) - Jay Sita Ram
+    date(2025, 12, 22): {
+        "Breakfast": """
+        * Indori Poha (Lemon, Onion, Sev)
+        * Aloo Mutter Sandwich
+        * Cornflakes
+        * Bread Butter
+        * Bread Jam
+        * Tea / Milk / Coffee
+        * Fruit
+        """,
+        "Lunch": """
+        * Veg Makhanwala
+        * Rajma Masala
+        * Dal Fry
+        * Jeera Rice
+        * Roti
+        * Green Salad
+        * Lemon & Onion
+        * Buttermilk
+        """,
+        "Hi-Tea": """
+        * Tea / Milk / Coffee
+        """,
+        "Dinner": """
+        * Mix Pakoda
+        * Baingan ka Bharta
+        * Aloo Capsicum Chips Dry
+        * Rajwadi Khichdi
+        * Plain Kadhi
+        * Lasoon ki Chutney
+        * Bajre ki Roti
+        * Puri
+        * Cabbage Sambhara
+        """
+    },
+
+    # Tuesday (23/12/2025)
+    date(2025, 12, 23): {
+        "Breakfast": """
+        * Methi ka Thepla with Curd & Pickle
+        * Fruit
+        * Sandwich / Chilla with Green Chutney
+        * Regular Menu Items
+        """,
+        "Lunch": """
+        * Palak Paneer Masala
+        * Kala Chana Dry
+        * Dal Fry
+        * Jeera Rice
+        * Roti
+        * Green Salad
+        * Onion & Lemon
+        * Plain Curd
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * **Sweet: Gajar ka Halwa**
+        * Veg Jaipuri
+        * Red Pasta
+        * Dal Fry
+        * Mutter Rice
+        * Palak Paneer Paratha
+        * Roti
+        * Roasted Papad
+        * Sweet Corn Soup
+        """
+    },
+
+    # Wednesday (24/12/2025)
+    date(2025, 12, 24): {
+        "Breakfast": """
+        * (Menu not provided in images)
+        """,
+        "Lunch": """
+        * (Menu not provided in images)
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * (Menu not provided in images)
+        """
+    },
+
+    # Thursday (25/12/2025) - CHRISTMAS
+    date(2025, 12, 25): {
+        "Breakfast": """
+        * Suji ka Upma with Coconut Chutney
+        * Fruit
+        * Dabeli with Chutney & Toast
+        * Regular Menu Items
+        """,
+        "Lunch": """
+        * Shahi Paneer Masala
+        * Chole Masala
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion & Lemon
+        * Buttermilk
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Tomato Soup
+        * Aloo Paneer Paratha
+        * Plain Curd & Pickle
+        * Manchurian Fried Rice
+        * Papdi Chaat
+        * Pani Puri
+        * Chana Jor Garam
+        * Masala Papad
+        * **Sweet**
+        """
+    },
+
+    # Friday (26/12/2025)
+    date(2025, 12, 26): {
+        "Breakfast": """
+        * Masala Idli with Chutney
+        * Fruit
+        * Mix Uttapam
+        * Sambhar
+        * Regular Menu Items
+        """,
+        "Lunch": """
+        * Gobhi Mutter Capsicum Dry
+        * Paneer Kofta
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion & Lemon
+        * Buttermilk
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Aloo Bhindi Masala
+        * Moong Masala
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Onion & Lemon
+        * Fryums
+        """
     }
 }
