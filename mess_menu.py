@@ -612,7 +612,7 @@ MESS_MENU = {
     },
 
     # Friday (26/12/2025)
-    date(2025, 12, 26): {
+    date(2025, 12, 24): {
         "Breakfast": """
         * Masala Idli with Chutney
         * Fruit
