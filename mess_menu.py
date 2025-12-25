@@ -642,5 +642,42 @@ MESS_MENU = {
         * Onion & Lemon
         * Fryums
         """
+    },
+  date(2025, 12, 26): {
+        "Breakfast": """
+        * Dal Pakwan with Chutney
+        * Sev Khamani
+        * Green Chutney
+        * Cornflakes
+        * Bread Butter
+        * Bread Jam
+        * Tea, Milk, Coffee
+        * Fruit
+        """,
+        "Lunch": """
+        * Veg Jal Fraizi Dry
+        * Loki Kofta
+        * Dal Fry
+        * Jeera Rice
+        * Roti
+        * Green Salad
+        * Lemon, Onion
+        * Boondi Raita
+        """,
+        "Hi-Tea": """
+        * Tea, Milk, Coffee
+        """,
+        "Dinner": """
+        * **Sweet: Malpuva**
+        * Chinese Samosa
+        * Subzi Ka Saag
+        * Sev Tamatar
+        * Veg Biryani
+        * Plain Curd
+        * Lasoon Ki Chutney
+        * Makai Ki Roti
+        * Ghee Chana
+        * Masala Papad
+        """
     }
 }
