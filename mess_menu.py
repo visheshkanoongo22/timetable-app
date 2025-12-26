@@ -679,5 +679,38 @@ MESS_MENU = {
         * Ghee Chana
         * Masala Papad
         """
+    },
+   date(2025, 12, 27): {
+        "Breakfast": """
+        * Poori Bhaji
+        * Khakhra
+        * Fruit
+        * Veg Sandwich
+        """,
+        "Lunch": """
+        * Gajar Methi Mutter
+        * Kadhi Pakoda
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Chana Chaat Salad
+        * Onion + Lemon
+        * Jal Jeera Water
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Cheese Corn Soup
+        * Sev Roll with Chutney
+        * Chole Bhature
+        * Kulcha
+        * Dal Makhani
+        * Jeera Rice
+        * Roti
+        * Green Chilli Fry
+        * Onion + Lemon
+        * Roasted Papad
+        """
     }
 }
