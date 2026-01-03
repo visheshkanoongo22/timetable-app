@@ -121,10 +121,13 @@ def load_and_clean_schedule(file_path):
     except Exception as e:
         return pd.DataFrame()
 
+
 def find_subjects_for_roll(target_roll, folder_path='.'):
     """
-    SEARCH OPTIMIZED: Instead of loading everyone, scans files ONLY for the target roll.
-    Returns: (Student Name, Set of Subjects)
+    SEARCH OPTIMIZED: 
+    1. Reads only top 500 rows (nrows=500)
+    2. Reads only first 50 columns (usecols=range(50))
+    3. Less frequent Garbage Collection
     """
     found_subjects = set()
     found_name = "Student"
@@ -134,19 +137,21 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
              if os.path.basename(f) != SCHEDULE_FILE_NAME 
              and not os.path.basename(f).startswith('~')]
     
-    # Use a progress bar because scanning 20 files takes a moment
+    # Progress Bar
     progress_bar = st.progress(0, text="Searching student records...")
+    total_files = len(files)
     
     for idx, file in enumerate(files):
-        progress_bar.progress((idx + 1) / len(files), text=f"Scanning {os.path.basename(file)}...")
+        # Update bar
+        progress_bar.progress((idx + 1) / total_files, text=f"Scanning {os.path.basename(file)}...")
         
         try:
-            # Read header=None to see the absolute layout
-            df = pd.read_excel(file, header=None)
+            # --- OPTIMIZATION: Read limited Window (500 rows x 50 cols) ---
+            # This ignores the vast majority of empty Excel cells
+            df = pd.read_excel(file, header=None, nrows=500, usecols=range(50))
             
             # 1. Find the Header Row
             header_row_idx = -1
-            # Limit scan to top 10 rows for speed
             for r in range(min(10, len(df))):
                 row_values = [str(val).strip().lower() for val in df.iloc[r]]
                 if any("roll no" in v for v in row_values):
@@ -154,7 +159,8 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
                     break
             
             if header_row_idx == -1:
-                del df; gc.collect(); continue
+                del df 
+                continue 
                 
             # 2. Find Roll Columns
             roll_col_indices = []
@@ -167,17 +173,16 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
             for roll_col in roll_col_indices:
                 name_col = roll_col + 1
                 
-                # Extract the column of roll numbers (skip header)
+                # Extract the column (skip header)
                 roll_series = df.iloc[header_row_idx+1:, roll_col].astype(str).str.strip().str.upper()
                 
-                # Check for match (Exact or Float-safe)
-                # We normalize target_roll to match Excel format
+                # Check for match
                 matches = roll_series[roll_series.apply(lambda x: x.split('.')[0] == target_roll)]
                 
                 if not matches.empty:
                     # MATCH FOUND!
                     
-                    # A. Identify Section Name (Look above header)
+                    # A. Identify Section Name
                     raw_section_name = ""
                     if header_row_idx > 0:
                         start_search = max(0, roll_col - 2)
@@ -199,27 +204,33 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
                         elif "(" in clean_header and ")" in clean_header:
                             course_name = clean_header
                         else:
-                            course_name = clean_header # Fallback
+                            course_name = clean_header 
                     else:
                         course_name = clean_filename
                     
                     course_name = course_name.replace("RURMKT", "RURMKT")
                     found_subjects.add(course_name)
                     
-                    # Grab Name from the first match
+                    # Grab Name
                     match_idx = matches.index[0]
-                    name_val = str(df.iloc[match_idx, name_col]).strip()
-                    if name_val and name_val.lower() != 'nan':
-                        found_name = name_val
+                    # Ensure name column exists within our read range
+                    if name_col < df.shape[1]:
+                        name_val = str(df.iloc[match_idx, name_col]).strip()
+                        if name_val and name_val.lower() != 'nan':
+                            found_name = name_val
 
-            # Clean memory immediately
+            # Delete Dataframe from memory
             del df
-            gc.collect()
+            
+            # --- OPTIMIZATION 2: Less Frequent GC ---
+            if idx % 5 == 0:
+                gc.collect()
             
         except Exception:
             continue
             
     progress_bar.empty()
+    gc.collect()
     return found_name, found_subjects
 
 def calculate_and_display_stats():
