@@ -291,6 +291,78 @@ def get_class_end_datetime(class_info, local_tz):
     except Exception:
         return None
 
+def render_mess_menu_expander():
+    """Show weekly mess menu with a day selector."""
+    # Ensure dependencies are available locally to avoid NameErrors
+    try:
+        from datetime import datetime
+        import pytz
+        import pandas as pd
+        # Use global MESS_MENU, fallback to empty dict if missing
+        menu_source = MESS_MENU if 'MESS_MENU' in globals() else {}
+    except ImportError:
+        return # Stop if libraries are missing
+
+    local_tz = pytz.timezone(TIMEZONE)
+    now_dt = datetime.now(local_tz)
+    today = now_dt.date()
+
+    # Logic to switch to next day if it's late (after 11 PM)
+    start_date = today
+    if now_dt.hour >= 23:
+        start_date = today + pd.Timedelta(days=1)
+
+    # Generate dates for the week
+    week_dates = [start_date + pd.Timedelta(days=i) for i in range(7)]
+    
+    # Filter for dates that actually exist in the menu source
+    valid_dates = [d for d in week_dates if d in menu_source]
+    
+    if not valid_dates:
+        # If no menu data found, just return silently or show a message
+        # st.caption("No mess menu data available.")
+        return 
+
+    options = []
+    default_index = 0
+    for idx, d in enumerate(valid_dates):
+        label = d.strftime("%d %b") 
+        if d == today:
+            label += " (Today)"
+            default_index = idx
+        elif d == today + pd.Timedelta(days=1):
+            label += " (Tomorrow)"
+        options.append(label)
+
+    with st.expander("🍽️ Mess Menu for the Week", expanded=False):
+        selected_label = st.radio(
+            "Select a day:",
+            options,
+            index=default_index,
+            horizontal=True,
+            key="mess_menu_radio" # Unique key to prevent UI errors
+        )
+
+        selected_idx = options.index(selected_label)
+        selected_date = valid_dates[selected_idx]
+        menu_data = menu_source[selected_date]
+
+        st.markdown(f"**Menu for {selected_date.strftime('%d %B %Y')}**")
+
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.markdown("#### Breakfast")
+            st.markdown(menu_data.get("Breakfast", "Not available"))
+        with col2:
+            st.markdown("#### Lunch")
+            st.markdown(menu_data.get("Lunch", "Not available"))
+        with col3:
+            st.markdown("#### Hi-Tea")
+            st.markdown(menu_data.get("Hi-Tea", "Not available"))
+        with col4:
+            st.markdown("#### Dinner")
+            st.markdown(menu_data.get("Dinner", "Not available"))
+
 def generate_ics_content(found_classes):
     c = Calendar(creator="-//Student Timetable Script//EN")
     local_tz = pytz.timezone(TIMEZONE)
