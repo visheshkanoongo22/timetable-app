@@ -10,9 +10,9 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
-from streamlit_extras.st_keyup import st_keyup 
-import gc 
-import time 
+from streamlit_extras.st_keyup import st_keyup
+import gc
+import time
 
 # --- IMPORT DATA FROM EXTERNAL FILES ---
 try:
@@ -31,7 +31,7 @@ except ImportError:
     MESS_MENU = {}
 
 # --- AUTO REFRESH EVERY 10 MINUTES ---
-AUTO_REFRESH_INTERVAL = 10 * 60 
+AUTO_REFRESH_INTERVAL = 10 * 60
 
 if "start_time" not in st.session_state:
     st.session_state.start_time = time.time()
@@ -40,11 +40,11 @@ elapsed = time.time() - st.session_state.start_time
 
 if elapsed > AUTO_REFRESH_INTERVAL:
     with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
-        st.cache_data.clear()      
-        st.cache_resource.clear()  
+        st.cache_data.clear()
+        st.cache_resource.clear()
         gc.collect()
-        st.session_state.clear() 
-        time.sleep(2) 
+        st.session_state.clear()
+        time.sleep(2)
         st.rerun()
 
 if "run_counter" not in st.session_state:
@@ -52,8 +52,8 @@ if "run_counter" not in st.session_state:
 st.session_state.run_counter += 1
 
 if st.session_state.run_counter % 100 == 0:
-    st.cache_data.clear()      
-    st.cache_resource.clear()  
+    st.cache_data.clear()
+    st.cache_resource.clear()
     gc.collect()
 
 # 2. CONFIGURATION
@@ -77,7 +77,7 @@ COURSE_DETAILS_MAP = {
     'PPC(C)':   {'Faculty': 'Ritesh Patel',      'Venue': 'T3'},
 
     # Marketing
-    'MA':       {'Faculty': 'Jayesh Aagja / Sanjay Jain',      'Venue': 'T6'},
+    'MA':       {'Faculty': 'Jayesh Aagja / Sanjay Jain',       'Venue': 'T6'},
     'CRM':      {'Faculty': 'T. S. Joshi',       'Venue': 'T6'},
     'RURMKT(A)': {'Faculty': 'Sapna Parshar / Shailesh Prabhu',    'Venue': 'T6'},
     'RURMKT(B)': {'Faculty': 'Sapna Parshar / Kavita Saxena',    'Venue': 'T6'},
@@ -120,7 +120,7 @@ def normalize_string(text):
         # But KEEP brackets so M&A(A) stays M&A(A)
         return text.replace(" ", "").replace("'", "").replace(".", "").upper()
     return ""
-    
+
 def clean_roll_number(roll):
     """Standardizes roll number format."""
     # Handle floats (e.g. 463.0) -> "463"
@@ -142,34 +142,46 @@ def load_and_clean_schedule(file_path):
     except Exception as e:
         return pd.DataFrame()
 
-@st.cache_data
+@st.cache_data(ttl=3600)
 def get_all_student_data(folder_path='.'):
     """
-    Robust parser for horizontal block layout.
-    Scans for "Roll No" and looks for Subject Name in the row above.
+    Robust parser for horizontal block layout with MEMORY PROTECTION.
     """
-    student_data_map = {} # {RollNo: {'name': 'Name', 'sections': {Set of Courses}}}
+    student_data_map = {}
     
     # Get all xlsx files excluding schedule
-    files = [f for f in glob.glob(os.path.join(folder_path, '*.xlsx')) 
-             if os.path.basename(f) != SCHEDULE_FILE_NAME 
+    files = [f for f in glob.glob(os.path.join(folder_path, '*.xlsx'))
+             if os.path.basename(f) != SCHEDULE_FILE_NAME
              and not os.path.basename(f).startswith('~')]
     
-    for file in files:
+    # Progress Bar to prevent timeout perception
+    progress_text = "Loading student data..."
+    my_bar = st.progress(0, text=progress_text)
+    total_files = len(files)
+
+    for idx, file in enumerate(files):
+        # Update progress
+        if total_files > 0:
+            my_bar.progress((idx + 1) / total_files, text=f"Processing {os.path.basename(file)}...")
+
         try:
             # Read header=None to see the absolute layout
+            # SAFETY: converting to str/cleaning immediately to save memory
             df = pd.read_excel(file, header=None)
             
             # 1. Find the Header Row (containing "Roll No.")
             header_row_idx = -1
-            for r in range(min(5, len(df))):
+            # Scan top 10 rows (increased range for safety)
+            for r in range(min(10, len(df))):
                 row_values = [str(val).strip().lower() for val in df.iloc[r]]
                 if any("roll no" in v for v in row_values):
                     header_row_idx = r
                     break
             
             if header_row_idx == -1:
-                continue # Skip files without "Roll No"
+                del df # Free memory
+                gc.collect()
+                continue
                 
             # 2. Find ALL columns in that row that contain "Roll No."
             roll_col_indices = []
@@ -181,17 +193,10 @@ def get_all_student_data(folder_path='.'):
             # 3. Process each block
             for roll_col in roll_col_indices:
                 # A. Identify Section Name
-                # It is in the row ABOVE the header (header_row_idx - 1)
-                # It could be merged, so we check roll_col AND up to 2 cols to the LEFT
-                
                 raw_section_name = ""
                 
                 if header_row_idx > 0:
-                    # Scan left to right in the row above, around the roll column
-                    # Often merged cells put value in the leftmost column
-                    # We check: roll_col-2, roll_col-1, roll_col
-                    
-                    found_header = False
+                    # Scan left to right in the row above
                     start_search = max(0, roll_col - 2)
                     end_search = min(df.shape[1], roll_col + 2)
                     
@@ -199,8 +204,6 @@ def get_all_student_data(folder_path='.'):
                         val_above = str(df.iloc[header_row_idx-1, check_col]).strip()
                         if val_above and val_above.lower() != 'nan':
                             raw_section_name = val_above
-                            found_header = True
-                            # Prefer the value closest to the left if multiple exist (unlikely in merged header)
                             break 
                 
                 # B. Normalize and Match
@@ -208,41 +211,23 @@ def get_all_student_data(folder_path='.'):
                 clean_header = normalize_string(raw_section_name)
                 clean_filename = normalize_string(os.path.basename(file).replace('.xlsx', ''))
 
-                # Logic: 
-                # 1. If header has "Subject(Section)", use it.
-                # 2. If header is just "(A)" or "Section A", combine with Filename base.
-                # 3. If header is missing, use Filename.
-
                 if clean_header:
-                    # If header matches a known key (e.g. "M&A(A)"), use it directly
                     if clean_header in [normalize_string(k) for k in COURSE_DETAILS_MAP.keys()]:
                         course_name = clean_header
                     else:
-                        # Header might be partial like "(A)"
-                        # Try to extract just the section letter if present
                         if "(" in clean_header and ")" in clean_header:
-                            # Trust the header if it looks like code
                             course_name = clean_header
                         else:
-                            # Combine Filename Base + Header info? 
-                            # Usually filename is "M&A(A)...". 
-                            # If filename is specific, assume filename is the source of truth if header is ambiguous
-                            if "(" in clean_filename and ")" in clean_filename:
-                                # Filename is "M&A(A),M&A(B).xlsx". We can't use full filename.
-                                # But if filename is single subject "CRM.xlsx", clean_filename is CRM.
-                                pass
-                            
-                            course_name = clean_header # Default to what we found
+                            course_name = clean_header 
                 else:
                     course_name = clean_filename
                 
-                # Cleanup: remove dot if needed (RUR.MKT -> RURMKT)
-                course_name = course_name.replace("RURMKT", "RURMKT") # Already normalized but just in case
+                course_name = course_name.replace("RURMKT", "RURMKT")
                 
                 # C. Extract Students
-                name_col = roll_col + 1 # Name is strictly next to Roll No
-                
+                name_col = roll_col + 1
                 start_row = header_row_idx + 1
+                
                 for r in range(start_row, len(df)):
                     roll_val = df.iloc[r, roll_col]
                     name_val = df.iloc[r, name_col]
@@ -255,7 +240,7 @@ def get_all_student_data(folder_path='.'):
                     if clean_roll.replace('.','',1).isdigit():
                         clean_roll = str(int(float(clean_roll)))
                     
-                    if len(clean_roll) < 2: 
+                    if len(clean_roll) < 2:
                         continue
 
                     if clean_roll not in student_data_map:
@@ -266,10 +251,15 @@ def get_all_student_data(folder_path='.'):
                     clean_name = str(name_val).strip()
                     if clean_name and clean_name.lower() != 'nan':
                          student_data_map[clean_roll]['name'] = clean_name
-                        
+            
+            # MEMORY CLEANUP
+            del df
+            gc.collect()
+
         except Exception as e:
             continue
             
+    my_bar.empty() # Clear progress bar
     return student_data_map
 
 def calculate_and_display_stats():
@@ -282,33 +272,30 @@ def calculate_and_display_stats():
     import streamlit as st
 
     # --- 2. SAFE GLOBAL ACCESS ---
-    # We retrieve these safely. If they are missing from your file, we use empty defaults.
     global_course_map = globals().get('COURSE_DETAILS_MAP', {})
     global_overrides = globals().get('DAY_SPECIFIC_OVERRIDES', {})
     global_additional = globals().get('ADDITIONAL_CLASSES', [])
     global_schedule_file = globals().get('SCHEDULE_FILE_NAME', 'schedule.xlsx')
     
-    # Check if COURSE_DETAILS_MAP exists
     if not global_course_map:
-        st.error("Configuration Error: COURSE_DETAILS_MAP is missing or empty.")
+        st.error("Configuration Error: COURSE_DETAILS_MAP is missing.")
         return
 
     with st.expander("Sessions Taken till Now"):
         with st.spinner("Calculating session statistics..."):
             
-            # Ensure helper functions exist
+            # Helper checks
             if 'load_and_clean_schedule' not in globals() or 'normalize_string' not in globals():
-                st.error("Critical Error: Helper functions (load_and_clean_schedule or normalize_string) are missing.")
+                st.error("Critical Error: Helper functions missing.")
                 return
             
-            # Call global helper functions
             load_schedule_func = globals()['load_and_clean_schedule']
             norm_func = globals()['normalize_string']
 
             all_schedules_df = load_schedule_func(global_schedule_file)
             
             if all_schedules_df.empty:
-                st.warning("Could not load schedule file to calculate stats.")
+                st.warning("Could not load schedule file.")
                 return
 
             local_tz = pytz.timezone('Asia/Kolkata')
@@ -323,15 +310,11 @@ def calculate_and_display_stats():
                 10: "6:00PM", 11: "7:10PM", 12: "8:20PM", 13: "9:30PM"
             }
             
-            # Map normalized keys to Original Keys for display
             normalized_course_map = {norm_func(k): k for k in global_course_map.keys()}
             
             for _, row in all_schedules_df.iterrows():
                 class_date = row[0]
-                
-                # Only count PAST classes
-                if class_date > today_date:
-                    continue 
+                if class_date > today_date: continue 
 
                 for col_idx, end_time_str in time_slot_end_times.items():
                     is_in_past = False 
@@ -349,7 +332,6 @@ def calculate_and_display_stats():
                         if cell_value and cell_value != 'nan':
                             normalized_cell = norm_func(cell_value)
                             
-                            # Check if cell contains any of our known courses
                             for norm_name, orig_name in normalized_course_map.items():
                                 if norm_name in normalized_cell:
                                     is_overridden = False
@@ -366,11 +348,9 @@ def calculate_and_display_stats():
                                     if not is_overridden:
                                         class_counts[orig_name] += 1
 
-            # Process Additional Classes
             for added_class in global_additional:
                 class_date = added_class['Date']
-                if class_date > today_date:
-                    continue 
+                if class_date > today_date: continue 
                 
                 is_in_past = False
                 if class_date < today_date:
@@ -397,7 +377,6 @@ def calculate_and_display_stats():
             
             grouped_counts = defaultdict(dict)
             for full_name, count in class_counts.items():
-                # Extract Course Name and Section (e.g. M&A(A) -> M&A, A)
                 match = re.match(r"(.*?)\((.*)\)", full_name)
                 if match:
                     course_name = match.group(1)
@@ -417,7 +396,6 @@ def calculate_and_display_stats():
                     for course_name in course_list:
                         st.markdown(f"**{course_name}**")
                         sections = grouped_counts[course_name]
-                            
                         for section_name in sorted(sections.keys()):
                             count = sections[section_name]
                             if section_name == "Main":
@@ -450,34 +428,26 @@ def get_class_end_datetime(class_info, local_tz):
 
 def render_mess_menu_expander():
     """Show weekly mess menu with a day selector."""
-    # Ensure dependencies are available locally to avoid NameErrors
     try:
         from datetime import datetime
         import pytz
         import pandas as pd
-        # Use global MESS_MENU, fallback to empty dict if missing
         menu_source = MESS_MENU if 'MESS_MENU' in globals() else {}
     except ImportError:
-        return # Stop if libraries are missing
+        return 
 
     local_tz = pytz.timezone(TIMEZONE)
     now_dt = datetime.now(local_tz)
     today = now_dt.date()
 
-    # Logic to switch to next day if it's late (after 11 PM)
     start_date = today
     if now_dt.hour >= 23:
         start_date = today + pd.Timedelta(days=1)
 
-    # Generate dates for the week
     week_dates = [start_date + pd.Timedelta(days=i) for i in range(7)]
-    
-    # Filter for dates that actually exist in the menu source
     valid_dates = [d for d in week_dates if d in menu_source]
     
     if not valid_dates:
-        # If no menu data found, just return silently or show a message
-        # st.caption("No mess menu data available.")
         return 
 
     options = []
@@ -497,7 +467,7 @@ def render_mess_menu_expander():
             options,
             index=default_index,
             horizontal=True,
-            key="mess_menu_radio" # Unique key to prevent UI errors
+            key="mess_menu_radio"
         )
 
         selected_idx = options.index(selected_label)
@@ -694,7 +664,8 @@ if not st.session_state.submitted:
     st.markdown('<div class="header-sub">Term 6 Schedule</div>', unsafe_allow_html=True)
 
 # --- DYNAMIC DATA LOADING ---
-student_data_map = get_all_student_data()
+with st.spinner("Initializing application and loading student data..."):
+    student_data_map = get_all_student_data()
 
 if not student_data_map:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
@@ -854,7 +825,7 @@ else:
                                 "CANCELLED" in venue_text or "CANCELLED" in faculty_text or
                                 "PREPONED" in venue_text or "PREPONED" in faculty_text or
                                 "(RESCHEDULED)" in venue_text or "(PREPONED)" in venue_text):
-                                is_override = False # It is an override but we don't skip it, just style it
+                                is_override = False 
 
                             day_of_week = added_class['Date'].strftime('%A')
                             found_classes.append({
@@ -918,16 +889,19 @@ else:
                     # --- SAFE DATE GENERATION LOGIC ---
                     all_dates = []
                     
-                    # 1. Get schedule bounds
-                    schedule_end_date = master_schedule_df[0].max()
-                    
-                    # Safety: If schedule_end_date is NaT or invalid, use today
-                    if pd.isna(schedule_end_date):
+                    # 1. Get schedule bounds from file
+                    if not master_schedule_df.empty:
+                        schedule_end_date = master_schedule_df[0].max()
+                    else:
                         schedule_end_date = date.today()
+                    
+                    # Safety: If schedule_end_date is NaT or invalid, default to today + 60 days
+                    if pd.isna(schedule_end_date):
+                        schedule_end_date = date.today() + pd.Timedelta(days=60)
 
                     if sorted_dates:
                         first_date = sorted_dates[0]
-                        # Use the LATEST of the student's last class OR the schedule's end
+                        # Use the LATEST of: student's last class OR the schedule's end
                         last_date = max(sorted_dates[-1], schedule_end_date)
                     elif not master_schedule_df.empty:
                         first_date = master_schedule_df[0].min()
@@ -937,8 +911,7 @@ else:
                         last_date = date.today()
 
                     # 2. Infinite Loop Guard
-                    # If a date in Excel is 2099, this loop would crash the app. 
-                    # We cap it at 180 days from the start.
+                    # If last_date is very far in future, stop after 180 days to prevent crash
                     MAX_DAYS = 180 
                     
                     current_date = first_date
@@ -950,7 +923,8 @@ else:
                         
                         days_processed += 1
                         if days_processed > MAX_DAYS:
-                            break # FORCE STOP to prevent app crash
+                            # Break silently or log
+                            break 
                     
                     local_tz = pytz.timezone(TIMEZONE)
                     today_dt = datetime.now(local_tz)
