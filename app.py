@@ -112,7 +112,6 @@ COURSE_DETAILS_MAP = {
 def normalize_string(text):
     """
     Strict normalization to ensure file headers match COURSE_DETAILS_MAP keys.
-    Removes spaces, dots, and converts to uppercase.
     """
     if isinstance(text, str):
         # Example: "RUR.MKT (A)" -> "RURMKT(A)"
@@ -125,17 +124,6 @@ def clean_roll_number(roll):
     if isinstance(roll, float):
         roll = int(roll)
     return str(roll).strip().upper()
-
-def normalize_course_name_for_map(name):
-    """
-    Allows (A) brackets to remain but removes spaces and dots.
-    Used for matching the header from Excel to the keys in COURSE_DETAILS_MAP.
-    """
-    if not isinstance(name, str): return ""
-    # "M&A (A)" -> "M&A(A)"
-    # "RUR.MKT(A)" -> "RURMKT(A)"
-    clean = name.strip().upper().replace(" ", "").replace(".", "")
-    return clean
 
 @st.cache_data
 def load_and_clean_schedule(file_path):
@@ -154,12 +142,8 @@ def load_and_clean_schedule(file_path):
 @st.cache_data
 def get_all_student_data(folder_path='.'):
     """
-    Bulletproof parser for horizontal block layout.
-    Structure:
-    Row 0: Section Name (e.g., M&A(A))
-    Row 1: Headers (SL. No., Roll No., Name)
-    Row 2+: Data
-    Blocks are separated by empty columns.
+    Robust parser for horizontal block layout.
+    Scans for "Roll No" and looks for Subject Name in the row above.
     """
     student_data_map = {} # {RollNo: {'name': 'Name', 'sections': {Set of Courses}}}
     
@@ -174,7 +158,6 @@ def get_all_student_data(folder_path='.'):
             df = pd.read_excel(file, header=None)
             
             # 1. Find the Header Row (containing "Roll No.")
-            # We scan the first 5 rows just in case, but usually it's index 1 (Row 2)
             header_row_idx = -1
             for r in range(min(5, len(df))):
                 row_values = [str(val).strip().lower() for val in df.iloc[r]]
@@ -186,7 +169,6 @@ def get_all_student_data(folder_path='.'):
                 continue # Skip files without "Roll No"
                 
             # 2. Find ALL columns in that row that contain "Roll No."
-            # This handles the side-by-side sections (e.g. M&A(A), M&A(B))
             roll_col_indices = []
             for c in range(df.shape[1]):
                 val = str(df.iloc[header_row_idx, c]).strip().lower()
@@ -196,256 +178,96 @@ def get_all_student_data(folder_path='.'):
             # 3. Process each block
             for roll_col in roll_col_indices:
                 # A. Identify Section Name
-                # It is usually in the row ABOVE the header (header_row_idx - 1)
-                # It is usually aligned with the SL No column (roll_col - 1) or Roll Col itself
-                # We check the cells above the block
+                # It is in the row ABOVE the header (header_row_idx - 1)
+                # It could be merged, so we check roll_col AND up to 2 cols to the LEFT
                 
                 raw_section_name = ""
                 
-                # Check directly above Roll No
                 if header_row_idx > 0:
-                    val_above = str(df.iloc[header_row_idx-1, roll_col]).strip()
-                    if val_above and val_above.lower() != 'nan':
-                        raw_section_name = val_above
+                    # Scan left to right in the row above, around the roll column
+                    # Often merged cells put value in the leftmost column
+                    # We check: roll_col-2, roll_col-1, roll_col
+                    
+                    found_header = False
+                    start_search = max(0, roll_col - 2)
+                    end_search = min(df.shape[1], roll_col + 2)
+                    
+                    for check_col in range(start_search, end_search):
+                        val_above = str(df.iloc[header_row_idx-1, check_col]).strip()
+                        if val_above and val_above.lower() != 'nan':
+                            raw_section_name = val_above
+                            found_header = True
+                            # Prefer the value closest to the left if multiple exist (unlikely in merged header)
+                            break 
+                
+                # B. Normalize and Match
+                course_name = ""
+                clean_header = normalize_string(raw_section_name)
+                clean_filename = normalize_string(os.path.basename(file).replace('.xlsx', ''))
+
+                # Logic: 
+                # 1. If header has "Subject(Section)", use it.
+                # 2. If header is just "(A)" or "Section A", combine with Filename base.
+                # 3. If header is missing, use Filename.
+
+                if clean_header:
+                    # If header matches a known key (e.g. "M&A(A)"), use it directly
+                    if clean_header in [normalize_string(k) for k in COURSE_DETAILS_MAP.keys()]:
+                        course_name = clean_header
                     else:
-                        # Check above SL No (roll_col - 1)
-                        if roll_col > 0:
-                            val_left_above = str(df.iloc[header_row_idx-1, roll_col-1]).strip()
-                            if val_left_above and val_left_above.lower() != 'nan':
-                                raw_section_name = val_left_above
+                        # Header might be partial like "(A)"
+                        # Try to extract just the section letter if present
+                        if "(" in clean_header and ")" in clean_header:
+                            # Trust the header if it looks like code
+                            course_name = clean_header
+                        else:
+                            # Combine Filename Base + Header info? 
+                            # Usually filename is "M&A(A)...". 
+                            # If filename is specific, assume filename is the source of truth if header is ambiguous
+                            if "(" in clean_filename and ")" in clean_filename:
+                                # Filename is "M&A(A),M&A(B).xlsx". We can't use full filename.
+                                # But if filename is single subject "CRM.xlsx", clean_filename is CRM.
+                                pass
+                            
+                            course_name = clean_header # Default to what we found
+                else:
+                    course_name = clean_filename
                 
-                # Fallback: If no header found in cell, use Filename (for single section files like CRM.xlsx)
-                if not raw_section_name or raw_section_name.lower() == 'nan':
-                    raw_section_name = os.path.basename(file).replace('.xlsx', '')
+                # Cleanup: remove dot if needed (RUR.MKT -> RURMKT)
+                course_name = course_name.replace("RURMKT", "RURMKT") # Already normalized but just in case
                 
-                # Normalize to match COURSE_DETAILS_MAP keys
-                course_name = normalize_course_name_for_map(raw_section_name)
-                
-                # B. Extract Students
-                # Iterate from the row AFTER the header down to the end
-                name_col = roll_col + 1 # Name is consistently next to Roll No
+                # C. Extract Students
+                name_col = roll_col + 1 # Name is strictly next to Roll No
                 
                 start_row = header_row_idx + 1
                 for r in range(start_row, len(df)):
                     roll_val = df.iloc[r, roll_col]
                     name_val = df.iloc[r, name_col]
                     
-                    # Clean Roll
                     clean_roll = str(roll_val).strip().upper()
                     
-                    # Stop if we hit an empty roll number (end of list)
                     if clean_roll == 'NAN' or clean_roll == '' or clean_roll == 'NONE':
                         continue
                         
-                    # Standardize Roll (handle floats like 463.0)
                     if clean_roll.replace('.','',1).isdigit():
                         clean_roll = str(int(float(clean_roll)))
                     
-                    # Basic validation: Roll numbers are usually digits or specific format
                     if len(clean_roll) < 2: 
                         continue
 
-                    # Store Data
                     if clean_roll not in student_data_map:
                         student_data_map[clean_roll] = {'name': 'Student', 'sections': set()}
                     
                     student_data_map[clean_roll]['sections'].add(course_name)
                     
-                    # Save name if available
                     clean_name = str(name_val).strip()
                     if clean_name and clean_name.lower() != 'nan':
                          student_data_map[clean_roll]['name'] = clean_name
                         
         except Exception as e:
-            # print(f"Error processing {file}: {e}") # Debugging
             continue
             
     return student_data_map
-
-def render_mess_menu_expander():
-    """Show weekly mess menu with a day selector."""
-    local_tz = pytz.timezone(TIMEZONE)
-    now_dt = datetime.now(local_tz)
-    today = now_dt.date()
-
-    start_date = today
-    if now_dt.hour >= 23:
-        start_date = today + pd.Timedelta(days=1)
-
-    week_dates = [start_date + pd.Timedelta(days=i) for i in range(7)]
-    valid_dates = [d for d in week_dates if d in MESS_MENU]
-    if not valid_dates:
-        return 
-
-    options = []
-    default_index = 0
-    for idx, d in enumerate(valid_dates):
-        label = d.strftime("%d %b") 
-        if d == today:
-            label += " (Today)"
-            default_index = idx
-        elif d == today + pd.Timedelta(days=1):
-            label += " (Tomorrow)"
-        options.append(label)
-
-    with st.expander("🍽️ Mess Menu for the Week", expanded=False):
-        selected_label = st.radio(
-            "Select a day:",
-            options,
-            index=default_index,
-            horizontal=True,
-        )
-
-        selected_idx = options.index(selected_label)
-        selected_date = valid_dates[selected_idx]
-        menu_data = MESS_MENU[selected_date]
-
-        st.markdown(
-            f"**Menu for {selected_date.strftime('%d %B %Y')}**"
-        )
-
-        col1, col2, col3, col4 = st.columns(4)
-
-        with col1:
-            st.markdown("#### Breakfast")
-            st.markdown(menu_data.get("Breakfast", "Not available"))
-
-        with col2:
-            st.markdown("#### Lunch")
-            st.markdown(menu_data.get("Lunch", "Not available"))
-
-        with col3:
-            st.markdown("#### Hi-Tea")
-            st.markdown(menu_data.get("Hi-Tea", "Not available"))
-
-        with col4:
-            st.markdown("#### Dinner")
-            st.markdown(menu_data.get("Dinner", "Not available"))
-
-def calculate_and_display_stats():
-    with st.expander("Sessions Taken till Now"):
-        with st.spinner("Calculating session statistics..."):
-            all_schedules_df = load_and_clean_schedule(SCHEDULE_FILE_NAME) 
-            
-            if all_schedules_df.empty:
-                st.warning("Could not load schedule file to calculate stats.")
-                return
-
-            local_tz = pytz.timezone(TIMEZONE)
-            now_dt = datetime.now(local_tz)
-            today_date = now_dt.date()
-            
-            class_counts = defaultdict(int)
-            
-            time_slot_end_times = {
-                2: "9:00AM", 3: "10:10AM", 4: "11:20AM", 5: "12:30PM",
-                6: "1:30PM", 7: "2:30PM", 8: "3:40PM", 9: "4:50PM",
-                10: "6:00PM", 11: "7:10PM", 12: "8:20PM", 13: "9:30PM"
-            }
-            
-            # Map normalized keys to Original Keys for display
-            # COURSE_DETAILS_MAP has keys like 'M&A(A)'. normalize_string('M&A(A)') -> 'M&A(A)'
-            normalized_course_map = {normalize_string(k): k for k in COURSE_DETAILS_MAP.keys()}
-            
-            for _, row in all_schedules_df.iterrows():
-                class_date = row[0]
-                
-                if class_date > today_date:
-                    continue 
-
-                for col_idx, end_time_str in time_slot_end_times.items():
-                    is_in_past = False 
-                    if class_date < today_date:
-                        is_in_past = True
-                    elif class_date == today_date:
-                        try:
-                            class_end_dt = local_tz.localize(pd.to_datetime(f"{class_date.strftime('%Y-%m-%d')} {end_time_str}"))
-                            is_in_past = class_end_dt < now_dt
-                        except Exception:
-                            is_in_past = False 
-                    
-                    if is_in_past:
-                        cell_value = str(row[col_idx])
-                        if cell_value and cell_value != 'nan':
-                            normalized_cell = normalize_string(cell_value)
-                            
-                            # Check if cell contains any of our known courses
-                            for norm_name, orig_name in normalized_course_map.items():
-                                if norm_name in normalized_cell:
-                                    is_overridden = False
-                                    if class_date in DAY_SPECIFIC_OVERRIDES and norm_name in DAY_SPECIFIC_OVERRIDES[class_date]:
-                                        override_details = DAY_SPECIFIC_OVERRIDES[class_date][norm_name]
-                                        venue_text = override_details.get('Venue', '').upper()
-                                        faculty_text = override_details.get('Faculty', '').upper()
-                                        
-                                        if "POSTPONED" in venue_text or "POSTPONED" in faculty_text or \
-                                           "CANCELLED" in venue_text or "CANCELLED" in faculty_text or \
-                                           "PREPONED" in venue_text or "PREPONED" in faculty_text:
-                                            is_overridden = True 
-                                            
-                                    if not is_overridden:
-                                        class_counts[orig_name] += 1
-
-            for added_class in ADDITIONAL_CLASSES:
-                class_date = added_class['Date']
-                if class_date > today_date:
-                    continue 
-                
-                is_in_past = False
-                if class_date < today_date:
-                    is_in_past = True
-                elif class_date == today_date:
-                    try:
-                        _, end_time_str = added_class['Time'].split('-')
-                        class_end_dt = local_tz.localize(pd.to_datetime(f"{class_date.strftime('%Y-%m-%d')} {end_time_str}"))
-                        is_in_past = class_end_dt < now_dt
-                    except Exception:
-                        is_in_past = False
-                
-                if is_in_past:
-                    norm_name = normalize_string(added_class['Subject'])
-                    if norm_name in normalized_course_map:
-                        orig_name = normalized_course_map[norm_name]
-                        class_counts[orig_name] += 1
-            
-            if not class_counts:
-                st.info("No past classes found yet for Term 6.")
-                return
-
-            st.markdown("This shows the total number of sessions held *to date*, accounting for all schedule changes.")
-            
-            grouped_counts = defaultdict(dict)
-            for full_name, count in class_counts.items():
-                match = re.match(r"(.*?)\((.*)\)", full_name)
-                if match:
-                    course_name = match.group(1)
-                    section_name = match.group(2).replace("'", "") 
-                else:
-                    course_name = full_name
-                    section_name = "Main" 
-                
-                grouped_counts[course_name][section_name] = count
-            
-            sorted_courses = sorted(grouped_counts.keys())
-            midpoint = len(sorted_courses) // 2 + (len(sorted_courses) % 2)
-            col1, col2 = st.columns(2)
-
-            def display_course_stats(column, course_list):
-                with column:
-                    for course_name in course_list:
-                        st.markdown(f"**{course_name}**")
-                        sections = grouped_counts[course_name]
-                            
-                        for section_name in sorted(sections.keys()):
-                            count = sections[section_name]
-                            if section_name == "Main":
-                                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Total Sessions: {count}")
-                            else:
-                                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
-                        st.markdown("") 
-
-            display_course_stats(col1, sorted_courses[:midpoint])
-            display_course_stats(col2, sorted_courses[midpoint:])
 
 def get_class_end_datetime(class_info, local_tz):
     try:
@@ -800,7 +622,7 @@ else:
                                 "CANCELLED" in venue_text or "CANCELLED" in faculty_text or
                                 "PREPONED" in venue_text or "PREPONED" in faculty_text or
                                 "(RESCHEDULED)" in venue_text or "(PREPONED)" in venue_text):
-                                is_override = True
+                                is_override = False # It is an override but we don't skip it, just style it
 
                             day_of_week = added_class['Date'].strftime('%A')
                             found_classes.append({
