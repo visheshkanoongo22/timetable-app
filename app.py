@@ -915,28 +915,10 @@ else:
                     for date in sorted_dates:
                         schedule_by_date[date].sort(key=get_sort_key)
                     
-                    # --- NEW LOGIC: SHOW SCHEDULE TILL END OF TERM ---
                     all_dates = []
-                    
-                    # 1. Get the absolute last date from the schedule file
-                    schedule_end_date = master_schedule_df[0].max()
-                    
                     if sorted_dates:
-                        # Start from the student's first class (to keep history)
                         first_date = sorted_dates[0]
-                        # End at the master schedule's last day (to show full upcoming week/term)
-                        last_date = max(sorted_dates[-1], schedule_end_date)
-                        
-                        current_date = first_date
-                        while current_date <= last_date:
-                            all_dates.append(current_date)
-                            current_date = date.fromordinal(current_date.toordinal() + 1)
-                    
-                    elif not master_schedule_df.empty:
-                        # If student has NO classes at all, show full range of schedule file
-                        first_date = master_schedule_df[0].min()
-                        last_date = schedule_end_date
-                        
+                        last_date = sorted_dates[-1]
                         current_date = first_date
                         while current_date <= last_date:
                             all_dates.append(current_date)
