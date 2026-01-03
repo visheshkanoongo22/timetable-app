@@ -272,6 +272,163 @@ def get_all_student_data(folder_path='.'):
             
     return student_data_map
 
+def calculate_and_display_stats():
+    # --- 1. SAFE IMPORTS (Prevents NameError) ---
+    import pandas as pd
+    import pytz
+    from datetime import datetime
+    import re
+    from collections import defaultdict
+    import streamlit as st
+
+    # --- 2. SAFE GLOBAL ACCESS ---
+    # We retrieve these safely. If they are missing from your file, we use empty defaults.
+    global_course_map = globals().get('COURSE_DETAILS_MAP', {})
+    global_overrides = globals().get('DAY_SPECIFIC_OVERRIDES', {})
+    global_additional = globals().get('ADDITIONAL_CLASSES', [])
+    global_schedule_file = globals().get('SCHEDULE_FILE_NAME', 'schedule.xlsx')
+    
+    # Check if COURSE_DETAILS_MAP exists
+    if not global_course_map:
+        st.error("Configuration Error: COURSE_DETAILS_MAP is missing or empty.")
+        return
+
+    with st.expander("Sessions Taken till Now"):
+        with st.spinner("Calculating session statistics..."):
+            
+            # Ensure helper functions exist
+            if 'load_and_clean_schedule' not in globals() or 'normalize_string' not in globals():
+                st.error("Critical Error: Helper functions (load_and_clean_schedule or normalize_string) are missing.")
+                return
+            
+            # Call global helper functions
+            load_schedule_func = globals()['load_and_clean_schedule']
+            norm_func = globals()['normalize_string']
+
+            all_schedules_df = load_schedule_func(global_schedule_file)
+            
+            if all_schedules_df.empty:
+                st.warning("Could not load schedule file to calculate stats.")
+                return
+
+            local_tz = pytz.timezone('Asia/Kolkata')
+            now_dt = datetime.now(local_tz)
+            today_date = now_dt.date()
+            
+            class_counts = defaultdict(int)
+            
+            time_slot_end_times = {
+                2: "9:00AM", 3: "10:10AM", 4: "11:20AM", 5: "12:30PM",
+                6: "1:30PM", 7: "2:30PM", 8: "3:40PM", 9: "4:50PM",
+                10: "6:00PM", 11: "7:10PM", 12: "8:20PM", 13: "9:30PM"
+            }
+            
+            # Map normalized keys to Original Keys for display
+            normalized_course_map = {norm_func(k): k for k in global_course_map.keys()}
+            
+            for _, row in all_schedules_df.iterrows():
+                class_date = row[0]
+                
+                # Only count PAST classes
+                if class_date > today_date:
+                    continue 
+
+                for col_idx, end_time_str in time_slot_end_times.items():
+                    is_in_past = False 
+                    if class_date < today_date:
+                        is_in_past = True
+                    elif class_date == today_date:
+                        try:
+                            class_end_dt = local_tz.localize(pd.to_datetime(f"{class_date.strftime('%Y-%m-%d')} {end_time_str}"))
+                            is_in_past = class_end_dt < now_dt
+                        except Exception:
+                            is_in_past = False 
+                    
+                    if is_in_past:
+                        cell_value = str(row[col_idx])
+                        if cell_value and cell_value != 'nan':
+                            normalized_cell = norm_func(cell_value)
+                            
+                            # Check if cell contains any of our known courses
+                            for norm_name, orig_name in normalized_course_map.items():
+                                if norm_name in normalized_cell:
+                                    is_overridden = False
+                                    if class_date in global_overrides and norm_name in global_overrides[class_date]:
+                                        override_details = global_overrides[class_date][norm_name]
+                                        venue_text = override_details.get('Venue', '').upper()
+                                        faculty_text = override_details.get('Faculty', '').upper()
+                                        
+                                        if "POSTPONED" in venue_text or "POSTPONED" in faculty_text or \
+                                           "CANCELLED" in venue_text or "CANCELLED" in faculty_text or \
+                                           "PREPONED" in venue_text or "PREPONED" in faculty_text:
+                                            is_overridden = True 
+                                            
+                                    if not is_overridden:
+                                        class_counts[orig_name] += 1
+
+            # Process Additional Classes
+            for added_class in global_additional:
+                class_date = added_class['Date']
+                if class_date > today_date:
+                    continue 
+                
+                is_in_past = False
+                if class_date < today_date:
+                    is_in_past = True
+                elif class_date == today_date:
+                    try:
+                        _, end_time_str = added_class['Time'].split('-')
+                        class_end_dt = local_tz.localize(pd.to_datetime(f"{class_date.strftime('%Y-%m-%d')} {end_time_str}"))
+                        is_in_past = class_end_dt < now_dt
+                    except Exception:
+                        is_in_past = False
+                
+                if is_in_past:
+                    norm_name = norm_func(added_class['Subject'])
+                    if norm_name in normalized_course_map:
+                        orig_name = normalized_course_map[norm_name]
+                        class_counts[orig_name] += 1
+            
+            if not class_counts:
+                st.info("No past classes found yet for Term 6.")
+                return
+
+            st.markdown("This shows the total number of sessions held *to date*, accounting for all schedule changes.")
+            
+            grouped_counts = defaultdict(dict)
+            for full_name, count in class_counts.items():
+                # Extract Course Name and Section (e.g. M&A(A) -> M&A, A)
+                match = re.match(r"(.*?)\((.*)\)", full_name)
+                if match:
+                    course_name = match.group(1)
+                    section_name = match.group(2).replace("'", "") 
+                else:
+                    course_name = full_name
+                    section_name = "Main" 
+                
+                grouped_counts[course_name][section_name] = count
+            
+            sorted_courses = sorted(grouped_counts.keys())
+            midpoint = len(sorted_courses) // 2 + (len(sorted_courses) % 2)
+            col1, col2 = st.columns(2)
+
+            def display_course_stats(column, course_list):
+                with column:
+                    for course_name in course_list:
+                        st.markdown(f"**{course_name}**")
+                        sections = grouped_counts[course_name]
+                            
+                        for section_name in sorted(sections.keys()):
+                            count = sections[section_name]
+                            if section_name == "Main":
+                                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Total Sessions: {count}")
+                            else:
+                                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
+                        st.markdown("") 
+
+            display_course_stats(col1, sorted_courses[:midpoint])
+            display_course_stats(col2, sorted_courses[midpoint:])
+
 def get_class_end_datetime(class_info, local_tz):
     try:
         time_str = class_info['Time']
