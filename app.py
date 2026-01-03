@@ -719,9 +719,9 @@ else:
                 found_classes = []
                 
                 for index, row in master_schedule_df.iterrows():
-                    date, day = row[0], row[1]
+                    row_date, day = row[0], row[1] # <--- FIXED VARIABLE SHADOWING
                     
-                    for col_index, time in time_slots.items():
+                    for col_index, slot_time in time_slots.items(): # <--- FIXED VARIABLE SHADOWING
                         cell_value = str(row[col_index])
                         if cell_value and cell_value != 'nan':
                             # Split by '/' to handle merged cells if any (e.g., "FT(A) / FT(B)")
@@ -749,13 +749,13 @@ else:
                                     is_venue_override = False
                                     
                                     # Check Day Overrides
-                                    if date in DAY_SPECIFIC_OVERRIDES:
-                                        if matched_course_norm in DAY_SPECIFIC_OVERRIDES[date]:
-                                            override_data = DAY_SPECIFIC_OVERRIDES[date][matched_course_norm]
+                                    if row_date in DAY_SPECIFIC_OVERRIDES:
+                                        if matched_course_norm in DAY_SPECIFIC_OVERRIDES[row_date]:
+                                            override_data = DAY_SPECIFIC_OVERRIDES[row_date][matched_course_norm]
                                             
                                             should_apply_override = True
                                             if 'Target_Time' in override_data:
-                                                if override_data['Target_Time'] != time:
+                                                if override_data['Target_Time'] != slot_time:
                                                     should_apply_override = False
                                             
                                             if should_apply_override:
@@ -764,8 +764,8 @@ else:
                                                 details.update(override_data)
                                     
                                     found_classes.append({
-                                        "Date": date, "Day": day, 
-                                        "Time": details.get('Time', time),
+                                        "Date": row_date, "Day": day, 
+                                        "Time": details.get('Time', slot_time),
                                         "Subject": orig_sec,
                                         "Faculty": details.get('Faculty', 'N/A'),
                                         "Venue": details.get('Venue', '-'),
@@ -848,51 +848,27 @@ else:
                     except:
                         return 9999
 
-                for date in sorted_dates:
-                    schedule_by_date[date].sort(key=get_sort_key)
+                for date_key in sorted_dates: # <--- RENAMED TO AVOID SHADOWING
+                    schedule_by_date[date_key].sort(key=get_sort_key)
                 
-                # --- SAFE DATE GENERATION LOGIC ---
+                # --- HARDCODED DATE LOGIC ---
                 all_dates = []
                 
-                # 1. Get schedule bounds from file
-                # 1. Get schedule bounds from file
+                # Start: First date found in the Excel schedule (to keep history)
                 if not master_schedule_df.empty:
-                    last_date_in_file = master_schedule_df[0].max()
-                    # Calculate days to reach the next Sunday (Sunday is weekday 6)
-                    days_to_sunday = 6 - last_date_in_file.weekday()
-                    schedule_end_date = last_date_in_file + pd.Timedelta(days=days_to_sunday)
-                else:
-                    schedule_end_date = date.today()
-                
-                # Safety: If schedule_end_date is NaT or invalid, default to today + 60 days
-                if pd.isna(schedule_end_date):
-                    schedule_end_date = date.today() + pd.Timedelta(days=60)
-
-                if sorted_dates:
-                    first_date = sorted_dates[0]
-                    # Use the LATEST of: student's last class OR the schedule's end
-                    last_date = max(sorted_dates[-1], schedule_end_date)
-                elif not master_schedule_df.empty:
                     first_date = master_schedule_df[0].min()
-                    last_date = schedule_end_date
                 else:
                     first_date = date.today()
-                    last_date = date.today()
 
-                # 2. Infinite Loop Guard
-                # If last_date is very far in future, stop after 180 days to prevent crash
-                MAX_DAYS = 180 
-                
+                # End: HARDCODED (11th Jan 2026)
+                last_date = date(2026, 1, 11)
+
                 current_date = first_date
-                days_processed = 0
                 
+                # Simple loop from start to hardcoded end
                 while current_date <= last_date:
                     all_dates.append(current_date)
                     current_date = date.fromordinal(current_date.toordinal() + 1)
-                    
-                    days_processed += 1
-                    if days_processed > MAX_DAYS:
-                        break 
                 
                 local_tz = pytz.timezone(TIMEZONE)
                 today_dt = datetime.now(local_tz)
@@ -1116,7 +1092,7 @@ else:
                             ''', unsafe_allow_html=True)
                         
                         st.markdown('</div>', unsafe_allow_html=True)
-                
+            
             else:
                 st.warning("No classes found for your registered sections in the master schedule.")
         
