@@ -719,9 +719,9 @@ else:
                 found_classes = []
                 
                 for index, row in master_schedule_df.iterrows():
-                    date, day = row[0], row[1]
+                    row_date, day = row[0], row[1] # <--- FIXED VARIABLE SHADOWING
                     
-                    for col_index, time in time_slots.items():
+                    for col_index, slot_time in time_slots.items(): # <--- FIXED VARIABLE SHADOWING
                         cell_value = str(row[col_index])
                         if cell_value and cell_value != 'nan':
                             # Split by '/' to handle merged cells if any (e.g., "FT(A) / FT(B)")
@@ -749,13 +749,13 @@ else:
                                     is_venue_override = False
                                     
                                     # Check Day Overrides
-                                    if date in DAY_SPECIFIC_OVERRIDES:
-                                        if matched_course_norm in DAY_SPECIFIC_OVERRIDES[date]:
-                                            override_data = DAY_SPECIFIC_OVERRIDES[date][matched_course_norm]
+                                    if row_date in DAY_SPECIFIC_OVERRIDES:
+                                        if matched_course_norm in DAY_SPECIFIC_OVERRIDES[row_date]:
+                                            override_data = DAY_SPECIFIC_OVERRIDES[row_date][matched_course_norm]
                                             
                                             should_apply_override = True
                                             if 'Target_Time' in override_data:
-                                                if override_data['Target_Time'] != time:
+                                                if override_data['Target_Time'] != slot_time:
                                                     should_apply_override = False
                                             
                                             if should_apply_override:
@@ -764,8 +764,8 @@ else:
                                                 details.update(override_data)
                                     
                                     found_classes.append({
-                                        "Date": date, "Day": day, 
-                                        "Time": details.get('Time', time),
+                                        "Date": row_date, "Day": day, 
+                                        "Time": details.get('Time', slot_time),
                                         "Subject": orig_sec,
                                         "Faculty": details.get('Faculty', 'N/A'),
                                         "Venue": details.get('Venue', '-'),
@@ -848,33 +848,60 @@ else:
                     except:
                         return 9999
 
-                for date in sorted_dates:
-                    schedule_by_date[date].sort(key=get_sort_key)
+                for date_key in sorted_dates: # <--- RENAMED TO AVOID SHADOWING
+                    schedule_by_date[date_key].sort(key=get_sort_key)
                 
                 # --- SAFE DATE GENERATION LOGIC ---
-                # --- LOGIC: Last Class Date -> End of that Week (Sunday) ---
                 all_dates = []
+                
+                # 1. Get schedule bounds from file
+                if not master_schedule_df.empty:
+                    schedule_end_date = master_schedule_df[0].max()
+                else:
+                    schedule_end_date = date.today()
+                
+                # Safety: If schedule_end_date is NaT or invalid, default to today + 60 days
+                if pd.isna(schedule_end_date):
+                    schedule_end_date = date.today() + pd.Timedelta(days=60)
 
                 if sorted_dates:
                     first_date = sorted_dates[0]
+                    # Use the LATEST of: student's last class OR the schedule's end
                     last_class_date = sorted_dates[-1]
-
-                    # Calculate days remaining until Sunday (Monday=0 ... Sunday=6)
+                    
+                    # Logic: Extend to Sunday of the last class week
                     days_until_sunday = 6 - last_class_date.weekday()
                     last_date = last_class_date + pd.Timedelta(days=days_until_sunday)
-
+                    
+                elif not master_schedule_df.empty:
+                    first_date = master_schedule_df[0].min()
+                    last_date = schedule_end_date
                 else:
-                    # Fallback: If no classes found, just show the current week (Mon-Sun)
-                    today_ref = date.today()
-                    first_date = today_ref - pd.Timedelta(days=today_ref.weekday()) # Start of week (Mon)
-                    last_date = first_date + pd.Timedelta(days=6) # End of week (Sun)
+                    first_date = date.today()
+                    last_date = date.today()
 
-                current_date = first_date
+                # 2. Infinite Loop Guard
+                # If last_date is very far in future, stop after 180 days to prevent crash
+                MAX_DAYS = 180 
                 
-                # Generate the date range
+                current_date = first_date
+                days_processed = 0
+                
                 while current_date <= last_date:
                     all_dates.append(current_date)
                     current_date = date.fromordinal(current_date.toordinal() + 1)
+                    
+                    days_processed += 1
+                    if days_processed > MAX_DAYS:
+                        break 
+                
+                local_tz = pytz.timezone(TIMEZONE)
+                today_dt = datetime.now(local_tz)
+                today = today_dt.date()
+                today_anchor_id = None
+                
+                past_dates = sorted([d for d in all_dates if d < today], reverse=True)
+                upcoming_dates = sorted([d for d in all_dates if d >= today])
 
                 with st.expander("Show Previous Classes"):
                     search_query = st_keyup(
@@ -1090,7 +1117,7 @@ else:
                             ''', unsafe_allow_html=True)
                         
                         st.markdown('</div>', unsafe_allow_html=True)
-                
+            
             else:
                 st.warning("No classes found for your registered sections in the master schedule.")
         
