@@ -123,8 +123,8 @@ def load_and_clean_schedule(file_path):
 
 def find_subjects_for_roll(target_roll, folder_path='.'):
     """
-    SEARCH OPTIMIZED: Scans files for target roll.
-    UI UPDATE: Removed progress bar for a cleaner loading circle experience.
+    SEARCH: Scans FULL Excel files (all rows/cols) for the target roll.
+    FIX: Uses 'with pd.ExcelFile' to force-close file handles immediately.
     """
     found_subjects = set()
     found_name = "Student"
@@ -136,20 +136,25 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
     
     for idx, file in enumerate(files):
         try:
-            # Read header=None to see the absolute layout
-            df = pd.read_excel(file, header=None)
+            # --- CRITICAL FIX: Context Manager ---
+            # This forces the Excel file to close IMMEDIATELY after the block ends.
+            # Prevents "Too many open files" error.
+            with pd.ExcelFile(file) as xls:
+                df = pd.read_excel(xls, header=None)
             
             # 1. Find the Header Row
             header_row_idx = -1
-            # Scan top 10 rows
-            for r in range(min(10, len(df))):
+            # Scan top 20 rows to find header
+            for r in range(min(20, len(df))):
                 row_values = [str(val).strip().lower() for val in df.iloc[r]]
                 if any("roll no" in v for v in row_values):
                     header_row_idx = r
                     break
             
             if header_row_idx == -1:
-                del df; gc.collect(); continue
+                del df 
+                gc.collect()
+                continue 
                 
             # 2. Find Roll Columns
             roll_col_indices = []
@@ -162,10 +167,10 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
             for roll_col in roll_col_indices:
                 name_col = roll_col + 1
                 
-                # Extract the column of roll numbers (skip header)
+                # Extract the column (skip header)
                 roll_series = df.iloc[header_row_idx+1:, roll_col].astype(str).str.strip().str.upper()
                 
-                # Check for match (Exact or Float-safe)
+                # Check for match
                 matches = roll_series[roll_series.apply(lambda x: x.split('.')[0] == target_roll)]
                 
                 if not matches.empty:
@@ -200,20 +205,27 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
                     course_name = course_name.replace("RURMKT", "RURMKT")
                     found_subjects.add(course_name)
                     
-                    # Grab Name from the first match
+                    # Grab Name
                     match_idx = matches.index[0]
-                    name_val = str(df.iloc[match_idx, name_col]).strip()
-                    if name_val and name_val.lower() != 'nan':
-                        found_name = name_val
+                    # Ensure name column exists
+                    if name_col < df.shape[1]:
+                        name_val = str(df.iloc[match_idx, name_col]).strip()
+                        if name_val and name_val.lower() != 'nan':
+                            found_name = name_val
 
-            # Clean memory immediately
+            # Delete Dataframe from memory
             del df
-            gc.collect()
+            
+            # Run GC less frequently (every 5 files) to balance speed and memory
+            if idx % 5 == 0:
+                gc.collect()
             
         except Exception:
             continue
             
+    gc.collect()
     return found_name, found_subjects
+
 
 def calculate_and_display_stats():
     # --- 1. SAFE IMPORTS ---
