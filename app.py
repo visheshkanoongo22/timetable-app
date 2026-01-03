@@ -83,7 +83,7 @@ COURSE_DETAILS_MAP = {
     'PS&PS':    {'Faculty': 'Shilpa Tanna',      'Venue': 'E3'},
 
     # General Management
-    'MC':       {'Faculty': 'VF',                'Venue': 'T3'},
+    'MC':       {'Faculty': 'Not Assigned',                'Venue': 'T3'},
 
     # DnA
     'FT(A)':    {'Faculty': 'Omkar Sahoo',       'Venue': 'T7'},
