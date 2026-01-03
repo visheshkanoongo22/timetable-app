@@ -855,8 +855,12 @@ else:
                 all_dates = []
                 
                 # 1. Get schedule bounds from file
+                # 1. Get schedule bounds from file
                 if not master_schedule_df.empty:
-                    schedule_end_date = master_schedule_df[0].max()
+                    last_date_in_file = master_schedule_df[0].max()
+                    # Calculate days to reach the next Sunday (Sunday is weekday 6)
+                    days_to_sunday = 6 - last_date_in_file.weekday()
+                    schedule_end_date = last_date_in_file + pd.Timedelta(days=days_to_sunday)
                 else:
                     schedule_end_date = date.today()
                 
