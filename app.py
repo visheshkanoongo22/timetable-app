@@ -10,9 +10,9 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
-from streamlit_extras.st_keyup import st_keyup
-import gc
-import time
+from streamlit_extras.st_keyup import st_keyup 
+import gc 
+import time 
 
 # --- IMPORT DATA FROM EXTERNAL FILES ---
 try:
@@ -31,7 +31,8 @@ except ImportError:
     MESS_MENU = {}
 
 # --- AUTO REFRESH EVERY 10 MINUTES ---
-AUTO_REFRESH_INTERVAL = 10 * 60
+# Only refresh if app has been running too long to prevent stale memory
+AUTO_REFRESH_INTERVAL = 10 * 60 
 
 if "start_time" not in st.session_state:
     st.session_state.start_time = time.time()
@@ -39,22 +40,11 @@ if "start_time" not in st.session_state:
 elapsed = time.time() - st.session_state.start_time
 
 if elapsed > AUTO_REFRESH_INTERVAL:
-    with st.spinner("🔄 Refreshing app to keep it fast and stable..."):
-        st.cache_data.clear()
-        st.cache_resource.clear()
-        gc.collect()
-        st.session_state.clear()
-        time.sleep(2)
-        st.rerun()
-
-if "run_counter" not in st.session_state:
-    st.session_state.run_counter = 0
-st.session_state.run_counter += 1
-
-if st.session_state.run_counter % 100 == 0:
     st.cache_data.clear()
     st.cache_resource.clear()
     gc.collect()
+    st.session_state.clear()
+    st.rerun()
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
@@ -116,17 +106,8 @@ def normalize_string(text):
     CRITICAL: Preserves brackets () to distinguish sections like M&A(A).
     """
     if isinstance(text, str):
-        # Remove spaces, single quotes, and dots (e.g., RUR.MKT -> RURMKT)
-        # But KEEP brackets so M&A(A) stays M&A(A)
         return text.replace(" ", "").replace("'", "").replace(".", "").upper()
     return ""
-
-def clean_roll_number(roll):
-    """Standardizes roll number format."""
-    # Handle floats (e.g. 463.0) -> "463"
-    if isinstance(roll, float):
-        roll = int(roll)
-    return str(roll).strip().upper()
 
 @st.cache_data
 def load_and_clean_schedule(file_path):
@@ -137,41 +118,35 @@ def load_and_clean_schedule(file_path):
         schedule_df[0] = pd.to_datetime(schedule_df[0], errors='coerce').dt.date
         schedule_df.dropna(subset=[0], inplace=True)
         return schedule_df
-    except FileNotFoundError:
-        return pd.DataFrame()
     except Exception as e:
         return pd.DataFrame()
 
-@st.cache_data(ttl=3600)
-def get_all_student_data(folder_path='.'):
+def find_subjects_for_roll(target_roll, folder_path='.'):
     """
-    Robust parser for horizontal block layout with MEMORY PROTECTION.
+    SEARCH OPTIMIZED: Instead of loading everyone, scans files ONLY for the target roll.
+    Returns: (Student Name, Set of Subjects)
     """
-    student_data_map = {}
+    found_subjects = set()
+    found_name = "Student"
     
     # Get all xlsx files excluding schedule
-    files = [f for f in glob.glob(os.path.join(folder_path, '*.xlsx'))
-             if os.path.basename(f) != SCHEDULE_FILE_NAME
+    files = [f for f in glob.glob(os.path.join(folder_path, '*.xlsx')) 
+             if os.path.basename(f) != SCHEDULE_FILE_NAME 
              and not os.path.basename(f).startswith('~')]
     
-    # Progress Bar to prevent timeout perception
-    progress_text = "Loading student data..."
-    my_bar = st.progress(0, text=progress_text)
-    total_files = len(files)
-
+    # Use a progress bar because scanning 20 files takes a moment
+    progress_bar = st.progress(0, text="Searching student records...")
+    
     for idx, file in enumerate(files):
-        # Update progress
-        if total_files > 0:
-            my_bar.progress((idx + 1) / total_files, text=f"Processing {os.path.basename(file)}...")
-
+        progress_bar.progress((idx + 1) / len(files), text=f"Scanning {os.path.basename(file)}...")
+        
         try:
             # Read header=None to see the absolute layout
-            # SAFETY: converting to str/cleaning immediately to save memory
             df = pd.read_excel(file, header=None)
             
-            # 1. Find the Header Row (containing "Roll No.")
+            # 1. Find the Header Row
             header_row_idx = -1
-            # Scan top 10 rows (increased range for safety)
+            # Limit scan to top 10 rows for speed
             for r in range(min(10, len(df))):
                 row_values = [str(val).strip().lower() for val in df.iloc[r]]
                 if any("roll no" in v for v in row_values):
@@ -179,91 +154,76 @@ def get_all_student_data(folder_path='.'):
                     break
             
             if header_row_idx == -1:
-                del df # Free memory
-                gc.collect()
-                continue
+                del df; gc.collect(); continue
                 
-            # 2. Find ALL columns in that row that contain "Roll No."
+            # 2. Find Roll Columns
             roll_col_indices = []
             for c in range(df.shape[1]):
                 val = str(df.iloc[header_row_idx, c]).strip().lower()
                 if "roll no" in val:
                     roll_col_indices.append(c)
-                    
-            # 3. Process each block
+            
+            # 3. Check each block for the student
             for roll_col in roll_col_indices:
-                # A. Identify Section Name
-                raw_section_name = ""
+                name_col = roll_col + 1
                 
-                if header_row_idx > 0:
-                    # Scan left to right in the row above
-                    start_search = max(0, roll_col - 2)
-                    end_search = min(df.shape[1], roll_col + 2)
+                # Extract the column of roll numbers (skip header)
+                roll_series = df.iloc[header_row_idx+1:, roll_col].astype(str).str.strip().str.upper()
+                
+                # Check for match (Exact or Float-safe)
+                # We normalize target_roll to match Excel format
+                matches = roll_series[roll_series.apply(lambda x: x.split('.')[0] == target_roll)]
+                
+                if not matches.empty:
+                    # MATCH FOUND!
                     
-                    for check_col in range(start_search, end_search):
-                        val_above = str(df.iloc[header_row_idx-1, check_col]).strip()
-                        if val_above and val_above.lower() != 'nan':
-                            raw_section_name = val_above
-                            break 
-                
-                # B. Normalize and Match
-                course_name = ""
-                clean_header = normalize_string(raw_section_name)
-                clean_filename = normalize_string(os.path.basename(file).replace('.xlsx', ''))
+                    # A. Identify Section Name (Look above header)
+                    raw_section_name = ""
+                    if header_row_idx > 0:
+                        start_search = max(0, roll_col - 2)
+                        end_search = min(df.shape[1], roll_col + 2)
+                        for check_col in range(start_search, end_search):
+                            val_above = str(df.iloc[header_row_idx-1, check_col]).strip()
+                            if val_above and val_above.lower() != 'nan':
+                                raw_section_name = val_above
+                                break 
+                    
+                    # B. Normalize Name
+                    course_name = ""
+                    clean_header = normalize_string(raw_section_name)
+                    clean_filename = normalize_string(os.path.basename(file).replace('.xlsx', ''))
 
-                if clean_header:
-                    if clean_header in [normalize_string(k) for k in COURSE_DETAILS_MAP.keys()]:
-                        course_name = clean_header
-                    else:
-                        if "(" in clean_header and ")" in clean_header:
+                    if clean_header:
+                        if clean_header in [normalize_string(k) for k in COURSE_DETAILS_MAP.keys()]:
+                            course_name = clean_header
+                        elif "(" in clean_header and ")" in clean_header:
                             course_name = clean_header
                         else:
-                            course_name = clean_header 
-                else:
-                    course_name = clean_filename
-                
-                course_name = course_name.replace("RURMKT", "RURMKT")
-                
-                # C. Extract Students
-                name_col = roll_col + 1
-                start_row = header_row_idx + 1
-                
-                for r in range(start_row, len(df)):
-                    roll_val = df.iloc[r, roll_col]
-                    name_val = df.iloc[r, name_col]
+                            course_name = clean_header # Fallback
+                    else:
+                        course_name = clean_filename
                     
-                    clean_roll = str(roll_val).strip().upper()
+                    course_name = course_name.replace("RURMKT", "RURMKT")
+                    found_subjects.add(course_name)
                     
-                    if clean_roll == 'NAN' or clean_roll == '' or clean_roll == 'NONE':
-                        continue
-                        
-                    if clean_roll.replace('.','',1).isdigit():
-                        clean_roll = str(int(float(clean_roll)))
-                    
-                    if len(clean_roll) < 2:
-                        continue
+                    # Grab Name from the first match
+                    match_idx = matches.index[0]
+                    name_val = str(df.iloc[match_idx, name_col]).strip()
+                    if name_val and name_val.lower() != 'nan':
+                        found_name = name_val
 
-                    if clean_roll not in student_data_map:
-                        student_data_map[clean_roll] = {'name': 'Student', 'sections': set()}
-                    
-                    student_data_map[clean_roll]['sections'].add(course_name)
-                    
-                    clean_name = str(name_val).strip()
-                    if clean_name and clean_name.lower() != 'nan':
-                         student_data_map[clean_roll]['name'] = clean_name
-            
-            # MEMORY CLEANUP
+            # Clean memory immediately
             del df
             gc.collect()
-
-        except Exception as e:
+            
+        except Exception:
             continue
             
-    my_bar.empty() # Clear progress bar
-    return student_data_map
+    progress_bar.empty()
+    return found_name, found_subjects
 
 def calculate_and_display_stats():
-    # --- 1. SAFE IMPORTS (Prevents NameError) ---
+    # --- 1. SAFE IMPORTS ---
     import pandas as pd
     import pytz
     from datetime import datetime
@@ -278,15 +238,12 @@ def calculate_and_display_stats():
     global_schedule_file = globals().get('SCHEDULE_FILE_NAME', 'schedule.xlsx')
     
     if not global_course_map:
-        st.error("Configuration Error: COURSE_DETAILS_MAP is missing.")
         return
 
     with st.expander("Sessions Taken till Now"):
         with st.spinner("Calculating session statistics..."):
             
-            # Helper checks
             if 'load_and_clean_schedule' not in globals() or 'normalize_string' not in globals():
-                st.error("Critical Error: Helper functions missing.")
                 return
             
             load_schedule_func = globals()['load_and_clean_schedule']
@@ -659,498 +616,505 @@ if 'search_clear_counter' not in st.session_state:
 if 'just_submitted' not in st.session_state: 
     st.session_state.just_submitted = False
 
+# --- UI START ---
 if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub">Term 6 Schedule</div>', unsafe_allow_html=True)
 
-# --- DYNAMIC DATA LOADING ---
-with st.spinner("Initializing application and loading student data..."):
-    student_data_map = get_all_student_data()
-
-if not student_data_map:
-    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
-    st.error("FATAL ERROR: Could not load any student data. Please check that your subject Excel files are in the directory.")
-else:
-    if not st.session_state.submitted:
-        st.markdown(
-            """
-            <div class="welcome-box">
-                Welcome! Enter your roll number to get started!</strong>.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        with st.form("roll_number_form"):
-            roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
-            submitted_button = st.form_submit_button("Generate Timetable")
+    st.markdown(
+        """
+        <div class="welcome-box">
+            Welcome! Enter your roll number to get started!</strong>.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    with st.form("roll_number_form"):
+        roll_number_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
+        submitted_button = st.form_submit_button("Generate Timetable")
+        
+        if submitted_button:
+            final_roll = roll_number_input
+            if roll_number_input.isdigit():
+                val = int(roll_number_input)
+                if 0 <= val < 100:
+                    final_roll = f"21BCM{roll_number_input}"
+                elif 100 <= val <= 999:
+                    final_roll = f"24MBA{roll_number_input}"
             
-            if submitted_button:
-                final_roll = roll_number_input
-                if roll_number_input.isdigit():
-                    val = int(roll_number_input)
-                    if 0 <= val < 100:
-                        final_roll = f"21BCM{roll_number_input}"
-                    elif 100 <= val <= 999:
-                        final_roll = f"24MBA{roll_number_input}"
-                
-                st.session_state.roll_number = final_roll
-                st.session_state.submitted = True
-                st.session_state.just_submitted = True 
-                st.rerun()
-        
-        render_mess_menu_expander()
-        calculate_and_display_stats()
-
-    else:
-        roll_to_process = st.session_state.roll_number
-        
-        if not roll_to_process:
-            st.session_state.submitted = False
+            st.session_state.roll_number = final_roll
+            st.session_state.submitted = True
+            st.session_state.just_submitted = True 
             st.rerun()
-        elif roll_to_process not in student_data_map:
+    
+    render_mess_menu_expander()
+    calculate_and_display_stats()
+
+else:
+    # --- DASHBOARD PAGE ---
+    roll_to_process = st.session_state.roll_number
+    
+    if not roll_to_process:
+        st.session_state.submitted = False
+        st.rerun()
+    
+    # LAZY LOADING: Only load specific student data NOW
+    student_name = "Student"
+    student_sections = set()
+    
+    # Ensure this runs once per submission
+    if st.session_state.just_submitted:
+        found_name, found_sections = find_subjects_for_roll(roll_to_process)
+        if not found_sections:
             st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
             if st.button("Go Back"):
                 st.session_state.submitted = False
                 st.session_state.roll_number = ""
                 st.rerun()
+            st.stop() # Stop execution here
         else:
-            student_info = student_data_map[roll_to_process]
-            student_name = student_info['name']
-            student_sections = student_info['sections'] # This is now a Set of Course Names
+            # Store in session state to avoid re-searching on refresh
+            st.session_state.student_name = found_name
+            st.session_state.student_sections = found_sections
+            st.session_state.just_submitted = False
+    
+    # Retrieve from session state
+    if 'student_sections' in st.session_state:
+        student_name = st.session_state.student_name
+        student_sections = st.session_state.student_sections
+        
+        master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
+        
+        if master_schedule_df.empty:
+            st.error("Could not load the Master Schedule file.")
+        else:
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.markdown(f"""
+                <div class="welcome-message">
+                    Displaying schedule for: <strong>{roll_to_process}</strong>
+                </div>
+                """, unsafe_allow_html=True)
+            with col2:
+                if st.button("Change Roll Number"):
+                    st.session_state.submitted = False
+                    st.session_state.roll_number = ""
+                    st.session_state.search_clear_counter = 0 
+                    st.session_state.just_submitted = False 
+                    if 'student_sections' in st.session_state:
+                        del st.session_state.student_sections
+                    st.rerun()
             
-            master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
-            
-            if master_schedule_df.empty:
-                st.error("Could not load the Master Schedule file.")
-            else:
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.markdown(f"""
-                    <div class="welcome-message">
-                        Displaying schedule for: <strong>{roll_to_process}</strong>
-                    </div>
-                    """, unsafe_allow_html=True)
-                with col2:
-                    if st.button("Change Roll Number"):
-                        st.session_state.submitted = False
-                        st.session_state.roll_number = ""
-                        st.session_state.search_clear_counter = 0 
-                        st.session_state.just_submitted = False 
-                        st.rerun()
+            with st.spinner(f'Compiling classes for {student_name}...'):
+                # Create normalized map for easy lookup
+                NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
                 
-                with st.spinner(f'Compiling classes for {student_name}...'):
-                    # Create normalized map for easy lookup
-                    NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
+                # Create a normalized set of the student's registered courses
+                normalized_student_courses = {normalize_string(sec): sec for sec in student_sections}
+                
+                time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
+                              6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
+                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
+                
+                found_classes = []
+                
+                for index, row in master_schedule_df.iterrows():
+                    date, day = row[0], row[1]
                     
-                    # Create a normalized set of the student's registered courses
-                    normalized_student_courses = {normalize_string(sec): sec for sec in student_sections}
-                    
-                    time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
-                                  6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
-                                  10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
-                    
-                    found_classes = []
-                    
-                    for index, row in master_schedule_df.iterrows():
-                        date, day = row[0], row[1]
-                        
-                        for col_index, time in time_slots.items():
-                            cell_value = str(row[col_index])
-                            if cell_value and cell_value != 'nan':
-                                # Split by '/' to handle merged cells if any (e.g., "FT(A) / FT(B)")
-                                cell_parts = cell_value.split('/')
+                    for col_index, time in time_slots.items():
+                        cell_value = str(row[col_index])
+                        if cell_value and cell_value != 'nan':
+                            # Split by '/' to handle merged cells if any (e.g., "FT(A) / FT(B)")
+                            cell_parts = cell_value.split('/')
+                            
+                            for part in cell_parts:
+                                normalized_cell_part = normalize_string(part)
                                 
-                                for part in cell_parts:
-                                    normalized_cell_part = normalize_string(part)
+                                # Check if this part matches any of the student's courses
+                                matched_course_norm = None
+                                
+                                # 1. Exact match check
+                                if normalized_cell_part in normalized_student_courses:
+                                    matched_course_norm = normalized_cell_part
+                                else:
+                                    # 2. Substring check (safer for things like "FT(A)" matching "FT(A)")
+                                    for s_norm in normalized_student_courses.keys():
+                                        if s_norm == normalized_cell_part:
+                                            matched_course_norm = s_norm
+                                            break
+                                
+                                if matched_course_norm:
+                                    orig_sec = normalized_student_courses[matched_course_norm]
+                                    details = NORMALIZED_COURSE_DETAILS_MAP.get(matched_course_norm, {'Faculty': 'N/A', 'Venue': '-'}).copy()
+                                    is_venue_override = False
                                     
-                                    # Check if this part matches any of the student's courses
-                                    matched_course_norm = None
+                                    # Check Day Overrides
+                                    if date in DAY_SPECIFIC_OVERRIDES:
+                                        if matched_course_norm in DAY_SPECIFIC_OVERRIDES[date]:
+                                            override_data = DAY_SPECIFIC_OVERRIDES[date][matched_course_norm]
+                                            
+                                            should_apply_override = True
+                                            if 'Target_Time' in override_data:
+                                                if override_data['Target_Time'] != time:
+                                                    should_apply_override = False
+                                            
+                                            if should_apply_override:
+                                                if 'Venue' in override_data:
+                                                    is_venue_override = True
+                                                details.update(override_data)
                                     
-                                    # 1. Exact match check
-                                    if normalized_cell_part in normalized_student_courses:
-                                        matched_course_norm = normalized_cell_part
-                                    else:
-                                        # 2. Substring check (safer for things like "FT(A)" matching "FT(A)")
-                                        for s_norm in normalized_student_courses.keys():
-                                            if s_norm == normalized_cell_part:
-                                                matched_course_norm = s_norm
-                                                break
-                                    
-                                    if matched_course_norm:
-                                        orig_sec = normalized_student_courses[matched_course_norm]
-                                        details = NORMALIZED_COURSE_DETAILS_MAP.get(matched_course_norm, {'Faculty': 'N/A', 'Venue': '-'}).copy()
-                                        is_venue_override = False
-                                        
-                                        # Check Day Overrides
-                                        if date in DAY_SPECIFIC_OVERRIDES:
-                                            if matched_course_norm in DAY_SPECIFIC_OVERRIDES[date]:
-                                                override_data = DAY_SPECIFIC_OVERRIDES[date][matched_course_norm]
-                                                
-                                                should_apply_override = True
-                                                if 'Target_Time' in override_data:
-                                                    if override_data['Target_Time'] != time:
-                                                        should_apply_override = False
-                                                
-                                                if should_apply_override:
-                                                    if 'Venue' in override_data:
-                                                        is_venue_override = True
-                                                    details.update(override_data)
-                                        
-                                        found_classes.append({
-                                            "Date": date, "Day": day, 
-                                            "Time": details.get('Time', time),
-                                            "Subject": orig_sec,
-                                            "Faculty": details.get('Faculty', 'N/A'),
-                                            "Venue": details.get('Venue', '-'),
-                                            "is_venue_override": is_venue_override
-                                        })
+                                    found_classes.append({
+                                        "Date": date, "Day": day, 
+                                        "Time": details.get('Time', time),
+                                        "Subject": orig_sec,
+                                        "Faculty": details.get('Faculty', 'N/A'),
+                                        "Venue": details.get('Venue', '-'),
+                                        "is_venue_override": is_venue_override
+                                    })
+                
+                # Add Additional Classes
+                for added_class in ADDITIONAL_CLASSES:
+                    norm_added_subject = normalize_string(added_class['Subject'])
                     
-                    # Add Additional Classes
-                    for added_class in ADDITIONAL_CLASSES:
-                        norm_added_subject = normalize_string(added_class['Subject'])
+                    # Only add if the student is registered for this subject
+                    is_relevant = False
+                    if norm_added_subject in normalized_student_courses:
+                        is_relevant = True
+                    
+                    if is_relevant:
+                        venue_text = added_class.get('Venue', '').upper()
+                        faculty_text = added_class.get('Faculty', '').upper()
+                        is_override = False 
                         
-                        # Only add if the student is registered for this subject
-                        # OR if it matches a registered subject (fuzzy match)
-                        is_relevant = False
-                        if norm_added_subject in normalized_student_courses:
-                            is_relevant = True
-                        
-                        if is_relevant:
-                            venue_text = added_class.get('Venue', '').upper()
-                            faculty_text = added_class.get('Faculty', '').upper()
+                        if ("POSTPONED" in venue_text or "POSTPONED" in faculty_text or
+                            "CANCELLED" in venue_text or "CANCELLED" in faculty_text or
+                            "PREPONED" in venue_text or "PREPONED" in faculty_text or
+                            "(RESCHEDULED)" in venue_text or "(PREPONED)" in venue_text):
                             is_override = False 
-                            
-                            if ("POSTPONED" in venue_text or "POSTPONED" in faculty_text or
-                                "CANCELLED" in venue_text or "CANCELLED" in faculty_text or
-                                "PREPONED" in venue_text or "PREPONED" in faculty_text or
-                                "(RESCHEDULED)" in venue_text or "(PREPONED)" in venue_text):
-                                is_override = False 
 
-                            day_of_week = added_class['Date'].strftime('%A')
-                            found_classes.append({
-                                "Date": added_class['Date'], "Day": day_of_week, "Time": added_class['Time'],
-                                "Subject": added_class['Subject'], 
-                                "Faculty": added_class.get('Faculty', 'N/A'),
-                                "Venue": added_class.get('Venue', '-'), 
-                                "is_venue_override": is_override 
-                            })
+                        day_of_week = added_class['Date'].strftime('%A')
+                        found_classes.append({
+                            "Date": added_class['Date'], "Day": day_of_week, "Time": added_class['Time'],
+                            "Subject": added_class['Subject'], 
+                            "Faculty": added_class.get('Faculty', 'N/A'),
+                            "Venue": added_class.get('Venue', '-'), 
+                            "is_venue_override": is_override 
+                        })
 
-                    # Remove duplicates
-                    found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
-                    
-                if found_classes:
-                    ics_content = generate_ics_content(found_classes)
-                    sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
-                    
-                    with st.expander("Download & Import to Calendar"):
-                        st.download_button(
-                            label="Download .ics Calendar File",
-                            data=ics_content,
-                            file_name=f"{sanitized_name}_Timetable.ics",
-                            mime='text/calendar'
-                        )
-                        st.markdown(f"""
-                        **How to Import to Google Calendar:**
-                        1. Click the 'Download .ics' button above.
-                        2. Go to [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).
-                        3. Under 'Import from computer', click 'Select file...'.
-                        4. Choose the `.ics` file you just downloaded and click 'Import'.
-                        """)
-                    
-                    schedule_by_date = defaultdict(list)
-                    for class_info in found_classes:
-                        schedule_by_date[class_info['Date']].append(class_info)
-                    
-                    sorted_dates = sorted(schedule_by_date.keys())
-                    
-                    def get_sort_key(class_item):
-                        time_str = class_item['Time'].upper()
-                        try:
-                            start_part = time_str.split('-')[0].strip()
-                            if ':' in start_part:
-                                h_str, m_str = start_part.split(':')
-                                h = int(re.search(r'\d+', h_str).group())
-                                m = int(re.search(r'\d+', m_str).group())
-                            else:
-                                h = int(re.search(r'\d+', start_part).group())
-                                m = 0
-                            
-                            if h < 8: h += 12
-                            elif h in [8, 9, 10] and "PM" in time_str and "AM" not in time_str:
-                                h += 12
-                            return h * 60 + m
-                        except:
-                            return 9999
-
-                    for date in sorted_dates:
-                        schedule_by_date[date].sort(key=get_sort_key)
-                    
-                    # --- SAFE DATE GENERATION LOGIC ---
-                    all_dates = []
-                    
-                    # 1. Get schedule bounds from file
-                    if not master_schedule_df.empty:
-                        schedule_end_date = master_schedule_df[0].max()
-                    else:
-                        schedule_end_date = date.today()
-                    
-                    # Safety: If schedule_end_date is NaT or invalid, default to today + 60 days
-                    if pd.isna(schedule_end_date):
-                        schedule_end_date = date.today() + pd.Timedelta(days=60)
-
-                    if sorted_dates:
-                        first_date = sorted_dates[0]
-                        # Use the LATEST of: student's last class OR the schedule's end
-                        last_date = max(sorted_dates[-1], schedule_end_date)
-                    elif not master_schedule_df.empty:
-                        first_date = master_schedule_df[0].min()
-                        last_date = schedule_end_date
-                    else:
-                        first_date = date.today()
-                        last_date = date.today()
-
-                    # 2. Infinite Loop Guard
-                    # If last_date is very far in future, stop after 180 days to prevent crash
-                    MAX_DAYS = 180 
-                    
-                    current_date = first_date
-                    days_processed = 0
-                    
-                    while current_date <= last_date:
-                        all_dates.append(current_date)
-                        current_date = date.fromordinal(current_date.toordinal() + 1)
+                # Remove duplicates
+                found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
+                
+            if found_classes:
+                ics_content = generate_ics_content(found_classes)
+                sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(student_name).replace(" ", "_")).upper()
+                
+                with st.expander("Download & Import to Calendar"):
+                    st.download_button(
+                        label="Download .ics Calendar File",
+                        data=ics_content,
+                        file_name=f"{sanitized_name}_Timetable.ics",
+                        mime='text/calendar'
+                    )
+                    st.markdown(f"""
+                    **How to Import to Google Calendar:**
+                    1. Click the 'Download .ics' button above.
+                    2. Go to [**Google Calendar Import Page**]({GOOGLE_CALENDAR_IMPORT_LINK}).
+                    3. Under 'Import from computer', click 'Select file...'.
+                    4. Choose the `.ics` file you just downloaded and click 'Import'.
+                    """)
+                
+                schedule_by_date = defaultdict(list)
+                for class_info in found_classes:
+                    schedule_by_date[class_info['Date']].append(class_info)
+                
+                sorted_dates = sorted(schedule_by_date.keys())
+                
+                def get_sort_key(class_item):
+                    time_str = class_item['Time'].upper()
+                    try:
+                        start_part = time_str.split('-')[0].strip()
+                        if ':' in start_part:
+                            h_str, m_str = start_part.split(':')
+                            h = int(re.search(r'\d+', h_str).group())
+                            m = int(re.search(r'\d+', m_str).group())
+                        else:
+                            h = int(re.search(r'\d+', start_part).group())
+                            m = 0
                         
-                        days_processed += 1
-                        if days_processed > MAX_DAYS:
-                            # Break silently or log
-                            break 
-                    
-                    local_tz = pytz.timezone(TIMEZONE)
-                    today_dt = datetime.now(local_tz)
-                    today = today_dt.date()
-                    today_anchor_id = None
-                    
-                    past_dates = sorted([d for d in all_dates if d < today], reverse=True)
-                    upcoming_dates = sorted([d for d in all_dates if d >= today])
+                        if h < 8: h += 12
+                        elif h in [8, 9, 10] and "PM" in time_str and "AM" not in time_str:
+                            h += 12
+                        return h * 60 + m
+                    except:
+                        return 9999
 
-                    with st.expander("Show Previous Classes"):
-                        search_query = st_keyup(
-                            label=None,
-                            placeholder="Search past classes...",
-                            debounce=300, 
-                            key=f"search_bar_past_{st.session_state.search_clear_counter}" 
-                        )
-                        search_query = search_query.lower() if search_query else ""
+                for date in sorted_dates:
+                    schedule_by_date[date].sort(key=get_sort_key)
+                
+                # --- SAFE DATE GENERATION LOGIC ---
+                all_dates = []
+                
+                # 1. Get schedule bounds from file
+                if not master_schedule_df.empty:
+                    schedule_end_date = master_schedule_df[0].max()
+                else:
+                    schedule_end_date = date.today()
+                
+                # Safety: If schedule_end_date is NaT or invalid, default to today + 60 days
+                if pd.isna(schedule_end_date):
+                    schedule_end_date = date.today() + pd.Timedelta(days=60)
+
+                if sorted_dates:
+                    first_date = sorted_dates[0]
+                    # Use the LATEST of: student's last class OR the schedule's end
+                    last_date = max(sorted_dates[-1], schedule_end_date)
+                elif not master_schedule_df.empty:
+                    first_date = master_schedule_df[0].min()
+                    last_date = schedule_end_date
+                else:
+                    first_date = date.today()
+                    last_date = date.today()
+
+                # 2. Infinite Loop Guard
+                # If last_date is very far in future, stop after 180 days to prevent crash
+                MAX_DAYS = 180 
+                
+                current_date = first_date
+                days_processed = 0
+                
+                while current_date <= last_date:
+                    all_dates.append(current_date)
+                    current_date = date.fromordinal(current_date.toordinal() + 1)
+                    
+                    days_processed += 1
+                    if days_processed > MAX_DAYS:
+                        break 
+                
+                local_tz = pytz.timezone(TIMEZONE)
+                today_dt = datetime.now(local_tz)
+                today = today_dt.date()
+                today_anchor_id = None
+                
+                past_dates = sorted([d for d in all_dates if d < today], reverse=True)
+                upcoming_dates = sorted([d for d in all_dates if d >= today])
+
+                with st.expander("Show Previous Classes"):
+                    search_query = st_keyup(
+                        label=None,
+                        placeholder="Search past classes...",
+                        debounce=300, 
+                        key=f"search_bar_past_{st.session_state.search_clear_counter}" 
+                    )
+                    search_query = search_query.lower() if search_query else ""
+                    
+                    if search_query: 
+                        if st.button("Clear Search"):
+                            st.session_state.search_clear_counter += 1
+                            st.rerun()
+
+                    if search_query:
+                        st.subheader(f"Search Results for '{search_query}'")
+                    
+                    found_past_search = False
+                    if not past_dates and not search_query:
+                        st.markdown('<p style="color: var(--muted); font-style: italic;">No previous classes found.</p>', unsafe_allow_html=True)
+                    
+                    for date_obj in past_dates:
+                        classes_today = schedule_by_date.get(date_obj, [])
                         
-                        if search_query: 
-                            if st.button("Clear Search"):
-                                st.session_state.search_clear_counter += 1
-                                st.rerun()
-
                         if search_query:
-                            st.subheader(f"Search Results for '{search_query}'")
+                            classes_today = [
+                                c for c in classes_today if
+                                (search_query in c['Subject'].lower() or
+                                 search_query in c['Faculty'].lower() or
+                                 search_query in c['Venue'].lower())
+                            ]
+                            if classes_today:
+                                found_past_search = True
                         
-                        found_past_search = False
-                        if not past_dates and not search_query:
-                            st.markdown('<p style="color: var(--muted); font-style: italic;">No previous classes found.</p>', unsafe_allow_html=True)
+                        if not classes_today:
+                            continue 
                         
-                        for date_obj in past_dates:
-                            classes_today = schedule_by_date.get(date_obj, [])
+                        st.markdown(f'''
+                            <div class="day-card" id="date-card-past-{date_obj.toordinal()}">
+                                <div class="day-header">
+                                    {date_obj.strftime("%d %B %Y, %A")}
+                                </div>
+                        ''', unsafe_allow_html=True)
+                        
+                        for class_info in classes_today:
+                            venue_text = class_info.get("Venue", "-")
+                            faculty_text = class_info.get("Faculty", "-")
+                            venue_text_upper = venue_text.upper()
+                            faculty_text_upper = faculty_text.upper()
+
+                            is_postponed = "POSTPONED" in venue_text_upper or "POSTPONED" in faculty_text_upper
+                            is_cancelled = "CANCELLED" in venue_text_upper or "CANCELLED" in faculty_text_upper
+                            is_preponed = "PREPONED" in venue_text_upper or "PREPONED" in faculty_text_upper
                             
-                            if search_query:
-                                classes_today = [
-                                    c for c in classes_today if
-                                    (search_query in c['Subject'].lower() or
-                                     search_query in c['Faculty'].lower() or
-                                     search_query in c['Venue'].lower())
-                                ]
-                                if classes_today:
-                                    found_past_search = True
+                            status_class = ""
+                            venue_display = ""
+                            faculty_display = f'<span class="faculty">{faculty_text}</span>' 
+
+                            if is_postponed:
+                                status_class = "strikethrough"
+                                venue_display = f'<span class="venue venue-changed">Postponed</span>'
+                                if "POSTPONED" not in faculty_text_upper:
+                                     faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
+                                else:
+                                     faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>'
+                            elif is_cancelled:
+                                status_class = "strikethrough"
+                                venue_display = f'<span class="venue venue-changed">Cancelled</span>'
+                                if "CANCELLED" not in faculty_text_upper:
+                                     faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
+                                else:
+                                     faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>'
+                            elif is_preponed:
+                                status_class = "strikethrough"
+                                venue_display = f'<span class="venue venue-changed">Preponed</span>'
+                                if "PREPONED" not in faculty_text_upper:
+                                     faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
+                                else:
+                                     faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>'
+                            elif class_info.get('is_venue_override', False):
+                                venue_display = f'<span class="venue venue-changed">Venue changed to {venue_text}</span>'
+                                faculty_display = f'<span class="faculty">{faculty_text}</span>'
+                            else:
+                                venue_display = f'<span class="venue">{venue_text}</span>'
+                                faculty_display = f'<span class="faculty">{faculty_text}</span>'
                             
-                            if not classes_today:
-                                continue 
+                            meta_html = f'''
+                                <div class="meta">
+                                    <span class="time {status_class}">{class_info["Time"]}</span>
+                                    {venue_display}
+                                    {faculty_display}
+                                </div>
+                            '''
                             
                             st.markdown(f'''
-                                <div class="day-card" id="date-card-past-{date_obj.toordinal()}">
+                                <div class="class-entry">
+                                    <div class="left">
+                                        <div class="subject-name {status_class}">{class_info["Subject"]}</div>
+                                    </div>
+                                    {meta_html}
+                                </div>
+                            ''', unsafe_allow_html=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    if search_query and not found_past_search:
+                        st.warning(f"No past classes found matching your search for '{search_query}'.")
+
+                st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
+
+                if not upcoming_dates:
+                     st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
+
+                for idx, date_obj in enumerate(upcoming_dates):
+                    is_today = (date_obj == today)
+                    today_class = "today" if is_today else ""
+                    card_id = f"date-card-{idx}"
+                    
+                    if is_today: 
+                        today_anchor_id = card_id
+                    
+                    classes_today = schedule_by_date.get(date_obj, [])
+                    
+                    if not classes_today:
+                        st.markdown(f'''
+                            <div class="day-card {today_class}" id="{card_id}">
+                                <div class="day-header">
+                                    {date_obj.strftime("%d %B %Y, %A")}
+                                </div>
+                                <div class="class-entry">
+                                    <div class="left">
+                                        <div class="subject-name" style="color: var(--muted); font-style: italic;">No classes scheduled</div>
+                                    </div>
+                                    <div class="meta"><span class="time" style="color: var(--muted);">—</span></div>
+                                </div>
+                            </div>
+                        ''', unsafe_allow_html=True)
+                    else:
+                        if is_today:
+                            st.markdown(f'''
+                                <div class="day-card {today_class}" id="{card_id}">
+                                    <div class="today-badge">TODAY</div>
                                     <div class="day-header">
                                         {date_obj.strftime("%d %B %Y, %A")}
                                     </div>
                             ''', unsafe_allow_html=True)
-                            
-                            for class_info in classes_today:
-                                venue_text = class_info.get("Venue", "-")
-                                faculty_text = class_info.get("Faculty", "-")
-                                venue_text_upper = venue_text.upper()
-                                faculty_text_upper = faculty_text.upper()
-
-                                is_postponed = "POSTPONED" in venue_text_upper or "POSTPONED" in faculty_text_upper
-                                is_cancelled = "CANCELLED" in venue_text_upper or "CANCELLED" in faculty_text_upper
-                                is_preponed = "PREPONED" in venue_text_upper or "PREPONED" in faculty_text_upper
-                                
-                                status_class = ""
-                                venue_display = ""
-                                faculty_display = f'<span class="faculty">{faculty_text}</span>' 
-
-                                if is_postponed:
-                                    status_class = "strikethrough"
-                                    venue_display = f'<span class="venue venue-changed">Postponed</span>'
-                                    if "POSTPONED" not in faculty_text_upper:
-                                         faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
-                                    else:
-                                         faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>'
-                                elif is_cancelled:
-                                    status_class = "strikethrough"
-                                    venue_display = f'<span class="venue venue-changed">Cancelled</span>'
-                                    if "CANCELLED" not in faculty_text_upper:
-                                         faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
-                                    else:
-                                         faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>'
-                                elif is_preponed:
-                                    status_class = "strikethrough"
-                                    venue_display = f'<span class="venue venue-changed">Preponed</span>'
-                                    if "PREPONED" not in faculty_text_upper:
-                                         faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
-                                    else:
-                                         faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>'
-                                elif class_info.get('is_venue_override', False):
-                                    venue_display = f'<span class="venue venue-changed">Venue changed to {venue_text}</span>'
-                                    faculty_display = f'<span class="faculty">{faculty_text}</span>'
-                                else:
-                                    venue_display = f'<span class="venue">{venue_text}</span>'
-                                    faculty_display = f'<span class="faculty">{faculty_text}</span>'
-                                
-                                meta_html = f'''
-                                    <div class="meta">
-                                        <span class="time {status_class}">{class_info["Time"]}</span>
-                                        {venue_display}
-                                        {faculty_display}
-                                    </div>
-                                '''
-                                
-                                st.markdown(f'''
-                                    <div class="class-entry">
-                                        <div class="left">
-                                            <div class="subject-name {status_class}">{class_info["Subject"]}</div>
-                                        </div>
-                                        {meta_html}
-                                    </div>
-                                ''', unsafe_allow_html=True)
-                            st.markdown('</div>', unsafe_allow_html=True)
-                        
-                        if search_query and not found_past_search:
-                            st.warning(f"No past classes found matching your search for '{search_query}'.")
-
-                    st.markdown('<div id="search-anchor-div"></div>', unsafe_allow_html=True)
-
-                    if not upcoming_dates:
-                         st.markdown('<p style="color: var(--muted); font-style: italic;">No upcoming classes found.</p>', unsafe_allow_html=True)
-
-                    for idx, date_obj in enumerate(upcoming_dates):
-                        is_today = (date_obj == today)
-                        today_class = "today" if is_today else ""
-                        card_id = f"date-card-{idx}"
-                        
-                        if is_today: 
-                            today_anchor_id = card_id
-                        
-                        classes_today = schedule_by_date.get(date_obj, [])
-                        
-                        if not classes_today:
+                        else:
                             st.markdown(f'''
                                 <div class="day-card {today_class}" id="{card_id}">
                                     <div class="day-header">
                                         {date_obj.strftime("%d %B %Y, %A")}
                                     </div>
-                                    <div class="class-entry">
-                                        <div class="left">
-                                            <div class="subject-name" style="color: var(--muted); font-style: italic;">No classes scheduled</div>
-                                        </div>
-                                        <div class="meta"><span class="time" style="color: var(--muted);">—</span></div>
+                            ''', unsafe_allow_html=True)
+
+                        for class_info in classes_today:
+                            venue_display = ""
+                            venue_text = class_info.get("Venue", "-")
+                            faculty_text = class_info.get("Faculty", "-")
+                            venue_text_upper = venue_text.upper()
+                            faculty_text_upper = faculty_text.upper()
+
+                            is_postponed = "POSTPONED" in venue_text_upper or "POSTPONED" in faculty_text_upper
+                            is_cancelled = "CANCELLED" in venue_text_upper or "CANCELLED" in faculty_text_upper
+                            is_preponed = "PREPONED" in venue_text_upper or "PREPONED" in faculty_text_upper
+                            
+                            status_class = ""
+                            venue_display = ""
+                            faculty_display = f'<span class="faculty">{faculty_text}</span>' 
+
+                            if is_postponed:
+                                status_class = "strikethrough"
+                                venue_display = f'<span class="venue venue-changed">Postponed</span>'
+                                if "POSTPONED" not in faculty_text_upper:
+                                     faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
+                                else:
+                                     faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>'
+                            elif is_cancelled:
+                                status_class = "strikethrough"
+                                venue_display = f'<span class="venue venue-changed">Cancelled</span>'
+                                if "CANCELLED" not in faculty_text_upper:
+                                     faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
+                                else:
+                                     faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>'
+                            elif is_preponed:
+                                status_class = "strikethrough"
+                                venue_display = f'<span class="venue venue-changed">Preponed</span>'
+                                if "PREPONED" not in faculty_text_upper:
+                                     faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
+                                else:
+                                     faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>'
+                            elif class_info.get('is_venue_override', False):
+                                venue_display = f'<span class="venue venue-changed">Venue changed to {venue_text}</span>'
+                                faculty_display = f'<span class="faculty">{faculty_text}</span>'
+                            else:
+                                venue_display = f'<span class="venue">{venue_text}</span>'
+                                faculty_display = f'<span class="faculty">{faculty_text}</span>'
+                            
+                            meta_html = f'''
+                                <div class="meta">
+                                    <span class="time {status_class}">{class_info["Time"]}</span>
+                                    {venue_display}
+                                    {faculty_display}
+                                </div>
+                            '''
+                            
+                            st.markdown(f'''
+                                <div class="class-entry">
+                                    <div class="left">
+                                        <div class="subject-name {status_class}">{class_info["Subject"]}</div>
                                     </div>
+                                    {meta_html}
                                 </div>
                             ''', unsafe_allow_html=True)
-                        else:
-                            if is_today:
-                                st.markdown(f'''
-                                    <div class="day-card {today_class}" id="{card_id}">
-                                        <div class="today-badge">TODAY</div>
-                                        <div class="day-header">
-                                            {date_obj.strftime("%d %B %Y, %A")}
-                                        </div>
-                                ''', unsafe_allow_html=True)
-                            else:
-                                st.markdown(f'''
-                                    <div class="day-card {today_class}" id="{card_id}">
-                                        <div class="day-header">
-                                            {date_obj.strftime("%d %B %Y, %A")}
-                                        </div>
-                                ''', unsafe_allow_html=True)
-
-                            for class_info in classes_today:
-                                venue_display = ""
-                                venue_text = class_info.get("Venue", "-")
-                                faculty_text = class_info.get("Faculty", "-")
-                                venue_text_upper = venue_text.upper()
-                                faculty_text_upper = faculty_text.upper()
-
-                                is_postponed = "POSTPONED" in venue_text_upper or "POSTPONED" in faculty_text_upper
-                                is_cancelled = "CANCELLED" in venue_text_upper or "CANCELLED" in faculty_text_upper
-                                is_preponed = "PREPONED" in venue_text_upper or "PREPONED" in faculty_text_upper
-                                
-                                status_class = ""
-                                venue_display = ""
-                                faculty_display = f'<span class="faculty">{faculty_text}</span>' 
-
-                                if is_postponed:
-                                    status_class = "strikethrough"
-                                    venue_display = f'<span class="venue venue-changed">Postponed</span>'
-                                    if "POSTPONED" not in faculty_text_upper:
-                                         faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
-                                    else:
-                                         faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>'
-                                elif is_cancelled:
-                                    status_class = "strikethrough"
-                                    venue_display = f'<span class="venue venue-changed">Cancelled</span>'
-                                    if "CANCELLED" not in faculty_text_upper:
-                                         faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
-                                    else:
-                                         faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>'
-                                elif is_preponed:
-                                    status_class = "strikethrough"
-                                    venue_display = f'<span class="venue venue-changed">Preponed</span>'
-                                    if "PREPONED" not in faculty_text_upper:
-                                         faculty_display = f'<span class="faculty {status_class}">{faculty_text}</span>'
-                                    else:
-                                         faculty_display = f'<span class="faculty venue-changed">{faculty_text.title()}</span>'
-                                elif class_info.get('is_venue_override', False):
-                                    venue_display = f'<span class="venue venue-changed">Venue changed to {venue_text}</span>'
-                                    faculty_display = f'<span class="faculty">{faculty_text}</span>'
-                                else:
-                                    venue_display = f'<span class="venue">{venue_text}</span>'
-                                    faculty_display = f'<span class="faculty">{faculty_text}</span>'
-                                
-                                meta_html = f'''
-                                    <div class="meta">
-                                        <span class="time {status_class}">{class_info["Time"]}</span>
-                                        {venue_display}
-                                        {faculty_display}
-                                    </div>
-                                '''
-                                
-                                st.markdown(f'''
-                                    <div class="class-entry">
-                                        <div class="left">
-                                            <div class="subject-name {status_class}">{class_info["Subject"]}</div>
-                                        </div>
-                                        {meta_html}
-                                    </div>
-                                ''', unsafe_allow_html=True)
-                            
-                            st.markdown('</div>', unsafe_allow_html=True)
-                    
-                else:
-                    st.warning("No classes found for your registered sections in the master schedule.")
-            
+                        
+                        st.markdown('</div>', unsafe_allow_html=True)
+                
+            else:
+                st.warning("No classes found for your registered sections in the master schedule.")
+        
 st.markdown("---")
 st.caption("_Made by Vishesh_")
