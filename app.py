@@ -123,8 +123,8 @@ def load_and_clean_schedule(file_path):
 
 def find_subjects_for_roll(target_roll, folder_path='.'):
     """
-    SEARCH OPTIMIZED: Instead of loading everyone, scans files ONLY for the target roll.
-    Returns: (Student Name, Set of Subjects)
+    SEARCH OPTIMIZED: Scans files for target roll.
+    UI UPDATE: Removed progress bar for a cleaner loading circle experience.
     """
     found_subjects = set()
     found_name = "Student"
@@ -134,19 +134,14 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
              if os.path.basename(f) != SCHEDULE_FILE_NAME 
              and not os.path.basename(f).startswith('~')]
     
-    # Use a progress bar because scanning 20 files takes a moment
-    progress_bar = st.progress(0, text="Searching student records...")
-    
     for idx, file in enumerate(files):
-        progress_bar.progress((idx + 1) / len(files), text=f"Scanning {os.path.basename(file)}...")
-        
         try:
             # Read header=None to see the absolute layout
             df = pd.read_excel(file, header=None)
             
             # 1. Find the Header Row
             header_row_idx = -1
-            # Limit scan to top 10 rows for speed
+            # Scan top 10 rows
             for r in range(min(10, len(df))):
                 row_values = [str(val).strip().lower() for val in df.iloc[r]]
                 if any("roll no" in v for v in row_values):
@@ -171,13 +166,12 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
                 roll_series = df.iloc[header_row_idx+1:, roll_col].astype(str).str.strip().str.upper()
                 
                 # Check for match (Exact or Float-safe)
-                # We normalize target_roll to match Excel format
                 matches = roll_series[roll_series.apply(lambda x: x.split('.')[0] == target_roll)]
                 
                 if not matches.empty:
                     # MATCH FOUND!
                     
-                    # A. Identify Section Name (Look above header)
+                    # A. Identify Section Name
                     raw_section_name = ""
                     if header_row_idx > 0:
                         start_search = max(0, roll_col - 2)
@@ -199,7 +193,7 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
                         elif "(" in clean_header and ")" in clean_header:
                             course_name = clean_header
                         else:
-                            course_name = clean_header # Fallback
+                            course_name = clean_header 
                     else:
                         course_name = clean_filename
                     
@@ -219,7 +213,6 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
         except Exception:
             continue
             
-    progress_bar.empty()
     return found_name, found_subjects
 
 def calculate_and_display_stats():
@@ -662,9 +655,12 @@ else:
     student_name = "Student"
     student_sections = set()
     
-    # Ensure this runs once per submission
+# Ensure this runs once per submission
     if st.session_state.just_submitted:
-        found_name, found_sections = find_subjects_for_roll(roll_to_process)
+        # --- UI CHANGE: Sleek Spinner instead of Progress Bar ---
+        with st.spinner("Finding your schedule..."):
+            found_name, found_sections = find_subjects_for_roll(roll_to_process)
+            
         if not found_sections:
             st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
             if st.button("Go Back"):
