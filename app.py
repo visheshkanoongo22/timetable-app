@@ -441,7 +441,7 @@ def generate_ics_content(found_classes):
 
 # 4. STREAMLIT WEB APP INTERFACE
 st.set_page_config(
-    page_title="MBA Timetable Assistant", 
+    page_title="MBA Timetable Assistant" (T-6 Schedule will be updated in 24 hours), 
     layout="centered", 
     initial_sidebar_state="collapsed"
 )
