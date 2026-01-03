@@ -111,13 +111,16 @@ COURSE_DETAILS_MAP = {
 # 3. FUNCTIONS
 def normalize_string(text):
     """
-    Strict normalization to ensure file headers match COURSE_DETAILS_MAP keys.
+    Standardizes course names.
+    Removes spaces, dots, and quotes.
+    CRITICAL: Preserves brackets () to distinguish sections like M&A(A).
     """
     if isinstance(text, str):
-        # Example: "RUR.MKT (A)" -> "RURMKT(A)"
-        return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").replace(".", "").upper()
+        # Remove spaces, single quotes, and dots (e.g., RUR.MKT -> RURMKT)
+        # But KEEP brackets so M&A(A) stays M&A(A)
+        return text.replace(" ", "").replace("'", "").replace(".", "").upper()
     return ""
-
+    
 def clean_roll_number(roll):
     """Standardizes roll number format."""
     # Handle floats (e.g. 463.0) -> "463"
