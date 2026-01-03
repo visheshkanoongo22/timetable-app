@@ -1,4 +1,3 @@
-
 # 1. IMPORTS
 import pandas as pd
 import os
@@ -16,10 +15,21 @@ import gc
 import time 
 
 # --- IMPORT DATA FROM EXTERNAL FILES ---
-from day_overrides import DAY_SPECIFIC_OVERRIDES
-from additional_classes import ADDITIONAL_CLASSES
-from mess_menu import MESS_MENU
-from exam_schedule import EXAM_SCHEDULE_DATA
+# Ensure these files exist in your directory or handle the ImportErrors gracefully
+try:
+    from day_overrides import DAY_SPECIFIC_OVERRIDES
+except ImportError:
+    DAY_SPECIFIC_OVERRIDES = {}
+
+try:
+    from additional_classes import ADDITIONAL_CLASSES
+except ImportError:
+    ADDITIONAL_CLASSES = []
+
+try:
+    from mess_menu import MESS_MENU
+except ImportError:
+    MESS_MENU = {}
 
 # --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
 AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
@@ -51,116 +61,93 @@ if st.session_state.run_counter % 100 == 0:
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
-# --- List of all schedule files, from oldest to newest ---
-SCHEDULE_FILES = ['schedule1.xlsx', 'schedule2.xlsx', 'schedule3.xlsx', 'schedule.xlsx'] 
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
+
+# --- TERM 6 COURSE DETAILS ---
 COURSE_DETAILS_MAP = {
-    'AN(A)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'}, 'AN(B)': {'Faculty': 'Nitin Pillai', 'Venue': 'T6'},
-    'B2B(A)': {'Faculty': 'Sandip Trada', 'Venue': 'T5'}, 'B2B(B)': {'Faculty': 'Rupam Deb', 'Venue': 'E2'},
-    "B2B('C)": {'Faculty': 'Rupam Deb', 'Venue': 'E2'}, 'BS': {'Faculty': 'Satish Nair', 'Venue': 'T6'},
-    'CC&AU(A)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'}, 'CC&AU(B)': {'Faculty': 'Lalit Arora', 'Venue': 'T6'},
-    'CSE': {'Faculty': 'Shahir Bhatt', 'Venue': 'T6'}, 'DADM': {'Faculty': 'Mahesh K C', 'Venue': 'T3'},
-    'DC': {'Faculty': 'Sapan Oza', 'Venue': 'T6'}, 'DM(A)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'},
-    'DM(B)': {'Faculty': 'Shailesh Prabhu', 'Venue': 'T7'}, "DRM('C)": {'Faculty': 'Pankaj Agrawal', 'Venue': 'T5'},
-    'DRM(A)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'}, 'DRM(B)': {'Faculty': 'Bhavesh Patel', 'Venue': 'T6'},
-    "DV&VS('C)": {'Faculty': 'Anand Kumar', 'Venue': 'T5'}, 'DV&VS(A)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'},
-    'DV&VS(B)': {'Faculty': 'Somayya Madakam', 'Venue': 'E3'}, 'DV&VS(D)': {'Faculty': 'Anand Kumar', 'Venue': 'T5'},
-    'IMC(A)': {'Faculty': 'Sanjay Jain', 'Venue': 'T1'}, 'IMC(B)': {'Faculty': 'Riddhi Ambavale', 'Venue': 'T7'},
-    'INB(A)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'INB(B)': {'Faculty': 'M C Gupta', 'Venue': 'T7'},
-    'INB(C)': {'Faculty': 'M C Gupta', 'Venue': 'T7'}, 'LSS(A)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'},
-    'LSS(B)': {'Faculty': 'Rajesh Jain', 'Venue': 'T3'}, 'ML&AI(A)': {'Faculty': 'Omkar Sahoo', 'Venue': 'T5'},
-    'ML&AI(B)': {'Faculty': 'Omkar Sahoo', 'Venue': 'T5'}, 'OMSD': {'Faculty': 'Dinesh Panchal', 'Venue': 'T3'},
-    'PDBE(A)': {'Faculty': 'Nina Muncherji', 'Venue': 'T6'}, 'PDBE(B)': {'Faculty': 'Nina Muncherji', 'Venue': 'T6'},
-    "SCM('C)": {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SCM(A)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'},
-    'SCM(B)': {'Faculty': 'Praneti Shah', 'Venue': 'T3'}, 'SMKT(A)': {'Faculty': 'Himanshu Chauhan', 'Venue': 'T6'},
-    'SMKT(B)': {'Faculty': 'Kavita Saxena', 'Venue': 'T5'}, 'TEOM(A)': {'Faculty': 'P Ganesh', 'Venue': 'T3'},
-    'TEOM(B)': {'Faculty': 'P Ganesh', 'Venue': 'T3'}, "VALU('C)": {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'},
-    'VALU(A)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'}, 'VALU(B)': {'Faculty': 'Dipti Saraf', 'Venue': 'T5'},
-    'VALU(D)': {'Faculty': 'Dimple Bhojwani', 'Venue': 'T6'}
+    # Finance & Accounting
+    'D&IT':     {'Faculty': 'Dhaval Patanvadia', 'Venue': 'T6'},
+    'IF(A)':    {'Faculty': 'Parag Rijwani',     'Venue': 'T6'},
+    'IF(B)':    {'Faculty': 'Parag Rijwani',     'Venue': 'T6'},
+    'M&A(A)':   {'Faculty': 'Dipti Saraf',       'Venue': 'T5'},
+    'M&A(B)':   {'Faculty': 'Dipti Saraf',       'Venue': 'T5'},
+    'M&A(C)':   {'Faculty': 'Dipti Saraf',       'Venue': 'T5'},
+
+    # Economics & Finance
+    'PPC(A)':   {'Faculty': 'Ritesh Patel',      'Venue': 'T6'},
+    'PPC(B)':   {'Faculty': 'Ritesh Patel',      'Venue': 'T6'},
+    'PPC(C)':   {'Faculty': 'Ritesh Patel',      'Venue': 'T6'},
+
+    # Marketing
+    'MA':       {'Faculty': 'Jayesh Aagja',      'Venue': 'T6'},
+    'CRM':      {'Faculty': 'T. S. Joshi',       'Venue': 'T6'},
+    'RURMKT(A)': {'Faculty': 'Sapna Parshar',    'Venue': 'T6'},
+    'RURMKT(B)': {'Faculty': 'Sapna Parshar',    'Venue': 'T6'},
+    'IM':       {'Faculty': 'Pradeep Kautish',   'Venue': 'T6'},
+    'MS(A)':    {'Faculty': 'Jayesh Aagja',      'Venue': 'T5'},
+    'MS(B)':    {'Faculty': 'Jayesh Aagja',      'Venue': 'T5'},
+    'MS(C)':    {'Faculty': 'Jayesh Aagja',      'Venue': 'T5'},
+    'MS(D)':    {'Faculty': 'Jayesh Aagja',      'Venue': 'T5'},
+
+    # HRM / OB & Communication
+    'GBL':      {'Faculty': 'Sadhana Sargam',    'Venue': 'T5'},
+    'DIW':      {'Faculty': 'Nitin Pillai',      'Venue': 'T5'},
+    'PS&PS':    {'Faculty': 'Shilpa Tanna',      'Venue': 'E3'},
+
+    # General Management
+    'MC':       {'Faculty': 'VF',                'Venue': 'T3'},
+
+    # DnA
+    'FT(A)':    {'Faculty': 'Omkar Sahoo',       'Venue': 'T7'},
+    'FT(B)':    {'Faculty': 'Omkar Sahoo',       'Venue': 'T7'},
+    'SNA':      {'Faculty': 'Anand Kumar',       'Venue': 'T3'},
+    'IGR&MC':   {'Faculty': 'Somayya Madakam',   'Venue': 'T6'},
+
+    # OM&DS
+    'PRM(A)':   {'Faculty': 'Chetan Jhaveri',    'Venue': 'T6'},
+    'PRM(B)':   {'Faculty': 'Chetan Jhaveri',    'Venue': 'T6'},
+    'IL(A)':    {'Faculty': 'Praneti Shah',      'Venue': 'T5'},
+    'IL(B)':    {'Faculty': 'Praneti Shah',      'Venue': 'T5'}
 }
 
 # 3. FUNCTIONS
 def normalize_string(text):
     if isinstance(text, str):
-        return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").upper()
+        # Remove spaces, brackets, quotes, dots, and convert to upper
+        return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").replace(".", "").upper()
     return ""
 
+def clean_roll_number(roll):
+    """Standardizes roll number format."""
+    return str(roll).strip().upper()
+
+def find_header_row(df):
+    """
+    Dynamically finds the row containing 'Roll' or 'Student'.
+    Returns the dataframe with that row as header.
+    """
+    for i, row in df.iterrows():
+        row_str = row.astype(str).str.lower().tolist()
+        # Look for typical header keywords
+        if any('roll' in x for x in row_str) and any('no' in x for x in row_str):
+            df.columns = df.iloc[i]
+            return df.iloc[i+1:].reset_index(drop=True)
+    return df
+
 @st.cache_data
-def load_and_clean_schedule(file_path, is_stats_file=False):
+def load_and_clean_schedule(file_path):
     try:
+        # Assuming schedule format is consistent (Sheet 1, skip 3 rows)
         df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3)
         schedule_df = df.iloc[:, 0:14].copy()
         schedule_df[0] = pd.to_datetime(schedule_df[0], errors='coerce').dt.date
         schedule_df.dropna(subset=[0], inplace=True)
         return schedule_df
     except FileNotFoundError:
-        if not is_stats_file:
-            st.error(f"FATAL ERROR: The main schedule file '{file_path}' was not found.")
         return pd.DataFrame()
     except Exception as e:
-        if not is_stats_file:
-            st.error(f"FATAL ERROR: Could not load the main schedule file. Details: {e}")
         return pd.DataFrame()
-
-@st.cache_data
-def load_all_schedules(file_list):
-    all_dfs = []
-    for file_path in file_list:
-        df = load_and_clean_schedule(file_path, is_stats_file=True) 
-        if not df.empty:
-            all_dfs.append(df)
-            
-    if not all_dfs:
-        return pd.DataFrame()
-        
-    combined_df = pd.concat(all_dfs)
-    combined_df = combined_df.sort_values(by=[0])
-    return combined_df
-
-# --- NEW: Function to display Exam Schedule ---
-def display_exam_schedule(student_sections):
-    # 1. Normalize student sections to get base codes
-    student_base_codes = set()
-    for sec in student_sections:
-        base = re.sub(r"\(.*$", "", sec).strip()
-        student_base_codes.add(base)
-        if "B2B" in sec: student_base_codes.add("B2B")
-        if "DV&VS" in sec: student_base_codes.add("DV&VS")
-        if "ML&AI" in sec: student_base_codes.add("ML&AI")
-        if "CC&AU" in sec: student_base_codes.add("CC&AU")
-
-    # 2. Filter exams
-    my_exams = []
-    for exam in EXAM_SCHEDULE_DATA:
-        if exam['Subject_Code'] in student_base_codes:
-            my_exams.append(exam)
-    
-    if not my_exams:
-        return
-
-    # 3. Display
-    with st.expander("📝 End Term Examinations (Term V)", expanded=True):
-        # Sort by date
-        my_exams.sort(key=lambda x: x['Date'])
-        
-        for exam in my_exams:
-            # FORMAT CHANGE: Removed Day Name (%A)
-            date_str = exam['Date'].strftime('%d %b %Y')
-            st.markdown(f"""
-            <div style="
-                background-color: rgba(255, 255, 255, 0.05); 
-                padding: 10px; 
-                border-radius: 8px; 
-                margin-bottom: 8px; 
-                border-left: 4px solid #60A5FA;">
-                <div style="font-weight: 700; font-size: 1.1em; color: #fff;">{exam['Full_Name']}</div>
-                <div style="display: flex; justify-content: space-between; color: #94A3B8; font-size: 0.9em; margin-top: 4px;">
-                    <span>{date_str}</span>
-                    <span>{exam['Time']}</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
 
 def render_mess_menu_expander():
     """Show weekly mess menu with a day selector."""
@@ -180,7 +167,6 @@ def render_mess_menu_expander():
     options = []
     default_index = 0
     for idx, d in enumerate(valid_dates):
-        # FORMAT CHANGE: Removed Day Name (%a)
         label = d.strftime("%d %b") 
         if d == today:
             label += " (Today)"
@@ -201,7 +187,6 @@ def render_mess_menu_expander():
         selected_date = valid_dates[selected_idx]
         menu_data = MESS_MENU[selected_date]
 
-        # FORMAT CHANGE: Removed Day Name (%A)
         st.markdown(
             f"**Menu for {selected_date.strftime('%d %B %Y')}**"
         )
@@ -308,7 +293,7 @@ def calculate_and_display_stats():
                         class_counts[orig_name] += 1
             
             if not class_counts:
-                st.info("No past classes were found to calculate statistics.")
+                st.info("No past classes found yet for Term 6.")
                 return
 
             st.markdown("This shows the total number of sessions held *to date*, accounting for all schedule changes.")
@@ -335,16 +320,14 @@ def calculate_and_display_stats():
                         st.markdown(f"**{course_name}**")
                         sections = grouped_counts[course_name]
                         
-                        max_lectures = 30
-                        if "DV&VS" in course_name or course_name == "BS":
-                            max_lectures = 40
+                        max_lectures = 20 # Default for Term 6 (Adjust as needed)
                             
                         for section_name in sorted(sections.keys()):
                             count = sections[section_name]
                             if section_name == "Main":
-                                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Total Sessions: {count}/{max_lectures}")
+                                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Total Sessions: {count}")
                             else:
-                                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count}/{max_lectures} sessions")
+                                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;Section {section_name}: {count} sessions")
                         st.markdown("") 
 
             display_course_stats(col1, sorted_courses[:midpoint])
@@ -352,34 +335,79 @@ def calculate_and_display_stats():
 
 @st.cache_data
 def get_all_student_data(folder_path='.'):
-    student_data_map = {}
-    subject_files = [
-        f for f in glob.glob(os.path.join(folder_path, '*.xlsx')) 
-        if os.path.basename(f) != SCHEDULE_FILE_NAME 
-        and not os.path.basename(f).startswith('~')
-    ]
+    """
+    DYNAMICALLY reads all .xlsx files in the folder (except schedule.xlsx)
+    and maps Roll Numbers to their registered Subjects/Sections.
+    """
+    student_data_map = {} # {RollNo: {'name': 'Name', 'sections': {Set of Courses}}}
     
-    for file in subject_files:
+    # Get all xlsx files excluding schedule
+    files = [f for f in glob.glob(os.path.join(folder_path, '*.xlsx')) 
+             if os.path.basename(f) != SCHEDULE_FILE_NAME 
+             and not os.path.basename(f).startswith('~')]
+    
+    for file in files:
         try:
-            df = pd.read_excel(file, header=None)
-            header_row_index = -1
-            for i in range(min(5, len(df))):
-                if df.iloc[i].astype(str).str.upper().str.contains('ROLL').any():
-                    header_row_index = i; break
-            if header_row_index == -1: continue
-            subject_row, roll_no_columns = df.iloc[0], df.iloc[header_row_index][df.iloc[header_row_index].astype(str).str.upper().str.contains('ROLL')].index
-            for col_idx in roll_no_columns:
-                section_name = subject_row[col_idx]
-                name_column_index = col_idx + 1
-                for _, row in df.iloc[header_row_index + 1:].iterrows():
-                    roll_no = str(row[col_idx]).upper()
-                    if 'NAN' in roll_no: continue
-                    student_name = row[name_column_index]
-                    if roll_no not in student_data_map:
-                        student_data_map[roll_no] = {'name': student_name, 'sections': set()}
-                    student_data_map[roll_no]['sections'].add(section_name)
-        except Exception:
+            xls = pd.ExcelFile(file)
+            file_clean_name = os.path.basename(file).replace('.xlsx', '')
+            
+            # Iterate through every sheet in the file
+            for sheet_name in xls.sheet_names:
+                df = pd.read_excel(xls, sheet_name=sheet_name)
+                df = find_header_row(df)
+                
+                # Identify the 'Roll No' column dynamically
+                roll_col = next((col for col in df.columns if 'roll' in str(col).lower()), None)
+                
+                if roll_col:
+                    # Identify Name column (usually next to roll, or contains 'name'/'student')
+                    name_col = next((col for col in df.columns if 'name' in str(col).lower() or 'student' in str(col).lower()), None)
+
+                    # Determine Course Name
+                    # Logic: If sheet name is generic (Sheet1), use filename. 
+                    # If sheet name looks like a code (e.g., "FT(A)"), use sheet name.
+                    course_name = ""
+                    clean_sheet_name = normalize_string(sheet_name)
+                    clean_file_name = normalize_string(file_clean_name)
+                    
+                    if "(" in sheet_name and ")" in sheet_name:
+                        course_name = sheet_name.strip()
+                    elif "SHEET" in clean_sheet_name:
+                        # Use filename if sheet is generic
+                        # Handle cases like "CRM" or "FT(A) & FT(B)" - though usually separate sheets handle the latter
+                        course_name = file_clean_name.strip()
+                    else:
+                        course_name = sheet_name.strip()
+
+                    # Clean the course name (e.g., remove dots for RUR.MKT if needed by map)
+                    # For RUR.MKT -> RURMKT to match COURSE_DETAILS_MAP keys if they don't have dots
+                    if "RUR.MKT" in course_name.upper():
+                        course_name = course_name.upper().replace("RUR.MKT", "RURMKT")
+
+                    valid_rows = df.dropna(subset=[roll_col])
+                    
+                    for _, row in valid_rows.iterrows():
+                        roll = clean_roll_number(row[roll_col])
+                        if not roll or roll == 'NAN': continue
+                        
+                        student_name = "Student"
+                        if name_col:
+                            student_name = str(row[name_col]).strip()
+
+                        if roll not in student_data_map:
+                            student_data_map[roll] = {'name': student_name, 'sections': set()}
+                        
+                        # Add the course to the student's set
+                        student_data_map[roll]['sections'].add(course_name)
+                        
+                        # Update name if it was generic before
+                        if student_data_map[roll]['name'] == "Student" and student_name != "Student":
+                             student_data_map[roll]['name'] = student_name
+                        
+        except Exception as e:
+            # Silently fail for bad files to keep app running
             continue
+            
     return student_data_map
     
 def get_class_end_datetime(class_info, local_tz):
@@ -441,7 +469,7 @@ def generate_ics_content(found_classes):
 
 # 4. STREAMLIT WEB APP INTERFACE
 st.set_page_config(
-    page_title="MBA Timetable Assistant" (T-6 Schedule will be updated in 24 hours), 
+    page_title="MBA Timetable Assistant - Term 6", 
     layout="centered", 
     initial_sidebar_state="collapsed"
 )
@@ -572,14 +600,16 @@ if 'just_submitted' not in st.session_state:
 
 if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub">Made by Vishesh</div>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub">Term 6 Schedule</div>', unsafe_allow_html=True)
 
+# --- DYNAMIC DATA LOADING ---
+# This replaced the old static logic. It now reads ALL files.
 student_data_map = get_all_student_data()
 
 if not student_data_map:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub">Course Statistics & Schedule Tool</div>', unsafe_allow_html=True)
-    st.error("FATAL ERROR: Could not load any student data. Please check your Excel files.")
+    st.error("FATAL ERROR: Could not load any student data. Please check that your subject Excel files are in the directory.")
 else:
     if not st.session_state.submitted:
         st.markdown(
@@ -619,17 +649,19 @@ else:
             st.rerun()
         elif roll_to_process not in student_data_map:
             st.error(f"Roll Number '{roll_to_process}' not found. Please check the number and try again.")
-            st.session_state.submitted = False
-            st.session_state.roll_number = ""
-            st.rerun()
+            if st.button("Go Back"):
+                st.session_state.submitted = False
+                st.session_state.roll_number = ""
+                st.rerun()
         else:
             student_info = student_data_map[roll_to_process]
-            student_name, student_sections = student_info['name'], student_info['sections']
+            student_name = student_info['name']
+            student_sections = student_info['sections'] # This is now a Set of Course Names
             
             master_schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
             
             if master_schedule_df.empty:
-                pass
+                st.error("Could not load the Master Schedule file.")
             else:
                 col1, col2 = st.columns([3, 1])
                 with col1:
@@ -646,29 +678,54 @@ else:
                         st.session_state.just_submitted = False 
                         st.rerun()
                 
-                display_exam_schedule(student_sections)
+                # --- EXAM SCHEDULE REMOVED HERE ---
 
                 with st.spinner(f'Compiling classes for {student_name}...'):
                     NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
-                    normalized_student_section_map = {normalize_string(sec): sec for sec in student_sections}
+                    
+                    # Create a normalized set of the student's registered courses
+                    normalized_student_courses = {normalize_string(sec): sec for sec in student_sections}
+                    
                     time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
                                   6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
                                   10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
+                    
                     found_classes = []
+                    
                     for index, row in master_schedule_df.iterrows():
                         date, day = row[0], row[1]
+                        
                         for col_index, time in time_slots.items():
                             cell_value = str(row[col_index])
                             if cell_value and cell_value != 'nan':
-                                normalized_cell = normalize_string(cell_value)
-                                for norm_sec, orig_sec in normalized_student_section_map.items():
-                                    if norm_sec in normalized_cell:
-                                        details = NORMALIZED_COURSE_DETAILS_MAP.get(norm_sec, {'Faculty': 'N/A', 'Venue': '-'}).copy()
+                                # Split by '/' to handle merged cells if any (e.g., "FT(A) / FT(B)")
+                                cell_parts = cell_value.split('/')
+                                
+                                for part in cell_parts:
+                                    normalized_cell_part = normalize_string(part)
+                                    
+                                    # Check if this part matches any of the student's courses
+                                    matched_course_norm = None
+                                    
+                                    # 1. Exact match check
+                                    if normalized_cell_part in normalized_student_courses:
+                                        matched_course_norm = normalized_cell_part
+                                    else:
+                                        # 2. Substring check (safer for things like "FT(A)" matching "FT(A)")
+                                        for s_norm in normalized_student_courses.keys():
+                                            if s_norm == normalized_cell_part:
+                                                matched_course_norm = s_norm
+                                                break
+                                    
+                                    if matched_course_norm:
+                                        orig_sec = normalized_student_courses[matched_course_norm]
+                                        details = NORMALIZED_COURSE_DETAILS_MAP.get(matched_course_norm, {'Faculty': 'N/A', 'Venue': '-'}).copy()
                                         is_venue_override = False
                                         
+                                        # Check Day Overrides
                                         if date in DAY_SPECIFIC_OVERRIDES:
-                                            if norm_sec in DAY_SPECIFIC_OVERRIDES[date]:
-                                                override_data = DAY_SPECIFIC_OVERRIDES[date][norm_sec]
+                                            if matched_course_norm in DAY_SPECIFIC_OVERRIDES[date]:
+                                                override_data = DAY_SPECIFIC_OVERRIDES[date][matched_course_norm]
                                                 
                                                 should_apply_override = True
                                                 if 'Target_Time' in override_data:
@@ -679,7 +736,7 @@ else:
                                                     if 'Venue' in override_data:
                                                         is_venue_override = True
                                                     details.update(override_data)
-                                                
+                                        
                                         found_classes.append({
                                             "Date": date, "Day": day, 
                                             "Time": details.get('Time', time),
@@ -689,10 +746,17 @@ else:
                                             "is_venue_override": is_venue_override
                                         })
                     
+                    # Add Additional Classes
                     for added_class in ADDITIONAL_CLASSES:
                         norm_added_subject = normalize_string(added_class['Subject'])
-                        if norm_added_subject in normalized_student_section_map:
-                            
+                        
+                        # Only add if the student is registered for this subject
+                        # OR if it matches a registered subject (fuzzy match)
+                        is_relevant = False
+                        if norm_added_subject in normalized_student_courses:
+                            is_relevant = True
+                        
+                        if is_relevant:
                             venue_text = added_class.get('Venue', '').upper()
                             faculty_text = added_class.get('Faculty', '').upper()
                             is_override = False 
@@ -712,6 +776,7 @@ else:
                                 "is_venue_override": is_override 
                             })
 
+                    # Remove duplicates
                     found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
                     
                 if found_classes:
@@ -815,7 +880,6 @@ else:
                             if not classes_today:
                                 continue 
                             
-                            # FORMAT CHANGE: Removed Day Name (%A)
                             st.markdown(f'''
                                 <div class="day-card" id="date-card-past-{date_obj.toordinal()}">
                                     <div class="day-header">
@@ -902,7 +966,6 @@ else:
                         classes_today = schedule_by_date.get(date_obj, [])
                         
                         if not classes_today:
-                            # FORMAT CHANGE: Removed Day Name (%A)
                             st.markdown(f'''
                                 <div class="day-card {today_class}" id="{card_id}">
                                     <div class="day-header">
@@ -917,7 +980,6 @@ else:
                                 </div>
                             ''', unsafe_allow_html=True)
                         else:
-                            # FORMAT CHANGE: Removed Day Name (%A)
                             if is_today:
                                 st.markdown(f'''
                                     <div class="day-card {today_class}" id="{card_id}">
