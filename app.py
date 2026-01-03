@@ -72,20 +72,20 @@ COURSE_DETAILS_MAP = {
     'M&A(C)':   {'Faculty': 'Dipti Saraf',       'Venue': 'T5'},
 
     # Economics & Finance
-    'PPC(A)':   {'Faculty': 'Ritesh Patel',      'Venue': 'T6'},
-    'PPC(B)':   {'Faculty': 'Ritesh Patel',      'Venue': 'T6'},
-    'PPC(C)':   {'Faculty': 'Ritesh Patel',      'Venue': 'T6'},
+    'PPC(A)':   {'Faculty': 'Ritesh Patel',      'Venue': 'T3'},
+    'PPC(B)':   {'Faculty': 'Ritesh Patel',      'Venue': 'T3'},
+    'PPC(C)':   {'Faculty': 'Ritesh Patel',      'Venue': 'T3'},
 
     # Marketing
-    'MA':       {'Faculty': 'Jayesh Aagja',      'Venue': 'T6'},
+    'MA':       {'Faculty': 'Jayesh Aagja / Sanjay Jain',      'Venue': 'T6'},
     'CRM':      {'Faculty': 'T. S. Joshi',       'Venue': 'T6'},
-    'RURMKT(A)': {'Faculty': 'Sapna Parshar',    'Venue': 'T6'},
-    'RURMKT(B)': {'Faculty': 'Sapna Parshar',    'Venue': 'T6'},
+    'RURMKT(A)': {'Faculty': 'Sapna Parshar / Shailesh Prabhu',    'Venue': 'T6'},
+    'RURMKT(B)': {'Faculty': 'Sapna Parshar / Kavita Saxena',    'Venue': 'T6'},
     'IM':       {'Faculty': 'Pradeep Kautish',   'Venue': 'T6'},
-    'MS(A)':    {'Faculty': 'Jayesh Aagja',      'Venue': 'T5'},
-    'MS(B)':    {'Faculty': 'Jayesh Aagja',      'Venue': 'T5'},
+    'MS(A)':    {'Faculty': 'Ashwini Awasthi',      'Venue': 'T6'},
+    'MS(B)':    {'Faculty': 'Ashwini Awasthi',      'Venue': 'T6'},
     'MS(C)':    {'Faculty': 'Jayesh Aagja',      'Venue': 'T5'},
-    'MS(D)':    {'Faculty': 'Jayesh Aagja',      'Venue': 'T5'},
+    'MS(D)':    {'Faculty': 'Sanjay Jain',      'Venue': 'T5'},
 
     # HRM / OB & Communication
     'GBL':      {'Faculty': 'Sadhana Sargam',    'Venue': 'T5'},
