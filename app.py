@@ -915,14 +915,42 @@ else:
                     for date in sorted_dates:
                         schedule_by_date[date].sort(key=get_sort_key)
                     
+                    # --- SAFE DATE GENERATION LOGIC ---
                     all_dates = []
+                    
+                    # 1. Get schedule bounds
+                    schedule_end_date = master_schedule_df[0].max()
+                    
+                    # Safety: If schedule_end_date is NaT or invalid, use today
+                    if pd.isna(schedule_end_date):
+                        schedule_end_date = date.today()
+
                     if sorted_dates:
                         first_date = sorted_dates[0]
-                        last_date = sorted_dates[-1]
-                        current_date = first_date
-                        while current_date <= last_date:
-                            all_dates.append(current_date)
-                            current_date = date.fromordinal(current_date.toordinal() + 1)
+                        # Use the LATEST of the student's last class OR the schedule's end
+                        last_date = max(sorted_dates[-1], schedule_end_date)
+                    elif not master_schedule_df.empty:
+                        first_date = master_schedule_df[0].min()
+                        last_date = schedule_end_date
+                    else:
+                        first_date = date.today()
+                        last_date = date.today()
+
+                    # 2. Infinite Loop Guard
+                    # If a date in Excel is 2099, this loop would crash the app. 
+                    # We cap it at 180 days from the start.
+                    MAX_DAYS = 180 
+                    
+                    current_date = first_date
+                    days_processed = 0
+                    
+                    while current_date <= last_date:
+                        all_dates.append(current_date)
+                        current_date = date.fromordinal(current_date.toordinal() + 1)
+                        
+                        days_processed += 1
+                        if days_processed > MAX_DAYS:
+                            break # FORCE STOP to prevent app crash
                     
                     local_tz = pytz.timezone(TIMEZONE)
                     today_dt = datetime.now(local_tz)
