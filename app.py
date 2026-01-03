@@ -10,12 +10,11 @@ import pytz
 import hashlib
 from collections import defaultdict
 import streamlit.components.v1 as components
-from streamlit_extras.st_keyup import st_keyup # For live search
+from streamlit_extras.st_keyup import st_keyup 
 import gc 
 import time 
 
 # --- IMPORT DATA FROM EXTERNAL FILES ---
-# Ensure these files exist in your directory or handle the ImportErrors gracefully
 try:
     from day_overrides import DAY_SPECIFIC_OVERRIDES
 except ImportError:
@@ -31,10 +30,9 @@ try:
 except ImportError:
     MESS_MENU = {}
 
-# --- AUTO REFRESH EVERY 10 MINUTES (HARD REBOOT) ---
-AUTO_REFRESH_INTERVAL = 10 * 60  # 10 minutes in seconds
+# --- AUTO REFRESH EVERY 10 MINUTES ---
+AUTO_REFRESH_INTERVAL = 10 * 60 
 
-# Store the start time in session_state
 if "start_time" not in st.session_state:
     st.session_state.start_time = time.time()
 
@@ -49,7 +47,6 @@ if elapsed > AUTO_REFRESH_INTERVAL:
         time.sleep(2) 
         st.rerun()
 
-# --- Cache Clearing Logic ---
 if "run_counter" not in st.session_state:
     st.session_state.run_counter = 0
 st.session_state.run_counter += 1
@@ -113,27 +110,32 @@ COURSE_DETAILS_MAP = {
 
 # 3. FUNCTIONS
 def normalize_string(text):
+    """
+    Strict normalization to ensure file headers match COURSE_DETAILS_MAP keys.
+    Removes spaces, dots, and converts to uppercase.
+    """
     if isinstance(text, str):
-        # Remove spaces, brackets, quotes, dots, and convert to upper
+        # Example: "RUR.MKT (A)" -> "RURMKT(A)"
         return text.replace(" ", "").replace("(", "").replace(")", "").replace("'", "").replace(".", "").upper()
     return ""
 
 def clean_roll_number(roll):
     """Standardizes roll number format."""
+    # Handle floats (e.g. 463.0) -> "463"
+    if isinstance(roll, float):
+        roll = int(roll)
     return str(roll).strip().upper()
 
-def find_header_row(df):
+def normalize_course_name_for_map(name):
     """
-    Dynamically finds the row containing 'Roll' or 'Student'.
-    Returns the dataframe with that row as header.
+    Allows (A) brackets to remain but removes spaces and dots.
+    Used for matching the header from Excel to the keys in COURSE_DETAILS_MAP.
     """
-    for i, row in df.iterrows():
-        row_str = row.astype(str).str.lower().tolist()
-        # Look for typical header keywords
-        if any('roll' in x for x in row_str) and any('no' in x for x in row_str):
-            df.columns = df.iloc[i]
-            return df.iloc[i+1:].reset_index(drop=True)
-    return df
+    if not isinstance(name, str): return ""
+    # "M&A (A)" -> "M&A(A)"
+    # "RUR.MKT(A)" -> "RURMKT(A)"
+    clean = name.strip().upper().replace(" ", "").replace(".", "")
+    return clean
 
 @st.cache_data
 def load_and_clean_schedule(file_path):
@@ -148,6 +150,117 @@ def load_and_clean_schedule(file_path):
         return pd.DataFrame()
     except Exception as e:
         return pd.DataFrame()
+
+@st.cache_data
+def get_all_student_data(folder_path='.'):
+    """
+    Bulletproof parser for horizontal block layout.
+    Structure:
+    Row 0: Section Name (e.g., M&A(A))
+    Row 1: Headers (SL. No., Roll No., Name)
+    Row 2+: Data
+    Blocks are separated by empty columns.
+    """
+    student_data_map = {} # {RollNo: {'name': 'Name', 'sections': {Set of Courses}}}
+    
+    # Get all xlsx files excluding schedule
+    files = [f for f in glob.glob(os.path.join(folder_path, '*.xlsx')) 
+             if os.path.basename(f) != SCHEDULE_FILE_NAME 
+             and not os.path.basename(f).startswith('~')]
+    
+    for file in files:
+        try:
+            # Read header=None to see the absolute layout
+            df = pd.read_excel(file, header=None)
+            
+            # 1. Find the Header Row (containing "Roll No.")
+            # We scan the first 5 rows just in case, but usually it's index 1 (Row 2)
+            header_row_idx = -1
+            for r in range(min(5, len(df))):
+                row_values = [str(val).strip().lower() for val in df.iloc[r]]
+                if any("roll no" in v for v in row_values):
+                    header_row_idx = r
+                    break
+            
+            if header_row_idx == -1:
+                continue # Skip files without "Roll No"
+                
+            # 2. Find ALL columns in that row that contain "Roll No."
+            # This handles the side-by-side sections (e.g. M&A(A), M&A(B))
+            roll_col_indices = []
+            for c in range(df.shape[1]):
+                val = str(df.iloc[header_row_idx, c]).strip().lower()
+                if "roll no" in val:
+                    roll_col_indices.append(c)
+                    
+            # 3. Process each block
+            for roll_col in roll_col_indices:
+                # A. Identify Section Name
+                # It is usually in the row ABOVE the header (header_row_idx - 1)
+                # It is usually aligned with the SL No column (roll_col - 1) or Roll Col itself
+                # We check the cells above the block
+                
+                raw_section_name = ""
+                
+                # Check directly above Roll No
+                if header_row_idx > 0:
+                    val_above = str(df.iloc[header_row_idx-1, roll_col]).strip()
+                    if val_above and val_above.lower() != 'nan':
+                        raw_section_name = val_above
+                    else:
+                        # Check above SL No (roll_col - 1)
+                        if roll_col > 0:
+                            val_left_above = str(df.iloc[header_row_idx-1, roll_col-1]).strip()
+                            if val_left_above and val_left_above.lower() != 'nan':
+                                raw_section_name = val_left_above
+                
+                # Fallback: If no header found in cell, use Filename (for single section files like CRM.xlsx)
+                if not raw_section_name or raw_section_name.lower() == 'nan':
+                    raw_section_name = os.path.basename(file).replace('.xlsx', '')
+                
+                # Normalize to match COURSE_DETAILS_MAP keys
+                course_name = normalize_course_name_for_map(raw_section_name)
+                
+                # B. Extract Students
+                # Iterate from the row AFTER the header down to the end
+                name_col = roll_col + 1 # Name is consistently next to Roll No
+                
+                start_row = header_row_idx + 1
+                for r in range(start_row, len(df)):
+                    roll_val = df.iloc[r, roll_col]
+                    name_val = df.iloc[r, name_col]
+                    
+                    # Clean Roll
+                    clean_roll = str(roll_val).strip().upper()
+                    
+                    # Stop if we hit an empty roll number (end of list)
+                    if clean_roll == 'NAN' or clean_roll == '' or clean_roll == 'NONE':
+                        continue
+                        
+                    # Standardize Roll (handle floats like 463.0)
+                    if clean_roll.replace('.','',1).isdigit():
+                        clean_roll = str(int(float(clean_roll)))
+                    
+                    # Basic validation: Roll numbers are usually digits or specific format
+                    if len(clean_roll) < 2: 
+                        continue
+
+                    # Store Data
+                    if clean_roll not in student_data_map:
+                        student_data_map[clean_roll] = {'name': 'Student', 'sections': set()}
+                    
+                    student_data_map[clean_roll]['sections'].add(course_name)
+                    
+                    # Save name if available
+                    clean_name = str(name_val).strip()
+                    if clean_name and clean_name.lower() != 'nan':
+                         student_data_map[clean_roll]['name'] = clean_name
+                        
+        except Exception as e:
+            # print(f"Error processing {file}: {e}") # Debugging
+            continue
+            
+    return student_data_map
 
 def render_mess_menu_expander():
     """Show weekly mess menu with a day selector."""
@@ -230,6 +343,8 @@ def calculate_and_display_stats():
                 10: "6:00PM", 11: "7:10PM", 12: "8:20PM", 13: "9:30PM"
             }
             
+            # Map normalized keys to Original Keys for display
+            # COURSE_DETAILS_MAP has keys like 'M&A(A)'. normalize_string('M&A(A)') -> 'M&A(A)'
             normalized_course_map = {normalize_string(k): k for k in COURSE_DETAILS_MAP.keys()}
             
             for _, row in all_schedules_df.iterrows():
@@ -254,6 +369,7 @@ def calculate_and_display_stats():
                         if cell_value and cell_value != 'nan':
                             normalized_cell = normalize_string(cell_value)
                             
+                            # Check if cell contains any of our known courses
                             for norm_name, orig_name in normalized_course_map.items():
                                 if norm_name in normalized_cell:
                                     is_overridden = False
@@ -319,8 +435,6 @@ def calculate_and_display_stats():
                     for course_name in course_list:
                         st.markdown(f"**{course_name}**")
                         sections = grouped_counts[course_name]
-                        
-                        max_lectures = 20 # Default for Term 6 (Adjust as needed)
                             
                         for section_name in sorted(sections.keys()):
                             count = sections[section_name]
@@ -333,83 +447,6 @@ def calculate_and_display_stats():
             display_course_stats(col1, sorted_courses[:midpoint])
             display_course_stats(col2, sorted_courses[midpoint:])
 
-@st.cache_data
-def get_all_student_data(folder_path='.'):
-    """
-    DYNAMICALLY reads all .xlsx files in the folder (except schedule.xlsx)
-    and maps Roll Numbers to their registered Subjects/Sections.
-    """
-    student_data_map = {} # {RollNo: {'name': 'Name', 'sections': {Set of Courses}}}
-    
-    # Get all xlsx files excluding schedule
-    files = [f for f in glob.glob(os.path.join(folder_path, '*.xlsx')) 
-             if os.path.basename(f) != SCHEDULE_FILE_NAME 
-             and not os.path.basename(f).startswith('~')]
-    
-    for file in files:
-        try:
-            xls = pd.ExcelFile(file)
-            file_clean_name = os.path.basename(file).replace('.xlsx', '')
-            
-            # Iterate through every sheet in the file
-            for sheet_name in xls.sheet_names:
-                df = pd.read_excel(xls, sheet_name=sheet_name)
-                df = find_header_row(df)
-                
-                # Identify the 'Roll No' column dynamically
-                roll_col = next((col for col in df.columns if 'roll' in str(col).lower()), None)
-                
-                if roll_col:
-                    # Identify Name column (usually next to roll, or contains 'name'/'student')
-                    name_col = next((col for col in df.columns if 'name' in str(col).lower() or 'student' in str(col).lower()), None)
-
-                    # Determine Course Name
-                    # Logic: If sheet name is generic (Sheet1), use filename. 
-                    # If sheet name looks like a code (e.g., "FT(A)"), use sheet name.
-                    course_name = ""
-                    clean_sheet_name = normalize_string(sheet_name)
-                    clean_file_name = normalize_string(file_clean_name)
-                    
-                    if "(" in sheet_name and ")" in sheet_name:
-                        course_name = sheet_name.strip()
-                    elif "SHEET" in clean_sheet_name:
-                        # Use filename if sheet is generic
-                        # Handle cases like "CRM" or "FT(A) & FT(B)" - though usually separate sheets handle the latter
-                        course_name = file_clean_name.strip()
-                    else:
-                        course_name = sheet_name.strip()
-
-                    # Clean the course name (e.g., remove dots for RUR.MKT if needed by map)
-                    # For RUR.MKT -> RURMKT to match COURSE_DETAILS_MAP keys if they don't have dots
-                    if "RUR.MKT" in course_name.upper():
-                        course_name = course_name.upper().replace("RUR.MKT", "RURMKT")
-
-                    valid_rows = df.dropna(subset=[roll_col])
-                    
-                    for _, row in valid_rows.iterrows():
-                        roll = clean_roll_number(row[roll_col])
-                        if not roll or roll == 'NAN': continue
-                        
-                        student_name = "Student"
-                        if name_col:
-                            student_name = str(row[name_col]).strip()
-
-                        if roll not in student_data_map:
-                            student_data_map[roll] = {'name': student_name, 'sections': set()}
-                        
-                        # Add the course to the student's set
-                        student_data_map[roll]['sections'].add(course_name)
-                        
-                        # Update name if it was generic before
-                        if student_data_map[roll]['name'] == "Student" and student_name != "Student":
-                             student_data_map[roll]['name'] = student_name
-                        
-        except Exception as e:
-            # Silently fail for bad files to keep app running
-            continue
-            
-    return student_data_map
-    
 def get_class_end_datetime(class_info, local_tz):
     try:
         time_str = class_info['Time']
@@ -603,7 +640,6 @@ if not st.session_state.submitted:
     st.markdown('<div class="header-sub">Term 6 Schedule</div>', unsafe_allow_html=True)
 
 # --- DYNAMIC DATA LOADING ---
-# This replaced the old static logic. It now reads ALL files.
 student_data_map = get_all_student_data()
 
 if not student_data_map:
@@ -678,9 +714,8 @@ else:
                         st.session_state.just_submitted = False 
                         st.rerun()
                 
-                # --- EXAM SCHEDULE REMOVED HERE ---
-
                 with st.spinner(f'Compiling classes for {student_name}...'):
+                    # Create normalized map for easy lookup
                     NORMALIZED_COURSE_DETAILS_MAP = {normalize_string(section): details for section, details in COURSE_DETAILS_MAP.items()}
                     
                     # Create a normalized set of the student's registered courses
