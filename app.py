@@ -612,7 +612,7 @@ if 'just_submitted' not in st.session_state:
 # --- UI START ---
 if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub">Term 6 Schedule</div>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
 
     st.markdown(
         """
