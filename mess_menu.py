@@ -940,6 +940,230 @@ MESS_MENU = {
         * Onion + Lemon
         * **Ice Cream**
         """
+    },
+
+    # Monday (05/01/2026)
+    date(2026, 1, 5): {
+        "Breakfast": """
+        * Indori Poha, Lemon, Onion, Sev
+        * Fruit + Toast + Daliya + Veg Sandwich
+        """,
+        "Lunch": """
+        * Mix Veg Dry
+        * Rajma Masala
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion + Lemon
+        * Buttermilk
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Veg Manchurian Dry
+        * Kaju Curry
+        * Dal Fry
+        * Jeera Rice
+        * Roti
+        * Onion + Lemon
+        * Roasted Papad
+        """
+    },
+
+    # Tuesday (06/01/2026)
+    date(2026, 1, 6): {
+        "Breakfast": """
+        * Bread Pakoda with Green Chutney & Sauce
+        * Fruit + Suji Ka Upma with Coconut Chutney + Toast
+        """,
+        "Lunch": """
+        * Palak Paneer Masala
+        * Chole Masala
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion + Lemon
+        * Rasna
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * **Sweet: Rice Kheer**
+        * Live Dhokla
+        * Aloo Matar Rasevala
+        * Plain Kadhi
+        * Plain Khichdi
+        * Tawa Paratha
+        * Roti
+        * Lasun Ki Chutney
+        * Fryums
+        * Onion + Lemon
+        """
+    },
+
+    # Wednesday (07/01/2026)
+    date(2026, 1, 7): {
+        "Breakfast": """
+        * Idli Sambar + Vada Sambar, Coconut Chutney
+        * Fruit + Khakhra
+        """,
+        "Lunch": """
+        * Veg Makhanwala
+        * Chole Masala
+        * Dal Mix Tadka
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion + Lemon
+        * Buttermilk
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Hot n Sour Soup
+        * Mix Pakoda
+        * Paneer Bhurji
+        * Dal Makhani
+        * Jeera Rice
+        * Red Pasta
+        * Palak Paratha
+        * Roti
+        * Onion + Lemon
+        """
+    },
+
+    # Thursday (08/01/2026)
+    date(2026, 1, 8): {
+        "Breakfast": """
+        * Dal Pakwan with Chutney
+        * Fruit + Toast
+        * Veg Sandwich
+        """,
+        "Lunch": """
+        * Gajar Matar Dry
+        * Kadhi Pakoda
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Chana Chaat Salad
+        * Onion + Lemon
+        * Lemon Water
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * **Sweet: Pineapple Halwa**
+        * Chinese Samosa
+        * Sarson Ka Saag
+        * Sev Tomato Masala
+        * Dal Fry
+        * Matar Rice
+        * Makai Ki Roti
+        * Lasun Ki Chutney
+        * Ghee + Gud (Jaggery)
+        * Masala Papad
+        * Roti
+        """
+    },
+
+    # Friday (09/01/2026)
+    date(2026, 1, 9): {
+        "Breakfast": """
+        * Methi Ka Thepla with Curd & Pickle
+        * Fruit + Sandwich Dhokla with Green Chutney
+        """,
+        "Lunch": """
+        * Paneer Lababdar
+        * Cabbage Matar Dry
+        * Dal Fry
+        * Jeera Rice
+        * Roti
+        * Green Salad
+        * Onion + Lemon
+        * Jal Jeera
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * **Sweet: Rasgulla**
+        * Tomato Soup
+        * Aloo Paneer Paratha
+        * Manchurian Fried Rice
+        * Papdi Chaat
+        * Pani Puri
+        * Chana Jor Garam
+        * Plain Curd & Pickle
+        * Fryums
+        """
+    },
+
+    # Saturday (10/01/2026)
+    date(2026, 1, 10): {
+        "Breakfast": """
+        * Moong Oat Chilla with Chutney + Cornflakes
+        * Fruit + Sev Khamani with Chutney
+        """,
+        "Lunch": """
+        * Veg Tawa Sabji
+        * Mix Kathol
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion + Lemon
+        * Buttermilk
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Veg Manchow Soup
+        * Sev Roll with Chutney
+        * Pav Bhaji
+        * Veg Biryani
+        * Boondi Raita
+        * Roasted Papad
+        * Onion + Lemon
+        * Red Veg Hakka Noodles
+        """
+    },
+
+    # Sunday (11/01/2026)
+    date(2026, 1, 11): {
+        "Breakfast": """
+        * Mix Paratha with Curd & Pickle
+        * Fruit + Khakhra
+        """,
+        "Lunch": """
+        * Masala Dosa
+        * Idli Masala
+        * Mix Uttapam
+        * Vada Sambar
+        * Aloo Vada
+        * Coconut Chutney
+        * Tomato Rice
+        * Sweet Lassi
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Paneer Butter Masala
+        * Jeera Aloo Dry
+        * Dal Makhani
+        * Jeera Rice
+        * Roti + Puri
+        * Green Salad
+        * Onion + Lemon
+        * Rasna Water
+        """
     }
 }
 
