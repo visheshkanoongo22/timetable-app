@@ -720,9 +720,9 @@ else:
                 # Create a normalized set of the student's registered courses
                 normalized_student_courses = {normalize_string(sec): sec for sec in student_sections}
                 
-                time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
-                              6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
-                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
+                time_slots = {2: "8-9 AM", 3: "9:10-10:10 AM", 4: "10:20-11:20 AM", 5: "11:30-12:30 PM",
+                              6: "12:30-1:30 PM", 7: "1:30-2:30 PM", 8: "2:40-3:40 PM", 9: "3:50-4:50 PM",
+                              10: "5-6 PM", 11: "6:10-7:10 PM", 12: "7:20-8:20 PM", 13: "8:30-9:30 PM"}
                 
                 found_classes = []
                 
