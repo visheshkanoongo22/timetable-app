@@ -30,8 +30,9 @@ try:
 except ImportError:
     MESS_MENU = {}
 
-# --- AUTO REFRESH EVERY 30 MINUTES ---
-AUTO_REFRESH_INTERVAL = 30 * 60 
+# --- AUTO REFRESH EVERY 10 MINUTES ---
+# Only refresh if app has been running too long to prevent stale memory
+AUTO_REFRESH_INTERVAL = 10 * 60 
 
 if "start_time" not in st.session_state:
     st.session_state.start_time = time.time()
@@ -82,7 +83,7 @@ COURSE_DETAILS_MAP = {
     'PS&PS':    {'Faculty': 'Shilpa Tanna',      'Venue': 'E3'},
 
     # General Management
-    'MC':       {'Faculty': 'VF',                'Venue': 'T3'},
+    'MC':       {'Faculty': 'Not Assigned',                'Venue': 'T3'},
 
     # DnA
     'FT(A)':    {'Faculty': 'Omkar Sahoo',       'Venue': 'T7'},
@@ -99,6 +100,11 @@ COURSE_DETAILS_MAP = {
 
 # 3. FUNCTIONS
 def normalize_string(text):
+    """
+    Standardizes course names.
+    Removes spaces, dots, and quotes.
+    CRITICAL: Preserves brackets () to distinguish sections like M&A(A).
+    """
     if isinstance(text, str):
         return text.replace(" ", "").replace("'", "").replace(".", "").upper()
     return ""
@@ -118,7 +124,7 @@ def load_and_clean_schedule(file_path):
 def find_subjects_for_roll(target_roll, folder_path='.'):
     """
     SEARCH: Scans FULL Excel files (all rows/cols) for the target roll.
-    Retains Lazy Loading (one file at a time) to prevent memory crashes.
+    FIX: Uses 'with pd.ExcelFile' to force-close file handles immediately.
     """
     found_subjects = set()
     found_name = "Student"
@@ -130,7 +136,9 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
     
     for idx, file in enumerate(files):
         try:
-            # Context Manager for Force Close
+            # --- CRITICAL FIX: Context Manager ---
+            # This forces the Excel file to close IMMEDIATELY after the block ends.
+            # Prevents "Too many open files" error.
             with pd.ExcelFile(file) as xls:
                 df = pd.read_excel(xls, header=None)
             
@@ -199,12 +207,16 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
                     
                     # Grab Name
                     match_idx = matches.index[0]
+                    # Ensure name column exists
                     if name_col < df.shape[1]:
                         name_val = str(df.iloc[match_idx, name_col]).strip()
                         if name_val and name_val.lower() != 'nan':
                             found_name = name_val
 
+            # Delete Dataframe from memory
             del df
+            
+            # Run GC less frequently (every 5 files) to balance speed and memory
             if idx % 5 == 0:
                 gc.collect()
             
@@ -213,6 +225,7 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
             
     gc.collect()
     return found_name, found_subjects
+
 
 def calculate_and_display_stats():
     # --- 1. SAFE IMPORTS ---
@@ -357,59 +370,23 @@ def calculate_and_display_stats():
             display_course_stats(col2, sorted_courses[midpoint:])
 
 def get_class_end_datetime(class_info, local_tz):
-    # This remains for ICS generation, but we add a robust parser below for the UI
     try:
         time_str = class_info['Time']
         date_obj = class_info['Date']
+        
         start_str_part, end_str_part = time_str.split('-')
         end_am_pm = end_str_part[-2:]
+        
+        start_am_pm = end_am_pm
+        start_hour = int(re.search(r'^\d+', start_str_part).group(0))
+        if end_am_pm == "PM" and start_hour < 12 and (start_hour > int(re.search(r'^\d+', end_str_part).group(0)) or start_hour == 11):
+            start_am_pm = "AM"
+        
         full_end_str = end_str_part
         end_dt = local_tz.localize(pd.to_datetime(f"{date_obj.strftime('%Y-%m-%d')} {full_end_str}"))
         return end_dt
     except Exception:
         return None
-
-# --- NEW HELPER FOR TIME PARSING (Start & End) ---
-def parse_class_times(time_str, date_obj, local_tz):
-    """Returns (start_dt, end_dt) or (None, None)"""
-    try:
-        start_str_part, end_str_part = time_str.split('-')
-        start_str_part = start_str_part.strip()
-        end_str_part = end_str_part.strip()
-        
-        end_am_pm = end_str_part[-2:].upper()
-        
-        # Parse Start Hour
-        start_match = re.search(r'^\d+', start_str_part)
-        end_match = re.search(r'^\d+', end_str_part)
-        
-        if not start_match or not end_match: return None, None
-        
-        start_hour = int(start_match.group(0))
-        end_hour = int(end_match.group(0))
-        
-        # Determine Start AM/PM
-        start_am_pm = end_am_pm # Default to same
-        # Logic: If end is PM, and start is < 12, check if start > end (e.g., 11-12:30PM)
-        # 11:30 - 12:30 PM -> 11 < 12, 12 is usually 12PM. 
-        # 10:00 - 11:00 AM -> 10 < 11.
-        if end_am_pm == "PM" and start_hour < 12:
-            # If start hour is 11 and end is 12 or 1, likely AM start
-            if start_hour == 11 or (end_hour != 12 and start_hour > end_hour):
-               start_am_pm = "AM"
-            # If start is 9, 10... and end is PM, definitely AM
-            if start_hour <= 10: 
-               start_am_pm = "AM"
-
-        full_start_str = f"{start_str_part}{start_am_pm}" if not start_str_part[-2:].isalpha() else start_str_part
-        full_end_str = end_str_part
-
-        start_dt = local_tz.localize(pd.to_datetime(f"{date_obj.strftime('%Y-%m-%d')} {full_start_str}"))
-        end_dt = local_tz.localize(pd.to_datetime(f"{date_obj.strftime('%Y-%m-%d')} {full_end_str}"))
-        
-        return start_dt, end_dt
-    except Exception:
-        return None, None
 
 def render_mess_menu_expander():
     """Show weekly mess menu with a day selector."""
@@ -579,25 +556,7 @@ local_css_string = """
     .class-entry {
         display:flex; flex-direction:row; align-items:center; justify-content:space-between;
         padding-top:0.65rem; padding-bottom:0.65rem; border-bottom:1px solid rgba(255,255,255,0.04);
-        transition: all 0.2s ease;
     }
-    /* New Styles for Past/Next */
-    .class-entry.past {
-        opacity: 0.35; 
-        filter: grayscale(100%);
-    }
-    .class-entry.next {
-        border-left: 3px solid #38BDF8;
-        background: linear-gradient(90deg, rgba(56,189,248,0.1), transparent);
-        padding-left: 0.75rem !important;
-        margin-left: -0.75rem; /* Pull back to align */
-        box-shadow: inset 0 0 20px rgba(56,189,248,0.05);
-    }
-    .next-indicator {
-        color: #38BDF8; font-size: 0.65rem; font-weight: 800; 
-        text-transform: uppercase; margin-bottom: 4px; display: block;
-    }
-    
     .day-card .class-entry:last-child { border-bottom: none; padding-bottom: 0; }
     .left { display:flex; flex-direction:column; gap:0.2rem; }
     .subject-name { font-size:1.05rem; font-weight:700; margin:0; color: #FFFFFF; }
@@ -665,7 +624,7 @@ if 'just_submitted' not in st.session_state:
 # --- UI START ---
 if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub">Term 6 Schedule</div>', unsafe_allow_html=True)
+    st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
 
     st.markdown(
         """
@@ -708,9 +667,9 @@ else:
     student_name = "Student"
     student_sections = set()
     
-    # Ensure this runs once per submission
+# Ensure this runs once per submission
     if st.session_state.just_submitted:
-        # UI CHANGE: Sleek Spinner
+        # --- UI CHANGE: Sleek Spinner instead of Progress Bar ---
         with st.spinner("Finding your schedule..."):
             found_name, found_sections = find_subjects_for_roll(roll_to_process)
             
@@ -761,16 +720,16 @@ else:
                 # Create a normalized set of the student's registered courses
                 normalized_student_courses = {normalize_string(sec): sec for sec in student_sections}
                 
-                time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
-                              6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
-                              10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
+                time_slots = {2: "8-9 AM", 3: "9:10-10:10 AM", 4: "10:20-11:20 AM", 5: "11:30-12:30 PM",
+                              6: "12:30-1:30 PM", 7: "1:30-2:30 PM", 8: "2:40-3:40 PM", 9: "3:50-4:50 PM",
+                              10: "5-6 PM", 11: "6:10-7:10 PM", 12: "7:20-8:20 PM", 13: "8:30-9:30 PM"}
                 
                 found_classes = []
                 
                 for index, row in master_schedule_df.iterrows():
-                    row_date, day = row[0], row[1] 
+                    row_date, day = row[0], row[1] # <--- FIXED VARIABLE SHADOWING
                     
-                    for col_index, slot_time in time_slots.items():
+                    for col_index, slot_time in time_slots.items(): # <--- FIXED VARIABLE SHADOWING
                         cell_value = str(row[col_index])
                         if cell_value and cell_value != 'nan':
                             # Split by '/' to handle merged cells if any (e.g., "FT(A) / FT(B)")
@@ -897,12 +856,13 @@ else:
                     except:
                         return 9999
 
-                for date_key in sorted_dates: 
+                for date_key in sorted_dates: # <--- RENAMED TO AVOID SHADOWING
                     schedule_by_date[date_key].sort(key=get_sort_key)
                 
                 # --- HARDCODED DATE LOGIC ---
                 all_dates = []
                 
+                # Start: First date found in the Excel schedule (to keep history)
                 if not master_schedule_df.empty:
                     first_date = master_schedule_df[0].min()
                 else:
@@ -913,6 +873,7 @@ else:
 
                 current_date = first_date
                 
+                # Simple loop from start to hardcoded end
                 while current_date <= last_date:
                     all_dates.append(current_date)
                     current_date = date.fromordinal(current_date.toordinal() + 1)
@@ -1047,15 +1008,6 @@ else:
                     
                     classes_today = schedule_by_date.get(date_obj, [])
                     
-                    # Logic: Determine Next/Past states for TODAY's classes
-                    next_class_index = -1
-                    if is_today and classes_today:
-                        for i, c in enumerate(classes_today):
-                            _, end_dt = parse_class_times(c['Time'], date_obj, local_tz)
-                            if end_dt and end_dt >= today_dt:
-                                next_class_index = i
-                                break
-
                     if not classes_today:
                         st.markdown(f'''
                             <div class="day-card {today_class}" id="{card_id}">
@@ -1071,32 +1023,23 @@ else:
                             </div>
                         ''', unsafe_allow_html=True)
                     else:
-                        badge_html = f'<div class="today-badge">TODAY</div>' if is_today else ""
-                        st.markdown(f'''
-                            <div class="day-card {today_class}" id="{card_id}">
-                                {badge_html}
-                                <div class="day-header">
-                                    {date_obj.strftime("%d %B %Y, %A")}
-                                </div>
-                        ''', unsafe_allow_html=True)
+                        if is_today:
+                            st.markdown(f'''
+                                <div class="day-card {today_class}" id="{card_id}">
+                                    <div class="today-badge">TODAY</div>
+                                    <div class="day-header">
+                                        {date_obj.strftime("%d %B %Y, %A")}
+                                    </div>
+                            ''', unsafe_allow_html=True)
+                        else:
+                            st.markdown(f'''
+                                <div class="day-card {today_class}" id="{card_id}">
+                                    <div class="day-header">
+                                        {date_obj.strftime("%d %B %Y, %A")}
+                                    </div>
+                            ''', unsafe_allow_html=True)
 
-                        for i, class_info in enumerate(classes_today):
-                            # --- STATE LOGIC ---
-                            extra_class = ""
-                            indicator_html = ""
-                            
-                            # Only apply logic if it is TODAY
-                            if is_today:
-                                if next_class_index != -1:
-                                    if i < next_class_index:
-                                        extra_class = "past"
-                                    elif i == next_class_index:
-                                        extra_class = "next"
-                                        indicator_html = '<div class="next-indicator">Up Next / Now</div>'
-                                else:
-                                    # All classes today are finished
-                                    extra_class = "past"
-
+                        for class_info in classes_today:
                             venue_display = ""
                             venue_text = class_info.get("Venue", "-")
                             faculty_text = class_info.get("Faculty", "-")
@@ -1148,9 +1091,8 @@ else:
                             '''
                             
                             st.markdown(f'''
-                                <div class="class-entry {extra_class}">
+                                <div class="class-entry">
                                     <div class="left">
-                                        {indicator_html}
                                         <div class="subject-name {status_class}">{class_info["Subject"]}</div>
                                     </div>
                                     {meta_html}
