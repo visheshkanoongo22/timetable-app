@@ -11,5 +11,6 @@ DAY_SPECIFIC_OVERRIDES = {
         'IF(B)':     {'Venue': 'E6'},
         'MS(A)':     {'Venue': 'E6'},
         'GBL':       {'Venue': '308-C'}
+        'MS(C)':     {'Venue': 'POSTPONED (TBA)'}
     }
 }
