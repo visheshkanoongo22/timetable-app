@@ -16,5 +16,12 @@ DAY_SPECIFIC_OVERRIDES = {
         'GBL':       {'Venue': '308-C'},
         'MS(C)':     {'Venue': 'POSTPONED (TBA)'},  # <--- ADDED '}' HERE
         'MC':        {'Venue': 'POSTPONED (TBA)'}
+    },
+
+    date(2026, 1, 9): {
+        'D&IT':   {'Venue': 'E6'},
+        'IM':     {'Venue': 'E6'},
+        'PRM(A)': {'Venue': 'E6'},
+        'PRM(B)': {'Venue': 'E6'}
     }
 }
