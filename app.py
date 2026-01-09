@@ -868,8 +868,8 @@ else:
                 else:
                     first_date = date.today()
 
-                # End: HARDCODED (11th Jan 2026)
-                last_date = date(2026, 1, 11)
+                # End: HARDCODED (18th Jan 2026)
+                last_date = date(2026, 1, 18)
 
                 current_date = first_date
                 
