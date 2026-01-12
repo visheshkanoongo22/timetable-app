@@ -1,2 +1,15 @@
 [theme]
 base="dark"
+
+[server]
+# This prevents the "file watcher" from crashing on your Excel files
+fileWatcherType = "none"
+
+# This helps with connection stability
+enableCORS = false
+enableXsrfProtection = false
+
+[runner]
+# This forces Python to clean memory aggressively
+fastReruns = false
+
