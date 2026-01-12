@@ -1,12 +1,9 @@
 import streamlit as st
 import pandas as pd
 import json
-import os
 import re
 from datetime import datetime, date, timedelta
-import pytz
 from collections import defaultdict
-import gc
 import time
 from ics import Calendar, Event
 
@@ -34,17 +31,6 @@ except ImportError:
 # --- CONFIGURATION ---
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
-AUTO_REFRESH_INTERVAL = 10 * 60 
-
-# --- MEMORY & REFRESH ---
-if "start_time" not in st.session_state:
-    st.session_state.start_time = time.time()
-
-if (time.time() - st.session_state.start_time) > AUTO_REFRESH_INTERVAL:
-    st.cache_data.clear()
-    gc.collect()
-    st.session_state.start_time = time.time()
-    st.rerun()
 
 # --- CSS STYLING ---
 st.set_page_config(page_title="MBA Timetable", layout="centered", initial_sidebar_state="collapsed")
@@ -85,7 +71,6 @@ local_css_string = """
     .welcome-message { margin-top: 0rem; margin-bottom: 1rem; font-size: 1.1rem; color: var(--muted); }
     .welcome-message strong { color: #ffffff; }
     
-    /* CARD AESTHETICS */
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
         border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem;
@@ -98,8 +83,6 @@ local_css_string = """
         border: 2px solid var(--today-glow);
         box-shadow: 0 0 25px var(--today-glow-shadow);
     }
-    
-    /* THE BADGE */
     .today-badge {
         position: absolute; 
         top: -14px; 
@@ -113,15 +96,12 @@ local_css_string = """
         z-index: 10;
         box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
-    
     .day-header { font-size: 1.15rem; font-weight: 700; color: #E2E8F0; margin-bottom: 0.8rem; }
-    
     .class-entry {
         display:flex; flex-direction:row; align-items:center; justify-content:space-between;
         padding-top:0.75rem; padding-bottom:0.75rem; border-bottom:1px solid rgba(255,255,255,0.04);
     }
     .class-entry:last-child { border-bottom: none; padding-bottom: 0; }
-    
     .left { display:flex; flex-direction:column; gap:0.2rem; }
     .subject-name { font-size:1.1rem; font-weight:700; margin:0; color: #FFFFFF; }
     .meta { text-align:right; min-width:140px; }
@@ -130,13 +110,10 @@ local_css_string = """
     .venue-changed { color: var(--venue-change-color) !important; font-weight: 600; }
     .strikethrough { text-decoration: line-through; opacity: 0.6; }
     
-    /* STREAMLIT WIDGETS */
     .stTextInput>div>div>input {
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
     }
-    
-    /* Primary Gradient Button (Login) */
     .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"] {
         background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); 
         color: var(--bg);
@@ -147,8 +124,6 @@ local_css_string = """
     .stDownloadButton>button:hover, div[data-testid="stForm"] button[kind="primary"]:hover {
         transform: translateY(-3px); box-shadow: 0 14px 30px rgba(96,165,250,0.15);
     }
-
-    /* Secondary Button (Change Roll No) - FIXED: DARK BG, WHITE TEXT */
     .stButton>button {
         width: 100%; border-radius: 8px; font-weight: 600;
         background-color: #0F172A !important; 
@@ -161,7 +136,6 @@ local_css_string = """
         color: #60A5FA !important;
     }
     
-    /* Mess Menu Specifics */
     .menu-header { color: #38BDF8; font-weight: bold; text-transform: uppercase; font-size: 0.9em; margin-bottom: 5px; }
     div[data-testid="stMarkdownContainer"] ul { padding-left: 18px; margin-bottom: 10px; }
     div[data-testid="stMarkdownContainer"] li { margin-bottom: 2px; font-size: 0.9em; color: #E2E8F0; }
@@ -202,7 +176,7 @@ def get_sort_key(time_str):
         return h * 60 + m
     except: return 9999
 
-# --- DATA LOADING ---
+# --- DATA LOADING & CACHING ---
 @st.cache_data
 def load_base_data():
     try:
@@ -216,8 +190,8 @@ def load_base_data():
 
 students_db, base_schedule = load_base_data()
 
+# --- OPTIMIZED LOGIC ---
 def get_hybrid_schedule(roll_no):
-    # 1. Identify Student
     roll_clean = str(roll_no).strip().upper().replace(" ", "")
     my_subjects = set()
     found_key = None
@@ -233,13 +207,14 @@ def get_hybrid_schedule(roll_no):
             
     if not my_subjects: return [], None
 
-    # 2. Process Schedule
     final_classes = []
     
+    # Process Base Schedule
     for cls in base_schedule:
         if cls['Subject'] not in my_subjects: continue
-        d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
         
+        # We perform override checks LIVE here (lightweight dictionary lookup)
+        d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
         details = {'Venue': cls['Venue'], 'Faculty': cls['Faculty'], 'Time': cls['Time'], 'Override': False}
         
         if d_obj in DAY_SPECIFIC_OVERRIDES:
@@ -270,7 +245,10 @@ def get_hybrid_schedule(roll_no):
     final_classes.sort(key=lambda x: (x['Date'], get_sort_key(x['Time'])))
     return final_classes, found_key
 
+# --- HEAVY FUNCTIONS (NOW CACHED) ---
+@st.cache_data
 def calculate_global_stats():
+    # Only runs once per session/cache clear
     if not base_schedule: return {}
     counts = defaultdict(int)
     today_str = date.today().strftime("%Y-%m-%d")
@@ -293,6 +271,41 @@ def calculate_global_stats():
     for ac in ADDITIONAL_CLASSES:
         if ac['Date'].strftime("%Y-%m-%d") <= today_str: counts[ac['Subject']] += 1
     return counts
+
+@st.cache_data
+def generate_ics_cached(classes_json):
+    # We pass JSON string to cache it properly (lists aren't always hashable)
+    classes = json.loads(classes_json)
+    c = Calendar(creator="-//MBA Timetable//EN")
+    # Timezone object isn't pickleable for cache, so we init it inside
+    local_tz = pytz.timezone('Asia/Kolkata')
+    
+    for cls in classes:
+        venue = str(cls['Venue']).upper()
+        if "CANCELLED" in venue or "POSTPONED" in venue: continue
+        try:
+            time_str = cls['Time']
+            start_part, end_part = time_str.split('-')
+            s_match = re.search(r'(\d+)(?::(\d+))?', start_part)
+            e_match = re.search(r'(\d+)(?::(\d+))?', end_part)
+            sh, sm = int(s_match.group(1)), int(s_match.group(2) or 0)
+            eh, em = int(e_match.group(1)), int(e_match.group(2) or 0)
+            if "PM" in end_part and sh < 12 and sh != 11: sh += 12
+            if "PM" in end_part and eh < 12: eh += 12
+            
+            d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
+            start_dt = local_tz.localize(datetime.combine(d_obj, datetime.min.time().replace(hour=sh, minute=sm)))
+            end_dt = local_tz.localize(datetime.combine(d_obj, datetime.min.time().replace(hour=eh, minute=em)))
+            
+            e = Event()
+            e.name = cls['DisplaySubject']
+            e.begin = start_dt.astimezone(pytz.utc)
+            e.end = end_dt.astimezone(pytz.utc)
+            e.location = cls['Venue']
+            e.description = f"Faculty: {cls['Faculty']}"
+            c.events.add(e)
+        except: continue
+    return c.serialize()
 
 def render_mess_menu():
     if not MESS_MENU: return
@@ -327,48 +340,17 @@ def render_mess_menu():
             st.markdown('<div class="menu-header">Dinner</div>', unsafe_allow_html=True)
             st.markdown(fmt(data.get('Dinner')))
 
-def generate_ics(classes):
-    c = Calendar(creator="-//MBA Timetable//EN")
-    local_tz = pytz.timezone(TIMEZONE)
-    for cls in classes:
-        venue = str(cls['Venue']).upper()
-        if "CANCELLED" in venue or "POSTPONED" in venue: continue
-        try:
-            time_str = cls['Time']
-            start_part, end_part = time_str.split('-')
-            s_match = re.search(r'(\d+)(?::(\d+))?', start_part)
-            e_match = re.search(r'(\d+)(?::(\d+))?', end_part)
-            sh, sm = int(s_match.group(1)), int(s_match.group(2) or 0)
-            eh, em = int(e_match.group(1)), int(e_match.group(2) or 0)
-            if "PM" in end_part and sh < 12 and sh != 11: sh += 12
-            if "PM" in end_part and eh < 12: eh += 12
-            
-            d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
-            start_dt = local_tz.localize(datetime.combine(d_obj, datetime.min.time().replace(hour=sh, minute=sm)))
-            end_dt = local_tz.localize(datetime.combine(d_obj, datetime.min.time().replace(hour=eh, minute=em)))
-            
-            e = Event()
-            e.name = cls['DisplaySubject']
-            e.begin = start_dt.astimezone(pytz.utc)
-            e.end = end_dt.astimezone(pytz.utc)
-            e.location = cls['Venue']
-            e.description = f"Faculty: {cls['Faculty']}"
-            c.events.add(e)
-        except: continue
-    return c.serialize()
-
 # --- UI LOGIC ---
 
 if 'submitted' not in st.session_state: st.session_state.submitted = False
 if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 if 'search_clear_counter' not in st.session_state: st.session_state.search_clear_counter = 0
 
-# --- PART A: LANDING PAGE (NOT LOGGED IN) ---
+# --- PART A: LANDING PAGE ---
 if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
 
-    # 1. Login Form (First as requested)
     st.markdown("""
         <div class="welcome-box">
             Welcome! Enter your roll number to get started!</strong>.
@@ -385,7 +367,7 @@ if not st.session_state.submitted:
             st.session_state.submitted = True
             st.rerun()
 
-    # 2. Stats Expander (Below Login, NO DIVIDER ABOVE)
+    # Stats (Cached)
     stats = calculate_global_stats()
     with st.expander("Sessions Taken till Now"):
         if not stats:
@@ -400,14 +382,12 @@ if not st.session_state.submitted:
             with sc2:
                 for k, v in sorted_stats[mid:]: st.markdown(f"**{k}**: {v}")
 
-    # 3. Mess Menu (Below Stats)
     render_mess_menu()
 
-# --- PART B: DASHBOARD PAGE (LOGGED IN) ---
+# --- PART B: DASHBOARD PAGE ---
 else:
     roll = st.session_state.roll_number
     
-    # 1. Header Area
     c1, c2 = st.columns([3, 1])
     with c1:
         st.markdown(f"""
@@ -421,7 +401,6 @@ else:
             st.session_state.roll_number = ""
             st.rerun()
 
-    # 2. Get Data
     with st.spinner("Finding your schedule..."):
         schedule, db_key = get_hybrid_schedule(roll)
 
@@ -434,19 +413,18 @@ else:
             st.session_state.submitted = False
             st.rerun()
     else:
-        # ICS Download
-        ics_data = generate_ics(schedule)
+        # ICS Download (Cached wrapper)
+        ics_str = generate_ics_cached(json.dumps(schedule))
         sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(db_key).replace(" ", "_")).upper()
         with st.expander("Download & Import to Calendar"):
             st.download_button(
                 label="Download .ics Calendar File",
-                data=ics_data,
+                data=ics_str,
                 file_name=f"{sanitized_name}_Timetable.ics",
                 mime='text/calendar'
             )
             st.markdown("**How to Import:** Download the file, go to Google Calendar settings, select 'Import & Export', and upload the file.")
 
-        # --- DATE & CARD LOGIC ---
         schedule_by_date = defaultdict(list)
         for c in schedule: schedule_by_date[c['Date']].append(c)
         
@@ -471,12 +449,10 @@ else:
                 found_any = True
                 
                 d_obj = datetime.strptime(d, "%Y-%m-%d")
-                
                 rows_html = ""
                 for c in classes:
                     venue, fac = str(c['Venue']), str(c['Faculty'])
                     ven_up, fac_up = venue.upper(), fac.upper()
-                    
                     is_canc = "CANCELLED" in ven_up or "CANCELLED" in fac_up
                     is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
@@ -495,7 +471,6 @@ else:
         for d_obj in upcoming_week:
             d_str = d_obj.strftime("%Y-%m-%d")
             is_today = (d_obj == today_obj)
-            
             today_cls = "today" if is_today else ""
             badge_html = '<div class="today-badge">TODAY</div>' if is_today else ''
             
@@ -508,11 +483,9 @@ else:
                 for c in classes:
                     venue, fac = str(c['Venue']), str(c['Faculty'])
                     ven_up, fac_up = venue.upper(), fac.upper()
-                    
                     is_canc = "CANCELLED" in ven_up or "CANCELLED" in fac_up
                     is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
                     is_prep = "PREPONED" in ven_up or "PREPONED" in fac_up
-                    
                     status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
                     
