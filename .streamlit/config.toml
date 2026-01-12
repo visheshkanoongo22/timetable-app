@@ -1,2 +1,8 @@
 [theme]
 base="dark"
+
+[server]
+fileWatcherType = "none"
+
+[runner]
+fastReruns = false
