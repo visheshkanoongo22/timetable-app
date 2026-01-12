@@ -33,7 +33,7 @@ except ImportError:
 # --- CONFIGURATION ---
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
-SCHEDULE_END_DATE = "2026-01-18" # <--- ADD THIS LINE
+SCHEDULE_END_DATE = "2026-01-18" 
 
 # --- CSS STYLING ---
 st.set_page_config(page_title="MBA Timetable", layout="centered", initial_sidebar_state="collapsed")
@@ -414,7 +414,6 @@ else:
     with c2:
         if st.button("Change Roll Number"):
             st.session_state.submitted = False
-            st.session_state.roll_number = ""
             st.rerun()
 
     with st.spinner("Finding your schedule..."):
@@ -486,6 +485,10 @@ else:
         
         for d_obj in upcoming_week:
             d_str = d_obj.strftime("%Y-%m-%d")
+            
+            if d_str > SCHEDULE_END_DATE: 
+                break
+
             is_today = (d_obj == today_obj)
             today_cls = "today" if is_today else ""
             badge_html = '<div class="today-badge">TODAY</div>' if is_today else ''
