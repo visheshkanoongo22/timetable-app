@@ -14,7 +14,6 @@ import gc
 import time 
 
 # --- 1. MEMORY SAFETY ---
-# Clear RAM immediately to prevent inheritance of garbage data
 if 'has_cleaned_memory' not in st.session_state:
     gc.collect()
     st.session_state.has_cleaned_memory = True
@@ -82,7 +81,6 @@ def normalize_string(text):
 def build_master_index(folder_path='.'):
     """
     SINGLETON DATABASE: Reads all files ONCE and saves to RAM.
-    This prevents the "Too many open files" crash.
     """
     master_index = {}
     search_path = os.path.join(folder_path, '*.xlsx')
@@ -188,7 +186,6 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
     # Fuzzy Match
     for db_roll, data in master_index.items():
         if target_clean in db_roll or db_roll in target_clean:
-            # Suffix check to ensure "463" matches "24MBA463" but "24" doesn't
             if db_roll.endswith(target_clean) or target_clean.endswith(db_roll):
                 return data['Name'], data['Subjects']
 
@@ -227,9 +224,9 @@ def parse_class_times(time_str, date_obj, local_tz):
         full_start_str = f"{start_str_part}{start_am_pm}" if not start_str_part[-2:].isalpha() else start_str_part
         start_dt = local_tz.localize(pd.to_datetime(f"{date_obj.strftime('%Y-%m-%d')} {full_start_str}"))
         end_dt = local_tz.localize(pd.to_datetime(f"{date_obj.strftime('%Y-%m-%d')} {end_str_part}"))
-        return start_dt,
-
-# ... [PASTE THIS AFTER THE PREVIOUS CODE BLOCK] ...
+        return start_dt, end_dt # <--- FIXED THIS LINE
+    except Exception:
+        return None, None
 
 def render_mess_menu_expander():
     try:
@@ -240,12 +237,10 @@ def render_mess_menu_expander():
     now_dt = datetime.now(local_tz)
     today = now_dt.date()
     
-    # Logic: Show today unless it's late night (after 11 PM), then show tomorrow
     start_date = today 
     if now_dt.hour >= 23:
         start_date = today + pd.Timedelta(days=1)
 
-    # Get valid dates for the next 7 days
     week_dates = [start_date + pd.Timedelta(days=i) for i in range(7)]
     valid_dates = [d for d in week_dates if d in menu_source]
     
@@ -280,7 +275,6 @@ def generate_ics_content(found_classes):
     c = Calendar(creator="-//Timetable App//EN")
     local_tz = pytz.timezone(TIMEZONE)
     for class_info in found_classes:
-        # Skip cancelled classes
         venue = class_info.get('Venue', '').upper()
         if "CANCELLED" in venue or "POSTPONED" in venue: continue
 
@@ -303,183 +297,9 @@ def generate_ics_content(found_classes):
 # --- 4. MAIN APP UI ---
 st.set_page_config(page_title="MBA Timetable", layout="centered", initial_sidebar_state="collapsed")
 
-# Simple Dark Mode CSS
-st.markdown("""
-<style>
-    .stApp { background-color: #0F172A; color: white; }
-    .stTextInput input { background-color: #1E293B; color: white; border: 1px solid #334155; }
-    .day-card { background: #1E293B; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #334155; }
-    .day-card.today { border: 2px solid #38BDF8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
-    .subject { font-weight: bold; font-size: 1.1em; color: white; }
-    .meta { color: #94A3B8; font-size: 0.9em; }
-    .venue-change { color: #F87171; font-weight: bold; }
-</style>
-""", unsafe_allow_html=True)
-
-if 'submitted' not in st.session_state: st.session_state.submitted = False
-if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
-
-# --- A. LANDING PAGE ---
-if not st.session_state.submitted:
-    st.title("MBA Timetable Assistant")
-    st.caption("Term 6 Schedule")
-    
-    with st.form("roll_form"):
-        roll_in = st.text_input("Enter Roll Number (e.g., 463):").strip().upper()
-        if st.form_submit_button("View Schedule"):
-            if len(roll_in) < 3:
-                st.error("Please enter a valid roll number.")
-            else:
-                st.session_state.roll_number = roll_in
-                st.session_state.submitted = True
-                st.rerun()
-
-    render_mess_menu_expander()
-
-# --- B. SCHEDULE DASHBOARD ---
-else:
-    roll = st.session_state.roll_number
-    
-    # Header with Back Button
-    c1, c2 = st.columns([3, 1])
-    with c1: st.subheader(f"Schedule: {roll}")
-    with c2: 
-        if st.button("Change Roll"):
-            st.session_state.submitted = False
-            st.rerun()
-
-    # --- THE SEARCH (Safe & Cached) ---
-    with st.spinner("Fetching data..."):
-        name, subjects = find_subjects_for_roll(roll)
-
-    if not subjects:
-        st.error(f"Roll number '{roll}' not found in the database.")
-        st.info("Try checking the full ID (e.g., 24MBA463) or ensure your Excel files are uploaded.")
-    else:
-        # Load Schedule File
-        schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
-        if schedule_df.empty:
-            st.error("Schedule file missing. Please upload 'schedule.xlsx'.")
-        else:
-            # --- PROCESS SCHEDULE ---
-            found_classes = []
-            normalized_subjects = {normalize_string(s): s for s in subjects}
-            
-            # Map of column index to Time Slot
-            time_slots = {2: "8-9AM", 3: "9:10-10:10AM", 4: "10:20-11:20AM", 5: "11:30-12:30PM",
-                          6: "12:30-1:30PM", 7: "1:30-2:30PM", 8: "2:40-3:40PM", 9: "3:50-4:50PM",
-                          10: "5-6PM", 11: "6:10-7:10PM", 12: "7:20-8:20PM", 13: "8:30-9:30PM"}
-
-            # Scan Master Schedule
-            for idx, row in schedule_df.iterrows():
-                row_date, day_name = row[0], row[1]
-                
-                for col_idx, time_str in time_slots.items():
-                    cell_val = str(row[col_idx])
-                    if not cell_val or cell_val.lower() == 'nan': continue
-                    
-                    # Handle Merged Cells (Subject1 / Subject2)
-                    parts = cell_val.split('/')
-                    for part in parts:
-                        norm_part = normalize_string(part)
-                        
-                        # Check if student has this subject
-                        matched_subj = None
-                        if norm_part in normalized_subjects:
-                            matched_subj = normalized_subjects[norm_part]
-                        else:
-                            # Fuzzy Match for things like "FT(A)"
-                            for s_norm in normalized_subjects.keys():
-                                if s_norm in norm_part:
-                                    matched_subj = normalized_subjects[s_norm]
-                                    break
-                        
-                        if matched_subj:
-                            # Default Details
-                            details = {'Venue': '-', 'Faculty': 'N/A'}
-                            norm_key = normalize_string(matched_subj)
-                            for k, v in COURSE_DETAILS_MAP.items():
-                                if normalize_string(k) == norm_key:
-                                    details = v.copy()
-                                    break
-                            
-                            # Check Overrides
-                            is_override = False
-                            if row_date in DAY_SPECIFIC_OVERRIDES:
-                                # Check logic for exact subject match in overrides
-                                for override_subj, override_data in DAY_SPECIFIC_OVERRIDES[row_date].items():
-                                    if normalize_string(override_subj) == norm_key:
-                                        details.update(override_data)
-                                        if 'Venue' in override_data: is_override = True
-                            
-                            found_classes.append({
-                                'Date': row_date, 'Day': day_name, 'Time': time_str,
-                                'Subject': matched_subj, 'Venue': details['Venue'],
-                                'Faculty': details['Faculty'], 'Override': is_override
-                            })
-
-            # Add Additional Classes
-            for ac in ADDITIONAL_CLASSES:
-                norm_ac = normalize_string(ac['Subject'])
-                if any(norm_ac in normalize_string(s) for s in subjects):
-                    found_classes.append({
-                        'Date': ac['Date'], 'Day': ac['Date'].strftime("%A"), 'Time': ac['Time'],
-                        'Subject': ac['Subject'], 'Venue': ac.get('Venue', '-'),
-                        'Faculty': ac.get('Faculty', '-'), 'Override': False
-                    })
-
-            # Remove Duplicates
-            found_classes = [dict(t) for t in {tuple(d.items()) for d in found_classes}]
-            
-            # Sort by Date & Time
-            def sort_key(x):
-                t_str = x['Time'].split('-')[0]
-                h = int(re.search(r'\d+', t_str).group())
-                if "PM" in x['Time'] and h < 12: h += 12
-                return (x['Date'], h)
-            
-            found_classes.sort(key=sort_key)
-
-            # --- RENDER CARDS ---
-            today = date.today()
-            upcoming = [c for c in found_classes if c['Date'] >= today]
-            
-            if not upcoming:
-                st.info("No upcoming classes found.")
-            else:
-                for c in upcoming:
-                    is_today = (c['Date'] == today)
-                    css_class = "today" if is_today else ""
-                    
-                    venue_style = 'venue-change' if c['Override'] else ''
-                    venue_text = c['Venue']
-                    
-                    st.markdown(f"""
-                    <div class="day-card {css_class}">
-                        <div style="display:flex; justify-content:space-between;">
-                            <div>
-                                <div class="meta">{c['Date'].strftime('%d %b, %a')} • {c['Time']}</div>
-                                <div class="subject">{c['Subject']}</div>
-                                <div class="meta">Prof. {c['Faculty']}</div>
-                            </div>
-                            <div style="text-align:right;">
-                                <div class="meta">Venue</div>
-                                <div class="{venue_style}">{venue_text}</div>
-                            </div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-# 4. STREAMLIT WEB APP INTERFACE
-st.set_page_config(
-    page_title="MBA Timetable Assistant - Term 6", 
-    layout="centered", 
-    initial_sidebar_state="collapsed"
-)
 st.markdown("""
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0F172A">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 """, unsafe_allow_html=True)
 
@@ -633,7 +453,7 @@ if not st.session_state.submitted:
             st.rerun()
     
     render_mess_menu_expander()
-    calculate_and_display_stats()
+    # Removed calculate_and_display_stats() as it caused errors
 
 else:
     # --- DASHBOARD PAGE ---
@@ -647,7 +467,7 @@ else:
     student_name = "Student"
     student_sections = set()
     
-# Ensure this runs once per submission
+    # Ensure this runs once per submission
     if st.session_state.just_submitted:
         # --- UI CHANGE: Sleek Spinner instead of Progress Bar ---
         with st.spinner("Finding your schedule..."):
@@ -707,58 +527,59 @@ else:
                 found_classes = []
                 
                 for index, row in master_schedule_df.iterrows():
-                    row_date, day = row[0], row[1] # <--- FIXED VARIABLE SHADOWING
+                    row_date, day_name = row[0], row[1]
                     
-                    for col_index, slot_time in time_slots.items(): # <--- FIXED VARIABLE SHADOWING
+                    for col_index, slot_time in time_slots.items():
                         cell_value = str(row[col_index])
-                        if cell_value and cell_value != 'nan':
-                            # Split by '/' to handle merged cells if any (e.g., "FT(A) / FT(B)")
-                            cell_parts = cell_value.split('/')
+                        if not cell_value or cell_value.lower() == 'nan': continue
+                        
+                        # Handle Merged Cells (Subject1 / Subject2)
+                        cell_parts = cell_value.split('/')
+                        
+                        for part in cell_parts:
+                            normalized_cell_part = normalize_string(part)
                             
-                            for part in cell_parts:
-                                normalized_cell_part = normalize_string(part)
+                            # Check if this part matches any of the student's courses
+                            matched_course_norm = None
+                            
+                            # 1. Exact match check
+                            if normalized_cell_part in normalized_student_courses:
+                                matched_course_norm = normalized_cell_part
+                            else:
+                                # 2. Substring check (safer for things like "FT(A)" matching "FT(A)")
+                                for s_norm in normalized_student_courses.keys():
+                                    if s_norm == normalized_cell_part:
+                                        matched_course_norm = s_norm
+                                        break
+                            
+                            if matched_course_norm:
+                                orig_sec = normalized_student_courses[matched_course_norm]
+                                details = NORMALIZED_COURSE_DETAILS_MAP.get(matched_course_norm, {'Faculty': 'N/A', 'Venue': '-'}).copy()
+                                is_venue_override = False
                                 
-                                # Check if this part matches any of the student's courses
-                                matched_course_norm = None
+                                # Check Day Overrides
+                                if row_date in DAY_SPECIFIC_OVERRIDES:
+                                    if matched_course_norm in DAY_SPECIFIC_OVERRIDES[row_date]:
+                                        override_data = DAY_SPECIFIC_OVERRIDES[row_date][matched_course_norm]
+                                        
+                                        should_apply_override = True
+                                        if 'Target_Time' in override_data:
+                                            if override_data['Target_Time'] != slot_time:
+                                                should_apply_override = False
+                                        
+                                        if should_apply_override:
+                                            if 'Venue' in override_data:
+                                                is_venue_override = True
+                                            details.update(override_data)
                                 
-                                # 1. Exact match check
-                                if normalized_cell_part in normalized_student_courses:
-                                    matched_course_norm = normalized_cell_part
-                                else:
-                                    # 2. Substring check (safer for things like "FT(A)" matching "FT(A)")
-                                    for s_norm in normalized_student_courses.keys():
-                                        if s_norm == normalized_cell_part:
-                                            matched_course_norm = s_norm
-                                            break
-                                
-                                if matched_course_norm:
-                                    orig_sec = normalized_student_courses[matched_course_norm]
-                                    details = NORMALIZED_COURSE_DETAILS_MAP.get(matched_course_norm, {'Faculty': 'N/A', 'Venue': '-'}).copy()
-                                    is_venue_override = False
-                                    
-                                    # Check Day Overrides
-                                    if row_date in DAY_SPECIFIC_OVERRIDES:
-                                        if matched_course_norm in DAY_SPECIFIC_OVERRIDES[row_date]:
-                                            override_data = DAY_SPECIFIC_OVERRIDES[row_date][matched_course_norm]
-                                            
-                                            should_apply_override = True
-                                            if 'Target_Time' in override_data:
-                                                if override_data['Target_Time'] != slot_time:
-                                                    should_apply_override = False
-                                            
-                                            if should_apply_override:
-                                                if 'Venue' in override_data:
-                                                    is_venue_override = True
-                                                details.update(override_data)
-                                    
-                                    found_classes.append({
-                                        "Date": row_date, "Day": day, 
-                                        "Time": details.get('Time', slot_time),
-                                        "Subject": orig_sec,
-                                        "Faculty": details.get('Faculty', 'N/A'),
-                                        "Venue": details.get('Venue', '-'),
-                                        "is_venue_override": is_venue_override
-                                    })
+                                found_classes.append({
+                                    "Date": row_date, "Day": day_name, 
+                                    "Time": details.get('Time', slot_time),
+                                    "Subject": orig_sec,
+                                    "Faculty": details.get('Faculty', 'N/A'),
+                                    "Venue": details.get('Venue', '-'),
+                                    "is_venue_override": is_venue_override
+                                })
                 
                 # Add Additional Classes
                 for added_class in ADDITIONAL_CLASSES:
@@ -836,7 +657,7 @@ else:
                     except:
                         return 9999
 
-                for date_key in sorted_dates: # <--- RENAMED TO AVOID SHADOWING
+                for date_key in sorted_dates: 
                     schedule_by_date[date_key].sort(key=get_sort_key)
                 
                 # --- HARDCODED DATE LOGIC ---
