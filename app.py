@@ -103,51 +103,94 @@ COURSE_DETAILS_MAP = {
 }
 
 # 3. FUNCTIONS
+
+import pandas as pd
+import os
+import glob
+from datetime import datetime, date
+import re
+import streamlit as st
+from ics import Calendar, Event
+import pytz
+import hashlib
+from collections import defaultdict
+import streamlit.components.v1 as components
+from streamlit_extras.st_keyup import st_keyup 
+import gc 
+import time 
+
+# --- SAFE STARTUP & MEMORY CLEANUP ---
+if 'has_cleaned_memory' not in st.session_state:
+    gc.collect()
+    st.session_state.has_cleaned_memory = True
+
+# 1. CONFIGURATION
+# NOTE: If you haven't moved files, keep this as just 'schedule.xlsx'
+SCHEDULE_FILE_NAME = 'schedule.xlsx' 
+TIMEZONE = 'Asia/Kolkata'
+GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
+
+# --- TERM 6 COURSE DETAILS ---
+# (Keep your existing COURSE_DETAILS_MAP here without changes)
+COURSE_DETAILS_MAP = {
+    'D&IT':     {'Faculty': 'Dhaval Patanvadia', 'Venue': 'T6'},
+    'IF(A)':    {'Faculty': 'Parag Rijwani',     'Venue': 'T6'},
+    'IF(B)':    {'Faculty': 'Parag Rijwani',     'Venue': 'T6'},
+    'M&A(A)':   {'Faculty': 'Dipti Saraf',       'Venue': 'T5'},
+    'M&A(B)':   {'Faculty': 'Dipti Saraf',       'Venue': 'T5'},
+    'M&A(C)':   {'Faculty': 'Dipti Saraf',       'Venue': 'T5'},
+    'PPC(A)':   {'Faculty': 'Ritesh Patel',      'Venue': 'T3'},
+    'PPC(B)':   {'Faculty': 'Ritesh Patel',      'Venue': 'T3'},
+    'PPC(C)':   {'Faculty': 'Ritesh Patel',      'Venue': 'T3'},
+    'MA':       {'Faculty': 'Jayesh Aagja / Sanjay Jain', 'Venue': 'T6'},
+    'CRM':      {'Faculty': 'T. S. Joshi',       'Venue': 'T6'},
+    'RURMKT(A)': {'Faculty': 'Sapna Parshar / Shailesh Prabhu', 'Venue': 'T6'},
+    'RURMKT(B)': {'Faculty': 'Sapna Parshar / Kavita Saxena',   'Venue': 'T6'},
+    'IM':       {'Faculty': 'Pradeep Kautish',   'Venue': 'T6'},
+    'MS(A)':    {'Faculty': 'Ashwini Awasthi',   'Venue': 'T6'},
+    'MS(B)':    {'Faculty': 'Ashwini Awasthi',   'Venue': 'T6'},
+    'MS(C)':    {'Faculty': 'Jayesh Aagja',      'Venue': 'T5'},
+    'MS(D)':    {'Faculty': 'Sanjay Jain',       'Venue': 'T5'},
+    'GBL':      {'Faculty': 'Sadhana Sargam',    'Venue': 'T5'},
+    'DIW':      {'Faculty': 'Nitin Pillai',      'Venue': 'T5'},
+    'PS&PS':    {'Faculty': 'Shilpa Tanna',      'Venue': 'E3'},
+    'MC':       {'Faculty': 'VF',                'Venue': 'T3'},
+    'FT(A)':    {'Faculty': 'Omkar Sahoo',       'Venue': 'T7'},
+    'FT(B)':    {'Faculty': 'Omkar Sahoo',       'Venue': 'T7'},
+    'SNA':      {'Faculty': 'Anand Kumar',       'Venue': 'T3'},
+    'IGR&MC':   {'Faculty': 'Somayya Madakam',   'Venue': 'T6'},
+    'PRM(A)':   {'Faculty': 'Chetan Jhaveri',    'Venue': 'T6'},
+    'PRM(B)':   {'Faculty': 'Chetan Jhaveri',    'Venue': 'T6'},
+    'IL(A)':    {'Faculty': 'Praneti Shah',      'Venue': 'T5'},
+    'IL(B)':    {'Faculty': 'Praneti Shah',      'Venue': 'T5'}
+}
+
+# --- FUNCTIONS ---
 def normalize_string(text):
-    """
-    Standardizes course names.
-    Removes spaces, dots, and quotes.
-    CRITICAL: Preserves brackets () to distinguish sections like M&A(A).
-    """
     if isinstance(text, str):
         return text.replace(" ", "").replace("'", "").replace(".", "").upper()
     return ""
 
-@st.cache_data
-def load_and_clean_schedule(file_path):
-    try:
-        # Assuming schedule format is consistent (Sheet 1, skip 3 rows)
-        df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3)
-        schedule_df = df.iloc[:, 0:14].copy()
-        schedule_df[0] = pd.to_datetime(schedule_df[0], errors='coerce').dt.date
-        schedule_df.dropna(subset=[0], inplace=True)
-        return schedule_df
-    except Exception as e:
-        return pd.DataFrame()
-
-
-
 @st.cache_resource(show_spinner="Building student database...")
-def build_master_index(folder_path='data'):
+def build_master_index(folder_path='.'):
     """
     RUNS ONCE: Reads ALL Excel files and builds a master dictionary.
-    Output: { '24MBA463': {'Name': 'Vishesh', 'Subjects': {'CRM', 'M&A'}}, ... }
     """
     master_index = {}
     
-    # 1. Get files
+    # Scan for files in the given folder
     search_path = os.path.join(folder_path, '*.xlsx')
     files = [f for f in glob.glob(search_path) 
              if os.path.basename(f) != 'schedule.xlsx' 
              and not os.path.basename(f).startswith('~')]
 
-    # 2. Scan every file once
     for file in files:
         try:
+            # Context manager to auto-close files instantly
             with pd.ExcelFile(file) as xls:
                 df = pd.read_excel(xls, header=None)
 
-            # Find Header Row
+            # Find Header Row (Robust Scan)
             header_row_idx = -1
             for r in range(min(20, len(df))):
                 row_values = [str(val).strip().lower() for val in df.iloc[r]]
@@ -157,11 +200,9 @@ def build_master_index(folder_path='data'):
             
             if header_row_idx == -1: continue
 
-            # Identify Course Name from Filename or Header
+            # Identify Course Name
             raw_section_name = ""
             if header_row_idx > 0:
-                 # Check cell above header for section name
-                 # (Simplified logic from your original code)
                  val_above = str(df.iloc[header_row_idx-1, 1]).strip() 
                  if val_above and val_above.lower() != 'nan':
                      raw_section_name = val_above
@@ -170,7 +211,7 @@ def build_master_index(folder_path='data'):
             clean_header = normalize_string(raw_section_name)
             clean_filename = normalize_string(os.path.basename(file).replace('.xlsx', ''))
             
-            course_name = clean_filename # Default to filename
+            course_name = clean_filename 
             if clean_header:
                 if clean_header in [normalize_string(k) for k in COURSE_DETAILS_MAP.keys()]:
                     course_name = clean_header
@@ -189,7 +230,8 @@ def build_master_index(folder_path='data'):
             # Extract Data
             for roll_col in roll_col_indices:
                 name_col = roll_col + 1
-                # Get all rows below header
+                if name_col >= df.shape[1]: continue
+
                 data_block = df.iloc[header_row_idx+1:, [roll_col, name_col]]
                 data_block.columns = ['Roll', 'Name']
                 
@@ -199,7 +241,6 @@ def build_master_index(folder_path='data'):
                     
                     if not r_val or r_val.lower() == 'nan': continue
                     
-                    # Add to Master Index
                     if r_val not in master_index:
                         master_index[r_val] = {'Name': "Student", 'Subjects': set()}
                     
@@ -207,29 +248,67 @@ def build_master_index(folder_path='data'):
                     
                     if n_val and n_val.lower() != 'nan':
                         master_index[r_val]['Name'] = n_val
-
+            
             del df
-            gc.collect()
-
         except Exception:
             continue
-
+            
+    gc.collect()
     return master_index
 
-def find_subjects_for_roll(target_roll, folder_path='data'):
+def find_subjects_for_roll(target_roll, folder_path='.'):
     """
-    INSTANT SEARCH: Looks up the target_roll in the cached Master Index.
+    INSTANT SEARCH: Checks full ID, short ID, and handles normalization.
     """
     # 1. Load (or retrieve cached) index
     master_index = build_master_index(folder_path)
     
-    # 2. Instant Lookup
-    if target_roll in master_index:
-        data = master_index[target_roll]
+    # 2. Clean Target
+    target_clean = str(target_roll).strip().upper()
+    
+    # 3. DIRECT MATCH Check
+    if target_clean in master_index:
+        data = master_index[target_clean]
         return data['Name'], data['Subjects']
-    else:
-        return "Student", set()
-        
+    
+    # 4. PARTIAL MATCH Check (e.g., "463" matches "24MBA463")
+    for db_roll, data in master_index.items():
+        if target_clean in db_roll or db_roll in target_clean:
+            # Digit-only check to prevent "46" matching "463"
+            digits_target = "".join(filter(str.isdigit, target_clean))
+            digits_db = "".join(filter(str.isdigit, db_roll))
+            
+            if digits_target and digits_db and (digits_target in digits_db or digits_db in digits_target):
+                 # Strict check: ensure it's the end of the string (suffix match)
+                 # e.g., "463" matches "24MBA463", but "24" shouldn't match "24MBA463" casually
+                 if db_roll.endswith(target_clean) or target_clean.endswith(db_roll):
+                     return data['Name'], data['Subjects']
+
+    # 5. DEBUGGING EXPANDER (Visible only if not found)
+    if st.session_state.get('submitted', False): 
+        with st.expander("Debug: Search Info", expanded=False):
+            st.write(f"Searching for: '{target_clean}'")
+            st.write(f"Total students in DB: {len(master_index)}")
+            st.write("Sample IDs in Database:", list(master_index.keys())[:5])
+
+    return "Student", set()
+
+@st.cache_data
+def load_and_clean_schedule(file_path):
+    # ... (Rest of your code continues here) ...
+
+@st.cache_data
+def load_and_clean_schedule(file_path):
+    try:
+        # Assuming schedule format is consistent (Sheet 1, skip 3 rows)
+        df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3)
+        schedule_df = df.iloc[:, 0:14].copy()
+        schedule_df[0] = pd.to_datetime(schedule_df[0], errors='coerce').dt.date
+        schedule_df.dropna(subset=[0], inplace=True)
+        return schedule_df
+    except Exception as e:
+        return pd.DataFrame()
+
 
 
 
