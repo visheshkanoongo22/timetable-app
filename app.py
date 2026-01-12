@@ -261,14 +261,15 @@ def load_and_clean_schedule(file_path):
         # Assuming schedule format is consistent (Sheet 1, skip 3 rows)
         df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3)
         schedule_df = df.iloc[:, 0:14].copy()
+        
+        # Ensure date column is datetime.date
         schedule_df[0] = pd.to_datetime(schedule_df[0], errors='coerce').dt.date
+        
+        # Drop rows where date is missing
         schedule_df.dropna(subset=[0], inplace=True)
         return schedule_df
     except Exception as e:
         return pd.DataFrame()
-
-
-
 
 def calculate_and_display_stats():
     # --- 1. SAFE IMPORTS ---
