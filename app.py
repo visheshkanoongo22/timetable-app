@@ -347,7 +347,7 @@ if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
 
-    # 1. Login Form (First as requested)
+    # 1. Login Form
     st.markdown("""
         <div class="welcome-box">
             Welcome! Enter your roll number to get started!</strong>.
@@ -366,7 +366,7 @@ if not st.session_state.submitted:
 
     st.markdown("---")
 
-    # 2. Stats Expander (Below Login)
+    # 2. Stats Expander
     stats = calculate_global_stats()
     with st.expander("Sessions Taken till Now"):
         if not stats:
@@ -381,14 +381,13 @@ if not st.session_state.submitted:
             with sc2:
                 for k, v in sorted_stats[mid:]: st.markdown(f"**{k}**: {v}")
 
-    # 3. Mess Menu (Below Stats)
+    # 3. Mess Menu
     render_mess_menu()
 
 # --- PART B: DASHBOARD PAGE (LOGGED IN) ---
 else:
     roll = st.session_state.roll_number
     
-    # 1. Header Area
     c1, c2 = st.columns([3, 1])
     with c1:
         st.markdown(f"""
@@ -427,7 +426,7 @@ else:
             )
             st.markdown("**How to Import:** Download the file, go to Google Calendar settings, select 'Import & Export', and upload the file.")
 
-        # --- DATE & CARD LOGIC (HTML FIX) ---
+        # --- DATE & CARD LOGIC ---
         schedule_by_date = defaultdict(list)
         for c in schedule: schedule_by_date[c['Date']].append(c)
         
@@ -453,7 +452,6 @@ else:
                 
                 d_obj = datetime.strptime(d, "%Y-%m-%d")
                 
-                # --- PAST CLASSES HTML BUILD ---
                 rows_html = ""
                 for c in classes:
                     venue, fac = str(c['Venue']), str(c['Faculty'])
@@ -464,23 +462,9 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
-                    rows_html += f"""
-                    <div class="class-entry">
-                        <div class="left"><div class="subject-name {status_cls}">{c['DisplaySubject']}</div></div>
-                        <div class="meta">
-                            <span class="time {status_cls}">{c['Time']}</span>
-                            <span class="{ven_cls}">{venue}</span>
-                            <span class="faculty {status_cls}">{fac}</span>
-                        </div>
-                    </div>
-                    """
+                    rows_html += f"""<div class="class-entry"><div class="left"><div class="subject-name {status_cls}">{c['DisplaySubject']}</div></div><div class="meta"><span class="time {status_cls}">{c['Time']}</span><span class="{ven_cls}">{venue}</span><span class="faculty {status_cls}">{fac}</span></div></div>"""
                 
-                st.markdown(f"""
-                <div class="day-card" style="opacity:0.8;">
-                    <div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>
-                    {rows_html}
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
             if not found_any and q: st.warning("No matches found.")
 
@@ -512,24 +496,9 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
                     
-                    rows_html += f"""
-                    <div class="class-entry">
-                        <div class="left"><div class="subject-name {status_cls}">{c['DisplaySubject']}</div></div>
-                        <div class="meta">
-                            <span class="time {status_cls}">{c['Time']}</span>
-                            <span class="{ven_cls}">{venue}</span>
-                            <span class="faculty {status_cls}">{fac}</span>
-                        </div>
-                    </div>
-                    """
+                    rows_html += f"""<div class="class-entry"><div class="left"><div class="subject-name {status_cls}">{c['DisplaySubject']}</div></div><div class="meta"><span class="time {status_cls}">{c['Time']}</span><span class="{ven_cls}">{venue}</span><span class="faculty {status_cls}">{fac}</span></div></div>"""
             
-            st.markdown(f"""
-            <div class="day-card {today_cls}">
-                {badge_html}
-                <div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>
-                {rows_html}
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div class="day-card {today_cls}">{badge_html}<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
 st.markdown("---")
 st.caption("_Made by Vishesh_")
