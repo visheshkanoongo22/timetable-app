@@ -3,6 +3,7 @@ base="dark"
 
 [server]
 fileWatcherType = "none"
+runOnSave = false
 
 [runner]
 fastReruns = false
