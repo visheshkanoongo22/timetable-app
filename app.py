@@ -1,12 +1,11 @@
 import streamlit as st
-import pandas as pd
 import json
-import os
 import re
 from datetime import datetime, date, timedelta
 import pytz
 from collections import defaultdict
 import gc
+import time
 from ics import Calendar, Event
 
 # --- OPTIONAL IMPORTS ---
@@ -32,7 +31,6 @@ except ImportError:
 
 # --- CONFIGURATION ---
 TIMEZONE = 'Asia/Kolkata'
-GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
 SCHEDULE_END_DATE = "2026-01-18" 
 
 # --- CSS STYLING ---
@@ -74,7 +72,6 @@ local_css_string = """
     .welcome-message { margin-top: 0rem; margin-bottom: 1rem; font-size: 1.1rem; color: var(--muted); }
     .welcome-message strong { color: #ffffff; }
     
-    /* CARD AESTHETICS */
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
         border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem;
@@ -87,22 +84,15 @@ local_css_string = """
         border: 2px solid var(--today-glow);
         box-shadow: 0 0 25px var(--today-glow-shadow);
     }
-    
-    /* THE BADGE */
     .today-badge {
         position: absolute; 
-        top: -14px; 
-        right: 20px; 
+        top: -14px; right: 20px; 
         background: #5D5D5D; 
-        color: white;
-        font-size: 0.7rem; font-weight: 800; 
-        padding: 4px 10px; 
-        border-radius: 6px;
+        color: white; font-size: 0.7rem; font-weight: 800; 
+        padding: 4px 10px; border-radius: 6px;
         letter-spacing: 0.5px; text-transform: uppercase; 
-        z-index: 10;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
-    
     .day-header { font-size: 1.15rem; font-weight: 700; color: #E2E8F0; margin-bottom: 0.8rem; }
     
     .class-entry {
@@ -119,21 +109,21 @@ local_css_string = """
     .venue-changed { color: var(--venue-change-color) !important; font-weight: 600; }
     .strikethrough { text-decoration: line-through; opacity: 0.6; }
     
-    /* STREAMLIT WIDGETS */
     .stTextInput>div>div>input {
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
     }
+    /* Login Button */
     .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"] {
         background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); 
-        color: var(--bg);
-        font-weight:700; padding: 0.5rem 0.9rem; border-radius:10px; border:none;
+        color: var(--bg); font-weight:700; padding: 0.5rem 0.9rem; border-radius:10px; border:none;
         box-shadow: 0 8px 20px rgba(96,165,250,0.1); width: 100%;
         transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
     .stDownloadButton>button:hover, div[data-testid="stForm"] button[kind="primary"]:hover {
         transform: translateY(-3px); box-shadow: 0 14px 30px rgba(96,165,250,0.15);
     }
+    /* Change Roll No Button (Dark) */
     .stButton>button {
         width: 100%; border-radius: 8px; font-weight: 600;
         background-color: #0F172A !important; 
@@ -142,8 +132,7 @@ local_css_string = """
         background-image: none !important;
     }
     .stButton>button:hover { 
-        border-color: #60A5FA !important; 
-        color: #60A5FA !important;
+        border-color: #60A5FA !important; color: #60A5FA !important;
     }
     
     .menu-header { color: #38BDF8; font-weight: bold; text-transform: uppercase; font-size: 0.9em; margin-bottom: 5px; }
@@ -166,7 +155,7 @@ local_css_string = """
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
-# --- HELPER FUNCTIONS ---
+# --- HELPER FUNCTIONS (NO PANDAS) ---
 def get_ist_today():
     """Returns the current DATE in India Standard Time."""
     return datetime.now(pytz.timezone('Asia/Kolkata')).date()
@@ -206,7 +195,6 @@ students_db, base_schedule = load_base_data()
 
 # --- HYBRID SCHEDULE ENGINE ---
 def get_hybrid_schedule(roll_no):
-    # 1. Identify Student
     roll_clean = str(roll_no).strip().upper().replace(" ", "")
     my_subjects = set()
     found_key = None
@@ -224,11 +212,12 @@ def get_hybrid_schedule(roll_no):
 
     final_classes = []
     
-    # Process Base Schedule
+    # 1. Base Schedule
     for cls in base_schedule:
         if cls['Date'] > SCHEDULE_END_DATE: continue
         if cls['Subject'] not in my_subjects: continue
         
+        # Date parsing without Pandas
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
         details = {'Venue': cls['Venue'], 'Faculty': cls['Faculty'], 'Time': cls['Time'], 'Override': False}
         
@@ -244,6 +233,7 @@ def get_hybrid_schedule(roll_no):
         cls_obj.update(details)
         final_classes.append(cls_obj)
 
+    # 2. Additional Classes
     for ac in ADDITIONAL_CLASSES:
         norm_subj = normalize(ac['Subject'])
         if norm_subj in my_subjects:
@@ -260,7 +250,7 @@ def get_hybrid_schedule(roll_no):
     final_classes.sort(key=lambda x: (x['Date'], get_sort_key(x['Time'])))
     return final_classes, found_key
 
-# --- STATS (Cached with Date param) ---
+# --- STATS ---
 @st.cache_data
 def calculate_global_stats(today_str):
     if not base_schedule: return {}
@@ -284,13 +274,9 @@ def calculate_global_stats(today_str):
         if ac['Date'].strftime("%Y-%m-%d") <= today_str: counts[ac['Subject']] += 1
     return counts
 
-# --- ICS GENERATOR (Cached) ---
-@st.cache_data
-def generate_ics_cached(classes_json):
-    import pytz 
-    from datetime import datetime
-    
-    classes = json.loads(classes_json)
+# --- ICS GENERATOR (No Caching = No Memory Leaks) ---
+def generate_ics_safe(classes):
+    # No cache decorator here! It is fast enough without it.
     c = Calendar(creator="-//MBA Timetable//EN")
     local_tz = pytz.timezone('Asia/Kolkata')
     
@@ -325,6 +311,7 @@ def generate_ics_cached(classes_json):
 def render_mess_menu():
     if not MESS_MENU: return
     today = get_ist_today()
+    # 7 Days loop without Pandas
     week_dates = [today + timedelta(days=i) for i in range(7)]
     valid_dates = [d for d in week_dates if d in MESS_MENU]
     if not valid_dates: return
@@ -334,26 +321,16 @@ def render_mess_menu():
         sel = st.radio("Select a day:", opts, index=0, horizontal=True)
         sel_date = valid_dates[opts.index(sel)]
         data = MESS_MENU[sel_date]
-        
         def fmt(txt):
             if not txt or str(txt).lower() == 'nan': return "-"
             items = [i.strip() for i in str(txt).split('*') if i.strip()]
             return "\n".join([f"- {i}" for i in items])
-
         st.markdown(f"**Menu for {sel_date.strftime('%d %B %Y')}**")
         c1, c2, c3, c4 = st.columns(4)
-        with c1: 
-            st.markdown('<div class="menu-header">Breakfast</div>', unsafe_allow_html=True)
-            st.markdown(fmt(data.get('Breakfast')))
-        with c2: 
-            st.markdown('<div class="menu-header">Lunch</div>', unsafe_allow_html=True)
-            st.markdown(fmt(data.get('Lunch')))
-        with c3: 
-            st.markdown('<div class="menu-header">Hi-Tea</div>', unsafe_allow_html=True)
-            st.markdown(fmt(data.get('Hi-Tea')))
-        with c4: 
-            st.markdown('<div class="menu-header">Dinner</div>', unsafe_allow_html=True)
-            st.markdown(fmt(data.get('Dinner')))
+        with c1: st.markdown('<div class="menu-header">Breakfast</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Breakfast')))
+        with c2: st.markdown('<div class="menu-header">Lunch</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Lunch')))
+        with c3: st.markdown('<div class="menu-header">Hi-Tea</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Hi-Tea')))
+        with c4: st.markdown('<div class="menu-header">Dinner</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Dinner')))
 
 # --- UI CONTROLLER ---
 
@@ -366,12 +343,8 @@ if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
 
-    st.markdown("""
-        <div class="welcome-box">
-            Welcome! Enter your roll number to get started!</strong>.
-        </div>
-        """, unsafe_allow_html=True)
-        
+    st.markdown("""<div class="welcome-box">Welcome! Enter your roll number to get started!</strong>.</div>""", unsafe_allow_html=True)
+    
     with st.form("roll_number_form"):
         roll_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
         if st.form_submit_button("Generate Timetable"):
@@ -405,12 +378,7 @@ else:
     roll = st.session_state.roll_number
     
     c1, c2 = st.columns([3, 1])
-    with c1:
-        st.markdown(f"""
-        <div class="welcome-message">
-            Displaying schedule for: <strong>{roll}</strong>
-        </div>
-        """, unsafe_allow_html=True)
+    with c1: st.markdown(f"""<div class="welcome-message">Displaying schedule for: <strong>{roll}</strong></div>""", unsafe_allow_html=True)
     with c2:
         if st.button("Change Roll Number"):
             st.session_state.submitted = False
@@ -428,8 +396,8 @@ else:
             st.session_state.submitted = False
             st.rerun()
     else:
-        # ICS Download (Cached wrapper)
-        ics_str = generate_ics_cached(json.dumps(schedule))
+        # ICS Download (No Cache)
+        ics_str = generate_ics_safe(schedule)
         sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(db_key).replace(" ", "_")).upper()
         with st.expander("Download & Import to Calendar"):
             st.download_button(
