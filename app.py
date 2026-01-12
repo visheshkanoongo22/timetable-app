@@ -30,21 +30,21 @@ try:
 except ImportError:
     MESS_MENU = {}
 
-# --- AUTO REFRESH EVERY 10 MINUTES ---
-# Only refresh if app has been running too long to prevent stale memory
-AUTO_REFRESH_INTERVAL = 10 * 60 
-
-if "start_time" not in st.session_state:
-    st.session_state.start_time = time.time()
-
-elapsed = time.time() - st.session_state.start_time
-
-if elapsed > AUTO_REFRESH_INTERVAL:
-    st.cache_data.clear()
-    st.cache_resource.clear()
+# --- SAFE STARTUP & MEMORY CLEANUP ---
+if 'has_cleaned_memory' not in st.session_state:
+    # Run this only once per user session start
     gc.collect()
-    st.session_state.clear()
-    st.rerun()
+    st.session_state.has_cleaned_memory = True
+
+# --- OPTIONAL: Sidebar Reset Button ---
+# Use this if the app ever feels slow or buggy
+with st.sidebar:
+    if st.button("🔄 Reset App & Clear Memory"):
+        st.cache_data.clear()
+        st.session_state.clear()
+        gc.collect()
+        st.rerun()
+
 
 # 2. CONFIGURATION
 SCHEDULE_FILE_NAME = 'schedule.xlsx'
