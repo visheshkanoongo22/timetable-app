@@ -46,7 +46,7 @@ if (time.time() - st.session_state.start_time) > AUTO_REFRESH_INTERVAL:
     st.session_state.start_time = time.time()
     st.rerun()
 
-# --- CSS STYLING (AESTHETICS RESTORED) ---
+# --- CSS STYLING ---
 st.set_page_config(page_title="MBA Timetable", layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown("""
@@ -76,6 +76,7 @@ local_css_string = """
     }
     .main-header { font-size: 2.4rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; }
     .header-sub { text-align:center; color:var(--muted); margin-top:0rem; margin-bottom:2rem; font-size:1.0rem; }
+    
     .welcome-box {
         background: var(--card); border: 1px solid var(--glass-border); padding: 1rem 1.25rem;
         border-radius: 14px; margin-bottom: 1.5rem; color: var(--muted); font-size: 0.95rem;
@@ -83,83 +84,66 @@ local_css_string = """
     .welcome-box strong { color: #ffffff; font-weight: 600; }
     .welcome-message { margin-top: 0rem; margin-bottom: 1rem; font-size: 1.1rem; color: var(--muted); }
     .welcome-message strong { color: #ffffff; }
+    
+    /* CARD AESTHETICS */
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-        border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-        border: 1px solid var(--glass-border); transition: transform 0.18s ease, box-shadow 0.18s ease;
-        scroll-margin-top: 85px; position: relative;
+        border-radius: 14px; padding: 1.25rem; margin-bottom: 2rem; /* Added margin for spacing */
+        border: 1px solid var(--glass-border); 
+        position: relative; /* CRITICAL FOR BADGE */
+        overflow: visible;  /* ALLOWS BADGE TO STICK OUT */
+        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
     }
-    .day-card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(0,0,0,0.6); }
     .day-card.today {
-        border: 3px solid var(--today-glow);
-        box-shadow: 0 0 35px var(--today-glow-shadow), 0 0 60px rgba(56, 189, 248, 0.2), 0 8px 30px rgba(0,0,0,0.4);
-        animation: pulse-glow 2s ease-in-out infinite;
+        border: 2px solid var(--today-glow);
+        box-shadow: 0 0 25px var(--today-glow-shadow);
     }
+    
+    /* THE BADGE - FIXED POSITIONING */
     .today-badge {
-        position: absolute; top: -12px; right: 20px; background: var(--today-glow); color: var(--bg);
-        font-size: 0.75rem; font-weight: 800; padding: 0.35rem 0.75rem; border-radius: 6px;
-        letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 4px 15px var(--today-glow-shadow); z-index: 10;
+        position: absolute; 
+        top: -14px; 
+        right: 20px; 
+        background: #5D5D5D; /* Darker grey as per your screenshot style */
+        color: white;
+        font-size: 0.7rem; font-weight: 800; 
+        padding: 4px 10px; 
+        border-radius: 6px;
+        letter-spacing: 0.5px; text-transform: uppercase; 
+        z-index: 10;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
-    @keyframes pulse-glow {
-        0%, 100% { box-shadow: 0 0 35px var(--today-glow-shadow), 0 0 60px rgba(56, 189, 248, 0.2), 0 8px 30px rgba(0,0,0,0.4); }
-        50% { box-shadow: 0 0 45px rgba(56, 189, 248, 0.6), 0 0 80px rgba(56, 189, 248, 0.3), 0 8px 30px rgba(0,0,0,0.4); }
-    }
-    .day-header { font-size: 1.15rem; font-weight: 700; color: #E2E8F0; margin-bottom: 0.5rem; }
+    
+    .day-header { font-size: 1.15rem; font-weight: 700; color: #E2E8F0; margin-bottom: 0.8rem; }
+    
     .class-entry {
         display:flex; flex-direction:row; align-items:center; justify-content:space-between;
-        padding-top:0.65rem; padding-bottom:0.65rem; border-bottom:1px solid rgba(255,255,255,0.04);
+        padding-top:0.75rem; padding-bottom:0.75rem; border-bottom:1px solid rgba(255,255,255,0.04);
     }
     .day-card .class-entry:last-child { border-bottom: none; padding-bottom: 0; }
+    
     .left { display:flex; flex-direction:column; gap:0.2rem; }
-    .subject-name { font-size:1.05rem; font-weight:700; margin:0; color: #FFFFFF; }
-    .class-details { font-size:0.94rem; color:var(--muted); }
-    .meta { text-align:right; min-width:170px; }
-    .meta .time { display:block; font-weight:600; color:#fff; font-size:0.97rem; }
-    .meta .venue, .meta .faculty { display:block; font-size:0.85rem; color:var(--muted); }
+    .subject-name { font-size:1.1rem; font-weight:700; margin:0; color: #FFFFFF; }
+    .meta { text-align:right; min-width:140px; }
+    .meta .time { display:block; font-weight:600; color:#fff; font-size:0.95rem; }
+    .meta .venue, .meta .faculty { display:block; font-size:0.85rem; color:var(--muted); text-align: right;}
     .venue-changed { color: var(--venue-change-color) !important; font-weight: 600; }
     .strikethrough { text-decoration: line-through; opacity: 0.6; }
     
-    .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
-        background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); color: var(--bg);
-        font-weight:700; padding: 0.5rem 0.9rem; border-radius:10px; border:none;
-        box-shadow: 0 8px 20px rgba(96,165,250,0.1); width: 100%;
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
-    }
-    .stDownloadButton>button:hover, div[data-testid="stForm"] button[kind="primary"]:hover, .stButton>button:hover {
-        transform: translateY(-3px); box-shadow: 0 14px 30px rgba(96,165,250,0.15);
-    }
-    .stButton>button {
-        width: auto; padding: 0.25rem 0.6rem; font-size: 0.8rem;
-        background: var(--card); color: var(--muted); border: 1px solid var(--glass-border);
-    }
-    .stButton>button:hover { color: var(--accent-start); border-color: var(--accent-start); }
-    
-    .stTextInput>div>div>input, .stTextInput>div>div>textarea {
+    /* STREAMLIT WIDGETS */
+    .stTextInput>div>div>input {
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
+    }
+    .stButton>button {
+        width: 100%; border-radius: 8px; font-weight: 600;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); border: none; color: black;
     }
     
     /* Mess Menu Specifics */
     .menu-header { color: #38BDF8; font-weight: bold; text-transform: uppercase; font-size: 0.9em; margin-bottom: 5px; }
     div[data-testid="stMarkdownContainer"] ul { padding-left: 18px; margin-bottom: 10px; }
     div[data-testid="stMarkdownContainer"] li { margin-bottom: 2px; font-size: 0.9em; color: #E2E8F0; }
-
-    @media (max-width: 600px) {
-        .day-card { padding: 0.8rem; margin-bottom: 1rem; }
-        .results-container { padding: 0.8rem; }
-        .main-header { font-size: 1.6rem; }
-        .header-sub { font-size: 0.8rem; margin-bottom: 1.5rem; }
-        .day-header { font-size: 0.9rem; }
-        .subject-name { font-size: 0.9rem; }
-        .meta .time { font-size: 0.85rem; }
-        .meta .venue, .meta .faculty { font-size: 0.75rem; }
-        .class-entry { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-        .meta { min-width: 120px; font-size: 0.85rem; }
-        .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
-            padding: 0.4rem 0.8rem; font-size: 0.9rem;
-        }
-        .stButton>button { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
-    }
 </style>
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
@@ -184,7 +168,7 @@ def get_sort_key(time_str):
         return h * 60 + m
     except: return 9999
 
-# --- DATA LOADING (HYBRID) ---
+# --- DATA LOADING ---
 @st.cache_data
 def load_base_data():
     try:
@@ -198,14 +182,12 @@ def load_base_data():
 
 students_db, base_schedule = load_base_data()
 
-# --- LOGIC ---
 def get_hybrid_schedule(roll_no):
     # 1. Identify Student
     roll_clean = str(roll_no).strip().upper().replace(" ", "")
     my_subjects = set()
     found_key = None
     
-    # Robust Search
     for db_roll, subjs in students_db.items():
         db_clean = str(db_roll).strip().upper().replace(" ", "")
         if (roll_clean == db_clean) or \
@@ -220,40 +202,27 @@ def get_hybrid_schedule(roll_no):
     # 2. Process Schedule
     final_classes = []
     
-    # A. Base Schedule + Overrides
     for cls in base_schedule:
         if cls['Subject'] not in my_subjects: continue
-        
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
-        details = {
-            'Venue': cls['Venue'],
-            'Faculty': cls['Faculty'],
-            'Time': cls['Time'],
-            'Override': False
-        }
         
-        # Live Override Check
+        details = {'Venue': cls['Venue'], 'Faculty': cls['Faculty'], 'Time': cls['Time'], 'Override': False}
+        
         if d_obj in DAY_SPECIFIC_OVERRIDES:
             day_ov = DAY_SPECIFIC_OVERRIDES[d_obj]
             for ov_subj, ov_data in day_ov.items():
                 if normalize(ov_subj) in cls['Subject']:
-                    target = ov_data.get('Target_Time', cls['Time'])
-                    if target == cls['Time']:
+                    if ov_data.get('Target_Time', cls['Time']) == cls['Time']:
                         details.update(ov_data)
-                        if 'Venue' in ov_data or 'Time' in ov_data: 
-                            details['Override'] = True
+                        if 'Venue' in ov_data or 'Time' in ov_data: details['Override'] = True
         
         cls_obj = cls.copy()
         cls_obj.update(details)
         final_classes.append(cls_obj)
 
-    # B. Additional Classes
     for ac in ADDITIONAL_CLASSES:
         norm_subj = normalize(ac['Subject'])
         if norm_subj in my_subjects:
-            venue = ac.get('Venue', '').upper()
-            is_ov = False 
-            
             final_classes.append({
                 "Date": ac['Date'].strftime("%Y-%m-%d"),
                 "Time": ac['Time'],
@@ -261,24 +230,19 @@ def get_hybrid_schedule(roll_no):
                 "DisplaySubject": ac['Subject'],
                 "Venue": ac.get('Venue', '-'),
                 "Faculty": ac.get('Faculty', '-'),
-                "Override": is_ov
+                "Override": False
             })
 
     final_classes.sort(key=lambda x: (x['Date'], get_sort_key(x['Time'])))
     return final_classes, found_key
 
 def calculate_global_stats():
-    """Calculates sessions held per course for ALL courses (Global)."""
     if not base_schedule: return {}
-    
     counts = defaultdict(int)
     today_str = date.today().strftime("%Y-%m-%d")
     
-    # 1. Base Schedule (Past only)
     for cls in base_schedule:
         if cls['Date'] > today_str: continue
-        
-        # Apply Overrides logic strictly for counting
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
         is_cancelled = False
         
@@ -286,23 +250,14 @@ def calculate_global_stats():
             day_ov = DAY_SPECIFIC_OVERRIDES[d_obj]
             for ov_subj, ov_data in day_ov.items():
                 if normalize(ov_subj) in cls['Subject']:
-                    target = ov_data.get('Target_Time', cls['Time'])
-                    if target == cls['Time']:
-                        # Check cancellation keywords
+                    if ov_data.get('Target_Time', cls['Time']) == cls['Time']:
                         v_txt = ov_data.get('Venue', '').upper()
-                        f_txt = ov_data.get('Faculty', '').upper()
                         if "CANCELLED" in v_txt or "POSTPONED" in v_txt or "PREPONED" in v_txt:
                             is_cancelled = True
-        
-        if not is_cancelled:
-            counts[cls['DisplaySubject']] += 1
+        if not is_cancelled: counts[cls['DisplaySubject']] += 1
 
-    # 2. Additional Classes (Past only)
     for ac in ADDITIONAL_CLASSES:
-        ac_date = ac['Date'].strftime("%Y-%m-%d")
-        if ac_date > today_str: continue
-        counts[ac['Subject']] += 1
-        
+        if ac['Date'].strftime("%Y-%m-%d") <= today_str: counts[ac['Subject']] += 1
     return counts
 
 def render_mess_menu():
@@ -314,7 +269,7 @@ def render_mess_menu():
 
     with st.expander("🍽️ Mess Menu for the Week", expanded=False):
         opts = [d.strftime("%d %b") + (" (Today)" if d == today else "") for d in valid_dates]
-        sel = st.radio("Select a day:", opts, index=0, horizontal=True, label_visibility="visible")
+        sel = st.radio("Select a day:", opts, index=0, horizontal=True)
         sel_date = valid_dates[opts.index(sel)]
         data = MESS_MENU[sel_date]
         
@@ -368,36 +323,38 @@ def generate_ics(classes):
         except: continue
     return c.serialize()
 
-# --- UI CONTROLLER ---
+# --- MAIN UI FLOW ---
+
+st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
+st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
 
 if 'submitted' not in st.session_state: st.session_state.submitted = False
 if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 if 'search_clear_counter' not in st.session_state: st.session_state.search_clear_counter = 0
 
-# --- PART A: LANDING PAGE ---
+# --- GLOBAL WIDGETS (VISIBLE ALWAYS) ---
+# 1. Stats Expander
+stats = calculate_global_stats()
+with st.expander("Sessions Taken till Now"):
+    if not stats:
+        st.info("No past classes recorded.")
+    else:
+        st.markdown("Total sessions held *to date* (Global):")
+        sc1, sc2 = st.columns(2)
+        sorted_stats = sorted(stats.items())
+        mid = len(sorted_stats) // 2 + (len(sorted_stats) % 2)
+        with sc1:
+            for k, v in sorted_stats[:mid]: st.markdown(f"**{k}**: {v}")
+        with sc2:
+            for k, v in sorted_stats[mid:]: st.markdown(f"**{k}**: {v}")
+
+# 2. Mess Menu
+render_mess_menu()
+
+st.markdown("---")
+
+# --- LOGIN STATE ---
 if not st.session_state.submitted:
-    st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
-    st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
-
-    # 1. Stats Expander (Global, Outside Login)
-    stats = calculate_global_stats()
-    with st.expander("Sessions Taken till Now"):
-        if not stats:
-            st.info("No past classes recorded.")
-        else:
-            st.markdown("Total sessions held *to date* (Global):")
-            sc1, sc2 = st.columns(2)
-            sorted_stats = sorted(stats.items())
-            mid = len(sorted_stats) // 2 + (len(sorted_stats) % 2)
-            with sc1:
-                for k, v in sorted_stats[:mid]: st.markdown(f"**{k}**: {v}")
-            with sc2:
-                for k, v in sorted_stats[mid:]: st.markdown(f"**{k}**: {v}")
-
-    # 2. Mess Menu (Outside Login)
-    render_mess_menu()
-
-    # 3. Login Box
     st.markdown("""
         <div class="welcome-box">
             Welcome! Enter your roll number to get started!</strong>.
@@ -414,11 +371,10 @@ if not st.session_state.submitted:
             st.session_state.submitted = True
             st.rerun()
 
-# --- PART B: DASHBOARD ---
+# --- DASHBOARD STATE ---
 else:
     roll = st.session_state.roll_number
     
-    # 1. Header Area
     c1, c2 = st.columns([3, 1])
     with c1:
         st.markdown(f"""
@@ -432,7 +388,6 @@ else:
             st.session_state.roll_number = ""
             st.rerun()
 
-    # 2. Get Data
     with st.spinner("Finding your schedule..."):
         schedule, db_key = get_hybrid_schedule(roll)
 
@@ -445,10 +400,7 @@ else:
             st.session_state.submitted = False
             st.rerun()
     else:
-        # 3. Mess Menu (Also available inside)
-        render_mess_menu()
-
-        # 4. ICS Download
+        # ICS Download
         ics_data = generate_ics(schedule)
         sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(db_key).replace(" ", "_")).upper()
         with st.expander("Download & Import to Calendar"):
@@ -460,17 +412,15 @@ else:
             )
             st.markdown("**How to Import:** Download the file, go to Google Calendar settings, select 'Import & Export', and upload the file.")
 
-        # 5. Date Sorting & Display
+        # --- DATE & CARD LOGIC (The Fix for Empty Days) ---
         schedule_by_date = defaultdict(list)
         for c in schedule: schedule_by_date[c['Date']].append(c)
         
-        all_dates = sorted(schedule_by_date.keys())
-        today_str = date.today().strftime("%Y-%m-%d")
+        today_obj = date.today()
+        today_str = today_obj.strftime("%Y-%m-%d")
         
-        past_dates = [d for d in all_dates if d < today_str]
-        future_dates = [d for d in all_dates if d >= today_str]
-
-        # 6. Past Classes (Searchable)
+        # 1. Past Classes (Logic unchanged)
+        past_dates = sorted([d for d in schedule_by_date.keys() if d < today_str], reverse=True)
         with st.expander("Show Previous Classes"):
             if st_keyup:
                 q = st_keyup(label=None, placeholder="Search past classes...", debounce=300, key="hist_search").lower()
@@ -478,7 +428,7 @@ else:
                 q = st.text_input("Search past classes...").lower()
             
             found_any = False
-            for d in sorted(past_dates, reverse=True):
+            for d in past_dates:
                 classes = schedule_by_date[d]
                 if q:
                     classes = [c for c in classes if q in c['DisplaySubject'].lower() or q in c['Faculty'].lower()]
@@ -508,34 +458,40 @@ else:
                     </div>
                     """, unsafe_allow_html=True)
                 st.markdown('</div>', unsafe_allow_html=True)
-            
             if not found_any and q: st.warning("No matches found.")
 
-        # 7. Upcoming Classes (Main Cards)
+        # 2. Upcoming Classes (Forced 7-Day Loop)
         st.markdown('<div id="upcoming-anchor"></div>', unsafe_allow_html=True)
-        if not future_dates:
-            st.info("No upcoming classes found.")
         
-        for d in future_dates:
-            d_obj = datetime.strptime(d, "%Y-%m-%d")
-            is_today = (d == today_str)
+        # Generate next 7 days explicitly
+        upcoming_week = [today_obj + timedelta(days=i) for i in range(7)]
+        
+        for d_obj in upcoming_week:
+            d_str = d_obj.strftime("%Y-%m-%d")
+            is_today = (d_obj == today_obj)
+            
+            # Formatting
             today_cls = "today" if is_today else ""
-            card_id = f"card-{d}"
-            
-            # --- FIXED HTML STRUCTURE FOR 'TODAY' BADGE ---
-            # We build the whole card HTML string at once to ensure nesting is correct
-            
             badge_html = '<div class="today-badge">TODAY</div>' if is_today else ''
             
-            card_content = ""
-            classes = schedule_by_date[d]
+            # Get classes for this day
+            classes = schedule_by_date.get(d_str, [])
             
+            # Start Card
+            st.markdown(f"""
+            <div class="day-card {today_cls}">
+                {badge_html}
+                <div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>
+            """, unsafe_allow_html=True)
+            
+            # Card Content
             if not classes:
-                card_content = '<div style="color:#94A3B8; font-style:italic; padding:10px;">No classes scheduled</div>'
+                st.markdown('<div style="color:#94A3B8; font-style:italic; padding:10px;">No classes scheduled</div>', unsafe_allow_html=True)
             else:
                 for c in classes:
                     venue, fac = str(c['Venue']), str(c['Faculty'])
                     ven_up, fac_up = venue.upper(), fac.upper()
+                    
                     is_canc = "CANCELLED" in ven_up or "CANCELLED" in fac_up
                     is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
                     is_prep = "PREPONED" in ven_up or "PREPONED" in fac_up
@@ -543,7 +499,7 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
                     
-                    card_content += f"""
+                    st.markdown(f"""
                     <div class="class-entry">
                         <div class="left"><div class="subject-name {status_cls}">{c['DisplaySubject']}</div></div>
                         <div class="meta">
@@ -552,16 +508,10 @@ else:
                             <span class="faculty {status_cls}">{fac}</span>
                         </div>
                     </div>
-                    """
+                    """, unsafe_allow_html=True)
             
-            # Final Render for the Day Card
-            st.markdown(f"""
-            <div class="day-card {today_cls}" id="{card_id}">
-                {badge_html}
-                <div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>
-                {card_content}
-            </div>
-            """, unsafe_allow_html=True)
+            # Close Card
+            st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("---")
 st.caption("_Made by Vishesh_")
