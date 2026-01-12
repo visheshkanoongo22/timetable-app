@@ -5,7 +5,6 @@ import os
 import re
 from datetime import datetime, date, timedelta
 import pytz
-import hashlib
 from collections import defaultdict
 import gc
 import time
@@ -47,8 +46,8 @@ if (time.time() - st.session_state.start_time) > AUTO_REFRESH_INTERVAL:
     st.session_state.start_time = time.time()
     st.rerun()
 
-# --- CSS STYLING (YOUR EXACT STYLES) ---
-st.set_page_config(page_title="MBA Timetable Assistant - Term 6", layout="centered", initial_sidebar_state="collapsed")
+# --- CSS STYLING (AESTHETICS RESTORED) ---
+st.set_page_config(page_title="MBA Timetable", layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown("""
     <meta name="color-scheme" content="dark">
@@ -119,6 +118,7 @@ local_css_string = """
     .meta .venue, .meta .faculty { display:block; font-size:0.85rem; color:var(--muted); }
     .venue-changed { color: var(--venue-change-color) !important; font-weight: 600; }
     .strikethrough { text-decoration: line-through; opacity: 0.6; }
+    
     .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
         background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); color: var(--bg);
         font-weight:700; padding: 0.5rem 0.9rem; border-radius:10px; border:none;
@@ -133,18 +133,11 @@ local_css_string = """
         background: var(--card); color: var(--muted); border: 1px solid var(--glass-border);
     }
     .stButton>button:hover { color: var(--accent-start); border-color: var(--accent-start); }
-    a { color: var(--accent-start); font-weight:600; }
-    .css-1d391kg, .css-1v3fvcr, .css-18ni7ap { color: #ffffff; }
+    
     .stTextInput>div>div>input, .stTextInput>div>div>textarea {
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
     }
-    .results-container {
-        background: var(--card); border: 1px solid var(--glass-border); padding: 1.25rem;
-        border-radius: 14px; margin-bottom: 1.5rem;
-    }
-    .results-container h3 { color: #E2E8F0; margin-top: 0; margin-bottom: 1rem; font-size: 1.3rem; }
-    .results-container h3:not(:first-child) { margin-top: 1.5rem; }
     
     /* Mess Menu Specifics */
     .menu-header { color: #38BDF8; font-weight: bold; text-transform: uppercase; font-size: 0.9em; margin-bottom: 5px; }
@@ -191,7 +184,7 @@ def get_sort_key(time_str):
         return h * 60 + m
     except: return 9999
 
-# --- DATA LOADING (HYBRID ARCHITECTURE) ---
+# --- DATA LOADING (HYBRID) ---
 @st.cache_data
 def load_base_data():
     try:
@@ -205,13 +198,14 @@ def load_base_data():
 
 students_db, base_schedule = load_base_data()
 
+# --- LOGIC ---
 def get_hybrid_schedule(roll_no):
     # 1. Identify Student
     roll_clean = str(roll_no).strip().upper().replace(" ", "")
     my_subjects = set()
     found_key = None
     
-    # Robust Search (Your strict+fuzzy logic)
+    # Robust Search
     for db_roll, subjs in students_db.items():
         db_clean = str(db_roll).strip().upper().replace(" ", "")
         if (roll_clean == db_clean) or \
@@ -223,16 +217,14 @@ def get_hybrid_schedule(roll_no):
             
     if not my_subjects: return [], None
 
-    # 2. Process Schedule (Apply Overrides Live)
+    # 2. Process Schedule
     final_classes = []
     
     # A. Base Schedule + Overrides
     for cls in base_schedule:
         if cls['Subject'] not in my_subjects: continue
         
-        # Apply Overrides
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
-        
         details = {
             'Venue': cls['Venue'],
             'Faculty': cls['Faculty'],
@@ -255,14 +247,12 @@ def get_hybrid_schedule(roll_no):
         cls_obj.update(details)
         final_classes.append(cls_obj)
 
-    # B. Additional Classes (Live)
+    # B. Additional Classes
     for ac in ADDITIONAL_CLASSES:
         norm_subj = normalize(ac['Subject'])
         if norm_subj in my_subjects:
             venue = ac.get('Venue', '').upper()
             is_ov = False 
-            # Logic: If it's just a normal added class, not an override. 
-            # If it says "Postponed", treat as standard text.
             
             final_classes.append({
                 "Date": ac['Date'].strftime("%Y-%m-%d"),
@@ -274,44 +264,45 @@ def get_hybrid_schedule(roll_no):
                 "Override": is_ov
             })
 
-    # Sort
     final_classes.sort(key=lambda x: (x['Date'], get_sort_key(x['Time'])))
     return final_classes, found_key
 
-def calculate_stats(student_schedule):
-    if not student_schedule: return {}
-    
-    today_str = date.today().strftime("%Y-%m-%d")
-    local_tz = pytz.timezone(TIMEZONE)
-    now_dt = datetime.now(local_tz)
+def calculate_global_stats():
+    """Calculates sessions held per course for ALL courses (Global)."""
+    if not base_schedule: return {}
     
     counts = defaultdict(int)
+    today_str = date.today().strftime("%Y-%m-%d")
     
-    for cls in student_schedule:
-        # Stop at today
+    # 1. Base Schedule (Past only)
+    for cls in base_schedule:
         if cls['Date'] > today_str: continue
         
-        # Check time for today
-        is_past = False
-        if cls['Date'] < today_str:
-            is_past = True
-        elif cls['Date'] == today_str:
-            try:
-                # Approximate end time parsing
-                _, end_str = cls['Time'].split('-')
-                # (Simplified logic for speed, can be enhanced)
-                is_past = True # Count today's classes as "Happening"
-            except: is_past = False
-            
-        if is_past:
-            # Check for cancellations
-            venue = str(cls['Venue']).upper()
-            fac = str(cls['Faculty']).upper()
-            if "CANCELLED" in venue or "POSTPONED" in venue or "PREPONED" in venue:
-                continue # Don't count these
-            
+        # Apply Overrides logic strictly for counting
+        d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
+        is_cancelled = False
+        
+        if d_obj in DAY_SPECIFIC_OVERRIDES:
+            day_ov = DAY_SPECIFIC_OVERRIDES[d_obj]
+            for ov_subj, ov_data in day_ov.items():
+                if normalize(ov_subj) in cls['Subject']:
+                    target = ov_data.get('Target_Time', cls['Time'])
+                    if target == cls['Time']:
+                        # Check cancellation keywords
+                        v_txt = ov_data.get('Venue', '').upper()
+                        f_txt = ov_data.get('Faculty', '').upper()
+                        if "CANCELLED" in v_txt or "POSTPONED" in v_txt or "PREPONED" in v_txt:
+                            is_cancelled = True
+        
+        if not is_cancelled:
             counts[cls['DisplaySubject']] += 1
-            
+
+    # 2. Additional Classes (Past only)
+    for ac in ADDITIONAL_CLASSES:
+        ac_date = ac['Date'].strftime("%Y-%m-%d")
+        if ac_date > today_str: continue
+        counts[ac['Subject']] += 1
+        
     return counts
 
 def render_mess_menu():
@@ -353,19 +344,13 @@ def generate_ics(classes):
     for cls in classes:
         venue = str(cls['Venue']).upper()
         if "CANCELLED" in venue or "POSTPONED" in venue: continue
-        
         try:
             time_str = cls['Time']
             start_part, end_part = time_str.split('-')
-            
-            # Simple Time Logic
             s_match = re.search(r'(\d+)(?::(\d+))?', start_part)
             e_match = re.search(r'(\d+)(?::(\d+))?', end_part)
-            
             sh, sm = int(s_match.group(1)), int(s_match.group(2) or 0)
             eh, em = int(e_match.group(1)), int(e_match.group(2) or 0)
-            
-            # AM/PM Logic guess (Simple)
             if "PM" in end_part and sh < 12 and sh != 11: sh += 12
             if "PM" in end_part and eh < 12: eh += 12
             
@@ -383,17 +368,36 @@ def generate_ics(classes):
         except: continue
     return c.serialize()
 
-# --- MAIN UI LOGIC ---
+# --- UI CONTROLLER ---
 
 if 'submitted' not in st.session_state: st.session_state.submitted = False
 if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 if 'search_clear_counter' not in st.session_state: st.session_state.search_clear_counter = 0
 
-# A. LANDING PAGE
+# --- PART A: LANDING PAGE ---
 if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
 
+    # 1. Stats Expander (Global, Outside Login)
+    stats = calculate_global_stats()
+    with st.expander("Sessions Taken till Now"):
+        if not stats:
+            st.info("No past classes recorded.")
+        else:
+            st.markdown("Total sessions held *to date* (Global):")
+            sc1, sc2 = st.columns(2)
+            sorted_stats = sorted(stats.items())
+            mid = len(sorted_stats) // 2 + (len(sorted_stats) % 2)
+            with sc1:
+                for k, v in sorted_stats[:mid]: st.markdown(f"**{k}**: {v}")
+            with sc2:
+                for k, v in sorted_stats[mid:]: st.markdown(f"**{k}**: {v}")
+
+    # 2. Mess Menu (Outside Login)
+    render_mess_menu()
+
+    # 3. Login Box
     st.markdown("""
         <div class="welcome-box">
             Welcome! Enter your roll number to get started!</strong>.
@@ -409,10 +413,8 @@ if not st.session_state.submitted:
             st.session_state.roll_number = roll_input
             st.session_state.submitted = True
             st.rerun()
-            
-    render_mess_menu()
 
-# B. DASHBOARD PAGE
+# --- PART B: DASHBOARD ---
 else:
     roll = st.session_state.roll_number
     
@@ -443,26 +445,10 @@ else:
             st.session_state.submitted = False
             st.rerun()
     else:
-        # 3. Stats Section
-        stats = calculate_stats(schedule)
-        with st.expander("Sessions Taken till Now"):
-            if not stats:
-                st.info("No past classes recorded.")
-            else:
-                st.markdown("Total sessions held *to date*:")
-                sc1, sc2 = st.columns(2)
-                sorted_stats = sorted(stats.items())
-                mid = len(sorted_stats) // 2 + (len(sorted_stats) % 2)
-                
-                with sc1:
-                    for k, v in sorted_stats[:mid]: st.markdown(f"**{k}**: {v}")
-                with sc2:
-                    for k, v in sorted_stats[mid:]: st.markdown(f"**{k}**: {v}")
-
-        # 4. Mess Menu (Again, for convenience)
+        # 3. Mess Menu (Also available inside)
         render_mess_menu()
 
-        # 5. ICS Download
+        # 4. ICS Download
         ics_data = generate_ics(schedule)
         sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(db_key).replace(" ", "_")).upper()
         with st.expander("Download & Import to Calendar"):
@@ -474,7 +460,7 @@ else:
             )
             st.markdown("**How to Import:** Download the file, go to Google Calendar settings, select 'Import & Export', and upload the file.")
 
-        # 6. Date Sorting & Display
+        # 5. Date Sorting & Display
         schedule_by_date = defaultdict(list)
         for c in schedule: schedule_by_date[c['Date']].append(c)
         
@@ -484,7 +470,7 @@ else:
         past_dates = [d for d in all_dates if d < today_str]
         future_dates = [d for d in all_dates if d >= today_str]
 
-        # 7. Past Classes (Searchable)
+        # 6. Past Classes (Searchable)
         with st.expander("Show Previous Classes"):
             if st_keyup:
                 q = st_keyup(label=None, placeholder="Search past classes...", debounce=300, key="hist_search").lower()
@@ -504,13 +490,10 @@ else:
                 st.markdown(f'<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>', unsafe_allow_html=True)
                 st.markdown(f'<div class="day-card" style="opacity:0.8;">', unsafe_allow_html=True)
                 for c in classes:
-                    # Logic for strikethrough/venue colors
                     venue, fac = str(c['Venue']), str(c['Faculty'])
                     ven_up, fac_up = venue.upper(), fac.upper()
-                    
                     is_canc = "CANCELLED" in ven_up or "CANCELLED" in fac_up
                     is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
-                    
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
@@ -528,7 +511,7 @@ else:
             
             if not found_any and q: st.warning("No matches found.")
 
-        # 8. Upcoming Classes (Main Cards)
+        # 7. Upcoming Classes (Main Cards)
         st.markdown('<div id="upcoming-anchor"></div>', unsafe_allow_html=True)
         if not future_dates:
             st.info("No upcoming classes found.")
@@ -537,41 +520,48 @@ else:
             d_obj = datetime.strptime(d, "%Y-%m-%d")
             is_today = (d == today_str)
             today_cls = "today" if is_today else ""
+            card_id = f"card-{d}"
             
-            if is_today:
-                st.markdown(f'<div class="day-card {today_cls}"><div class="today-badge">TODAY</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<div class="day-card {today_cls}">', unsafe_allow_html=True)
-                
-            st.markdown(f'<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>', unsafe_allow_html=True)
+            # --- FIXED HTML STRUCTURE FOR 'TODAY' BADGE ---
+            # We build the whole card HTML string at once to ensure nesting is correct
             
+            badge_html = '<div class="today-badge">TODAY</div>' if is_today else ''
+            
+            card_content = ""
             classes = schedule_by_date[d]
+            
             if not classes:
-                st.markdown('<div style="color:#94A3B8; font-style:italic;">No classes scheduled</div>', unsafe_allow_html=True)
-            
-            for c in classes:
-                venue, fac = str(c['Venue']), str(c['Faculty'])
-                ven_up, fac_up = venue.upper(), fac.upper()
-                
-                is_canc = "CANCELLED" in ven_up or "CANCELLED" in fac_up
-                is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
-                is_prep = "PREPONED" in ven_up or "PREPONED" in fac_up
-                
-                status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
-                ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
-                
-                st.markdown(f"""
-                <div class="class-entry">
-                    <div class="left"><div class="subject-name {status_cls}">{c['DisplaySubject']}</div></div>
-                    <div class="meta">
-                        <span class="time {status_cls}">{c['Time']}</span>
-                        <span class="{ven_cls}">{venue}</span>
-                        <span class="faculty {status_cls}">{fac}</span>
+                card_content = '<div style="color:#94A3B8; font-style:italic; padding:10px;">No classes scheduled</div>'
+            else:
+                for c in classes:
+                    venue, fac = str(c['Venue']), str(c['Faculty'])
+                    ven_up, fac_up = venue.upper(), fac.upper()
+                    is_canc = "CANCELLED" in ven_up or "CANCELLED" in fac_up
+                    is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
+                    is_prep = "PREPONED" in ven_up or "PREPONED" in fac_up
+                    
+                    status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
+                    ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
+                    
+                    card_content += f"""
+                    <div class="class-entry">
+                        <div class="left"><div class="subject-name {status_cls}">{c['DisplaySubject']}</div></div>
+                        <div class="meta">
+                            <span class="time {status_cls}">{c['Time']}</span>
+                            <span class="{ven_cls}">{venue}</span>
+                            <span class="faculty {status_cls}">{fac}</span>
+                        </div>
                     </div>
-                </div>
-                """, unsafe_allow_html=True)
+                    """
             
-            st.markdown('</div>', unsafe_allow_html=True)
+            # Final Render for the Day Card
+            st.markdown(f"""
+            <div class="day-card {today_cls}" id="{card_id}">
+                {badge_html}
+                <div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>
+                {card_content}
+            </div>
+            """, unsafe_allow_html=True)
 
 st.markdown("---")
 st.caption("_Made by Vishesh_")
