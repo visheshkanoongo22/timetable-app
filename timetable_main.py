@@ -1,3 +1,15 @@
+import subprocess
+import sys
+
+# --- FORCE CLEANUP OF BLOATWARE ---
+# This runs once to kill the memory-hogging libraries
+try:
+    import boto3
+    subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "boto3", "botocore", "snowflake-connector-python", "matplotlib", "plotly", "altair"])
+except ImportError:
+    pass
+# ----------------------------------
+
 import streamlit as st
 import os
 import glob
