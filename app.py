@@ -125,6 +125,8 @@ def load_and_clean_schedule(file_path):
     except Exception as e:
         return pd.DataFrame()
 
+
+
 @st.cache_resource(show_spinner="Building student database...")
 def build_master_index(folder_path='data'):
     """
@@ -227,8 +229,7 @@ def find_subjects_for_roll(target_roll, folder_path='data'):
         return data['Name'], data['Subjects']
     else:
         return "Student", set()
-
-
+        
 
 
 
@@ -251,7 +252,7 @@ def calculate_and_display_stats():
         return
 
     with st.expander("Sessions Taken till Now"):
-        with st.spinner("Calculating session statistics..."):
+        with st.spinner("Caculating session statistics..."):
             
             if 'load_and_clean_schedule' not in globals() or 'normalize_string' not in globals():
                 return
