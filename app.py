@@ -232,15 +232,12 @@ def render_mess_menu_expander():
     try:
         menu_source = MESS_MENU if 'MESS_MENU' in globals() else {}
     except ImportError: return 
-
+    
     local_tz = pytz.timezone(TIMEZONE)
     now_dt = datetime.now(local_tz)
     today = now_dt.date()
+    start_date = today if now_dt.hour < 23 else today + pd.Timedelta(days=1)
     
-    start_date = today 
-    if now_dt.hour >= 23:
-        start_date = today + pd.Timedelta(days=1)
-
     week_dates = [start_date + pd.Timedelta(days=i) for i in range(7)]
     valid_dates = [d for d in week_dates if d in menu_source]
     
@@ -257,18 +254,28 @@ def render_mess_menu_expander():
             label += " (Tomorrow)"
         options.append(label)
 
-    with st.expander("🍽️ Mess Menu for the Week", expanded=False):
-        selected_label = st.radio("Select a day:", options, index=default_index, horizontal=True)
+    with st.expander("🍽️ Mess Menu", expanded=False):
+        selected_label = st.radio("Select Day:", options, index=default_index, horizontal=True)
         selected_idx = options.index(selected_label)
         selected_date = valid_dates[selected_idx]
         menu_data = menu_source[selected_date]
+        
+        # --- MENU FORMATTER FUNCTION ---
+        def fmt_menu(text):
+            """Ensures menu items are printed as a proper list"""
+            if not text or str(text) == 'nan': return "-"
+            # Replace * with Newline + Bullet to force markdown formatting
+            # Also handles double spaces
+            formatted = str(text).replace("*", "\n- ").replace("  ", " ").strip()
+            return formatted
 
-        st.markdown(f"**Menu for {selected_date.strftime('%d %B %Y')}**")
+        st.markdown(f"**Menu for {selected_date.strftime('%d %B')}**")
         c1, c2, c3, c4 = st.columns(4)
-        with c1: st.markdown(f"**Breakfast**\n{menu_data.get('Breakfast', '-')}")
-        with c2: st.markdown(f"**Lunch**\n{menu_data.get('Lunch', '-')}")
-        with c3: st.markdown(f"**Hi-Tea**\n{menu_data.get('Hi-Tea', '-')}")
-        with c4: st.markdown(f"**Dinner**\n{menu_data.get('Dinner', '-')}")
+        
+        with c1: st.markdown(f"**Breakfast**\n{fmt_menu(menu_data.get('Breakfast', '-'))}")
+        with c2: st.markdown(f"**Lunch**\n{fmt_menu(menu_data.get('Lunch', '-'))}")
+        with c3: st.markdown(f"**Hi-Tea**\n{fmt_menu(menu_data.get('Hi-Tea', '-'))}")
+        with c4: st.markdown(f"**Dinner**\n{fmt_menu(menu_data.get('Dinner', '-'))}")
 
 # --- HELPER: ICS GENERATION ---
 def generate_ics_content(found_classes):
