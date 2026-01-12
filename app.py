@@ -295,10 +295,6 @@ def find_subjects_for_roll(target_roll, folder_path='.'):
 
 @st.cache_data
 def load_and_clean_schedule(file_path):
-    # ... (Rest of your code continues here) ...
-
-@st.cache_data
-def load_and_clean_schedule(file_path):
     try:
         # Assuming schedule format is consistent (Sheet 1, skip 3 rows)
         df = pd.read_excel(file_path, sheet_name=1, header=None, skiprows=3)
