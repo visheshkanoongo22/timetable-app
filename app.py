@@ -125,110 +125,111 @@ def load_and_clean_schedule(file_path):
     except Exception as e:
         return pd.DataFrame()
 
-def find_subjects_for_roll(target_roll, folder_path='.'):
+@st.cache_resource(show_spinner="Building student database...")
+def build_master_index(folder_path='data'):
     """
-    SEARCH: Scans FULL Excel files (all rows/cols) for the target roll.
-    FIX: Uses 'with pd.ExcelFile' to force-close file handles immediately.
+    RUNS ONCE: Reads ALL Excel files and builds a master dictionary.
+    Output: { '24MBA463': {'Name': 'Vishesh', 'Subjects': {'CRM', 'M&A'}}, ... }
     """
-    found_subjects = set()
-    found_name = "Student"
+    master_index = {}
     
-    # Get all xlsx files excluding schedule
-    files = [f for f in glob.glob(os.path.join(folder_path, '*.xlsx')) 
-             if os.path.basename(f) != SCHEDULE_FILE_NAME 
+    # 1. Get files
+    search_path = os.path.join(folder_path, '*.xlsx')
+    files = [f for f in glob.glob(search_path) 
+             if os.path.basename(f) != 'schedule.xlsx' 
              and not os.path.basename(f).startswith('~')]
-    
-    for idx, file in enumerate(files):
+
+    # 2. Scan every file once
+    for file in files:
         try:
-            # --- CRITICAL FIX: Context Manager ---
-            # This forces the Excel file to close IMMEDIATELY after the block ends.
-            # Prevents "Too many open files" error.
             with pd.ExcelFile(file) as xls:
                 df = pd.read_excel(xls, header=None)
-            
-            # 1. Find the Header Row
+
+            # Find Header Row
             header_row_idx = -1
-            # Scan top 20 rows to find header
             for r in range(min(20, len(df))):
                 row_values = [str(val).strip().lower() for val in df.iloc[r]]
                 if any("roll no" in v for v in row_values):
                     header_row_idx = r
                     break
             
-            if header_row_idx == -1:
-                del df 
-                gc.collect()
-                continue 
-                
-            # 2. Find Roll Columns
+            if header_row_idx == -1: continue
+
+            # Identify Course Name from Filename or Header
+            raw_section_name = ""
+            if header_row_idx > 0:
+                 # Check cell above header for section name
+                 # (Simplified logic from your original code)
+                 val_above = str(df.iloc[header_row_idx-1, 1]).strip() 
+                 if val_above and val_above.lower() != 'nan':
+                     raw_section_name = val_above
+
+            # Normalize Course Name
+            clean_header = normalize_string(raw_section_name)
+            clean_filename = normalize_string(os.path.basename(file).replace('.xlsx', ''))
+            
+            course_name = clean_filename # Default to filename
+            if clean_header:
+                if clean_header in [normalize_string(k) for k in COURSE_DETAILS_MAP.keys()]:
+                    course_name = clean_header
+                elif "(" in clean_header:
+                    course_name = clean_header
+            
+            course_name = course_name.replace("RURMKT", "RURMKT")
+
+            # Find Roll Columns
             roll_col_indices = []
             for c in range(df.shape[1]):
                 val = str(df.iloc[header_row_idx, c]).strip().lower()
                 if "roll no" in val:
                     roll_col_indices.append(c)
-            
-            # 3. Check each block for the student
+
+            # Extract Data
             for roll_col in roll_col_indices:
                 name_col = roll_col + 1
+                # Get all rows below header
+                data_block = df.iloc[header_row_idx+1:, [roll_col, name_col]]
+                data_block.columns = ['Roll', 'Name']
                 
-                # Extract the column (skip header)
-                roll_series = df.iloc[header_row_idx+1:, roll_col].astype(str).str.strip().str.upper()
-                
-                # Check for match
-                matches = roll_series[roll_series.apply(lambda x: x.split('.')[0] == target_roll)]
-                
-                if not matches.empty:
-                    # MATCH FOUND!
+                for _, row in data_block.iterrows():
+                    r_val = str(row['Roll']).strip().upper().split('.')[0]
+                    n_val = str(row['Name']).strip()
                     
-                    # A. Identify Section Name
-                    raw_section_name = ""
-                    if header_row_idx > 0:
-                        start_search = max(0, roll_col - 2)
-                        end_search = min(df.shape[1], roll_col + 2)
-                        for check_col in range(start_search, end_search):
-                            val_above = str(df.iloc[header_row_idx-1, check_col]).strip()
-                            if val_above and val_above.lower() != 'nan':
-                                raw_section_name = val_above
-                                break 
+                    if not r_val or r_val.lower() == 'nan': continue
                     
-                    # B. Normalize Name
-                    course_name = ""
-                    clean_header = normalize_string(raw_section_name)
-                    clean_filename = normalize_string(os.path.basename(file).replace('.xlsx', ''))
+                    # Add to Master Index
+                    if r_val not in master_index:
+                        master_index[r_val] = {'Name': "Student", 'Subjects': set()}
+                    
+                    master_index[r_val]['Subjects'].add(course_name)
+                    
+                    if n_val and n_val.lower() != 'nan':
+                        master_index[r_val]['Name'] = n_val
 
-                    if clean_header:
-                        if clean_header in [normalize_string(k) for k in COURSE_DETAILS_MAP.keys()]:
-                            course_name = clean_header
-                        elif "(" in clean_header and ")" in clean_header:
-                            course_name = clean_header
-                        else:
-                            course_name = clean_header 
-                    else:
-                        course_name = clean_filename
-                    
-                    course_name = course_name.replace("RURMKT", "RURMKT")
-                    found_subjects.add(course_name)
-                    
-                    # Grab Name
-                    match_idx = matches.index[0]
-                    # Ensure name column exists
-                    if name_col < df.shape[1]:
-                        name_val = str(df.iloc[match_idx, name_col]).strip()
-                        if name_val and name_val.lower() != 'nan':
-                            found_name = name_val
-
-            # Delete Dataframe from memory
             del df
-            
-            # Run GC less frequently (every 5 files) to balance speed and memory
-            if idx % 5 == 0:
-                gc.collect()
-            
+            gc.collect()
+
         except Exception:
             continue
-            
-    gc.collect()
-    return found_name, found_subjects
+
+    return master_index
+
+def find_subjects_for_roll(target_roll, folder_path='data'):
+    """
+    INSTANT SEARCH: Looks up the target_roll in the cached Master Index.
+    """
+    # 1. Load (or retrieve cached) index
+    master_index = build_master_index(folder_path)
+    
+    # 2. Instant Lookup
+    if target_roll in master_index:
+        data = master_index[target_roll]
+        return data['Name'], data['Subjects']
+    else:
+        return "Student", set()
+
+
+
 
 
 def calculate_and_display_stats():
