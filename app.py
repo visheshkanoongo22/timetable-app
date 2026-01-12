@@ -33,6 +33,7 @@ except ImportError:
 # --- CONFIGURATION ---
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
+SCHEDULE_END_DATE = "2026-01-18" # <--- ADD THIS LINE
 
 # --- CSS STYLING ---
 st.set_page_config(page_title="MBA Timetable", layout="centered", initial_sidebar_state="collapsed")
@@ -225,6 +226,7 @@ def get_hybrid_schedule(roll_no):
     
     # Process Base Schedule
     for cls in base_schedule:
+        if cls['Date'] > SCHEDULE_END_DATE: continue
         if cls['Subject'] not in my_subjects: continue
         
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
