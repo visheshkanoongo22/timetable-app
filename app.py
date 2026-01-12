@@ -1,30 +1,40 @@
+import streamlit as st
 import pandas as pd
 import os
 import glob
 from datetime import datetime, date
 import re
-import streamlit as st
 from ics import Calendar, Event
 import pytz
-import hashlib
-from collections import defaultdict
-import streamlit.components.v1 as components
-from streamlit_extras.st_keyup import st_keyup 
 import gc 
-import time 
+import time
+# Note: We import these inside functions or use try/except to avoid crashes if missing
+try:
+    from streamlit_extras.st_keyup import st_keyup
+except ImportError:
+    st_keyup = None
 
-# --- 1. MEMORY SAFETY ---
-# Clear RAM immediately to prevent inheritance of garbage data
-if 'has_cleaned_memory' not in st.session_state:
-    gc.collect()
-    st.session_state.has_cleaned_memory = True
+# --- 1. CONFIGURATION ---
+st.set_page_config(page_title="MBA Timetable", layout="centered", initial_sidebar_state="collapsed")
 
-# --- 2. CONFIGURATION ---
 SCHEDULE_FILE_NAME = 'schedule.xlsx' 
 TIMEZONE = 'Asia/Kolkata'
 GOOGLE_CALENDAR_IMPORT_LINK = 'https://calendar.google.com/calendar/u/0/r/settings/export'
 
-# --- TERM 6 COURSE DETAILS ---
+# --- 2. CSS STYLING ---
+st.markdown("""
+<style>
+    .stApp { background-color: #0F172A; color: white; }
+    .stTextInput input { background-color: #1E293B; color: white; border: 1px solid #334155; }
+    .day-card { background: #1E293B; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #334155; }
+    .day-card.today { border: 2px solid #38BDF8; }
+    .subject { font-weight: bold; font-size: 1.1em; color: white; }
+    .meta { color: #94A3B8; font-size: 0.9em; }
+    .venue-change { color: #F87171; font-weight: bold; }
+</style>
+""", unsafe_allow_html=True)
+
+# --- 3. DATA CONSTANTS ---
 COURSE_DETAILS_MAP = {
     'D&IT':     {'Faculty': 'Dhaval Patanvadia', 'Venue': 'T6'},
     'IF(A)':    {'Faculty': 'Parag Rijwani',     'Venue': 'T6'},
@@ -58,7 +68,7 @@ COURSE_DETAILS_MAP = {
     'IL(B)':    {'Faculty': 'Praneti Shah',      'Venue': 'T5'}
 }
 
-# --- OPTIONAL IMPORTS ---
+# Optional Imports
 try:
     from day_overrides import DAY_SPECIFIC_OVERRIDES
 except ImportError:
@@ -72,18 +82,16 @@ try:
 except ImportError:
     MESS_MENU = {}
 
-# --- 3. CORE FUNCTIONS ---
+# --- 4. FUNCTIONS ---
+
 def normalize_string(text):
     if isinstance(text, str):
         return text.replace(" ", "").replace("'", "").replace(".", "").upper()
     return ""
 
-@st.cache_resource(show_spinner="Initializing student database...", ttl=3600)
+@st.cache_resource(show_spinner="Initializing database...", ttl=3600)
 def build_master_index(folder_path='.'):
-    """
-    SINGLETON DATABASE: Reads all files ONCE and saves to RAM.
-    This prevents the "Too many open files" crash.
-    """
+    """Singleton Database: Reads files ONCE."""
     master_index = {}
     search_path = os.path.join(folder_path, '*.xlsx')
     files = [f for f in glob.glob(search_path) 
@@ -114,11 +122,11 @@ def build_master_index(folder_path='.'):
                 if "roll no" in val:
                     roll_col_indices.append(c)
 
-            # Process Each Block
+            # Process Blocks
             for roll_col in roll_col_indices:
                 name_col = roll_col + 1
                 
-                # Identify Subject Name
+                # Identify Subject
                 raw_section_name = ""
                 if header_row_idx > 0:
                     start_search = max(0, roll_col - 2)
@@ -129,7 +137,6 @@ def build_master_index(folder_path='.'):
                             raw_section_name = val_above
                             break 
                 
-                # Normalize Subject
                 clean_header = normalize_string(raw_section_name)
                 clean_filename = normalize_string(os.path.basename(file).replace('.xlsx', ''))
                 
@@ -163,35 +170,27 @@ def build_master_index(folder_path='.'):
                     master_index[r_val]['Subjects'].add(course_name)
                     if n_val and n_val.lower() != 'nan':
                         master_index[r_val]['Name'] = n_val
-            
             del df
         except Exception:
             continue
-            
     gc.collect()
     return master_index
 
 def find_subjects_for_roll(target_roll, folder_path='.'):
-    """Fast Fuzzy Search"""
     try:
         master_index = build_master_index(folder_path)
     except Exception:
         return "System Busy", set()
 
     target_clean = str(target_roll).strip().upper()
-    
-    # Direct Match
     if target_clean in master_index:
         data = master_index[target_clean]
         return data['Name'], data['Subjects']
     
-    # Fuzzy Match
     for db_roll, data in master_index.items():
         if target_clean in db_roll or db_roll in target_clean:
-            # Suffix check to ensure "463" matches "24MBA463" but "24" doesn't
             if db_roll.endswith(target_clean) or target_clean.endswith(db_roll):
                 return data['Name'], data['Subjects']
-
     return "Student", set()
 
 @st.cache_data
@@ -205,7 +204,6 @@ def load_and_clean_schedule(file_path):
     except Exception:
         return pd.DataFrame()
 
-# --- HELPER: PARSE CLASS TIMES ---
 def parse_class_times(time_str, date_obj, local_tz):
     try:
         start_str_part, end_str_part = time_str.split('-')
@@ -218,8 +216,7 @@ def parse_class_times(time_str, date_obj, local_tz):
         if not start_match or not end_match: return None, None
         
         start_hour = int(start_match.group(0))
-        end_hour = int(end_match.group(0))
-        
+        # Logic fix for 12PM
         start_am_pm = end_am_pm 
         if end_am_pm == "PM" and start_hour < 12 and (start_hour == 11 or start_hour <= 10):
                start_am_pm = "AM"
@@ -227,25 +224,20 @@ def parse_class_times(time_str, date_obj, local_tz):
         full_start_str = f"{start_str_part}{start_am_pm}" if not start_str_part[-2:].isalpha() else start_str_part
         start_dt = local_tz.localize(pd.to_datetime(f"{date_obj.strftime('%Y-%m-%d')} {full_start_str}"))
         end_dt = local_tz.localize(pd.to_datetime(f"{date_obj.strftime('%Y-%m-%d')} {end_str_part}"))
-        return start_dt,
-
-# ... [PASTE THIS AFTER THE PREVIOUS CODE BLOCK] ...
+        return start_dt, end_dt
+    except Exception:
+        return None, None
 
 def render_mess_menu_expander():
     try:
         menu_source = MESS_MENU if 'MESS_MENU' in globals() else {}
     except ImportError: return 
-
+    
     local_tz = pytz.timezone(TIMEZONE)
     now_dt = datetime.now(local_tz)
     today = now_dt.date()
+    start_date = today if now_dt.hour < 23 else today + pd.Timedelta(days=1)
     
-    # Logic: Show today unless it's late night (after 11 PM), then show tomorrow
-    start_date = today 
-    if now_dt.hour >= 23:
-        start_date = today + pd.Timedelta(days=1)
-
-    # Get valid dates for the next 7 days
     week_dates = [start_date + pd.Timedelta(days=i) for i in range(7)]
     valid_dates = [d for d in week_dates if d in menu_source]
     
@@ -262,44 +254,170 @@ def render_mess_menu_expander():
             label += " (Tomorrow)"
         options.append(label)
 
-    with st.expander("🍽️ Mess Menu for the Week", expanded=False):
-        selected_label = st.radio("Select a day:", options, index=default_index, horizontal=True)
+    with st.expander("🍽️ Mess Menu", expanded=False):
+        selected_label = st.radio("Select Day:", options, index=default_index, horizontal=True)
         selected_idx = options.index(selected_label)
         selected_date = valid_dates[selected_idx]
         menu_data = menu_source[selected_date]
 
-        st.markdown(f"**Menu for {selected_date.strftime('%d %B %Y')}**")
+        st.markdown(f"**Menu for {selected_date.strftime('%d %B')}**")
         c1, c2, c3, c4 = st.columns(4)
-        with c1: st.markdown(f"**Breakfast**\n{menu_data.get('Breakfast', '-')}")
-        with c2: st.markdown(f"**Lunch**\n{menu_data.get('Lunch', '-')}")
-        with c3: st.markdown(f"**Hi-Tea**\n{menu_data.get('Hi-Tea', '-')}")
-        with c4: st.markdown(f"**Dinner**\n{menu_data.get('Dinner', '-')}")
+        with c1: st.write(f"**Breakf:** {menu_data.get('Breakfast', '-')}")
+        with c2: st.write(f"**Lunch:** {menu_data.get('Lunch', '-')}")
+        with c3: st.write(f"**Hi-Tea:** {menu_data.get('Hi-Tea', '-')}")
+        with c4: st.write(f"**Dinner:** {menu_data.get('Dinner', '-')}")
 
-# --- HELPER: ICS GENERATION ---
-def generate_ics_content(found_classes):
-    c = Calendar(creator="-//Timetable App//EN")
-    local_tz = pytz.timezone(TIMEZONE)
-    for class_info in found_classes:
-        # Skip cancelled classes
-        venue = class_info.get('Venue', '').upper()
-        if "CANCELLED" in venue or "POSTPONED" in venue: continue
+# --- 5. MAIN UI ---
 
-        try:
-            time_str = class_info['Time']
-            start_dt, end_dt = parse_class_times(time_str, class_info['Date'], local_tz)
-            if not start_dt or not end_dt: continue
+if 'submitted' not in st.session_state: st.session_state.submitted = False
+if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
+
+if not st.session_state.submitted:
+    st.title("MBA Timetable")
+    with st.form("roll_form"):
+        roll_in = st.text_input("Enter Roll No (Last 3 digits):", placeholder="463").strip()
+        if st.form_submit_button("Get Schedule"):
+            if roll_in:
+                # Normalize Roll No
+                if roll_in.isdigit():
+                     if int(roll_in) < 100: roll_in = f"21BCM{roll_in}"
+                     elif int(roll_in) <= 999: roll_in = f"24MBA{roll_in}"
+                st.session_state.roll_number = roll_in.upper()
+                st.session_state.submitted = True
+                st.rerun()
+    render_mess_menu_expander()
+
+else:
+    # --- RESULT DASHBOARD ---
+    roll = st.session_state.roll_number
+    
+    c1, c2 = st.columns([3,1])
+    with c1: st.subheader(f"Schedule: {roll}")
+    with c2: 
+        if st.button("Change"):
+            st.session_state.submitted = False
+            st.rerun()
+
+    with st.spinner("Loading..."):
+        name, subjects = find_subjects_for_roll(roll)
+
+    if not subjects:
+        st.error("Roll number not found.")
+    else:
+        schedule_df = load_and_clean_schedule(SCHEDULE_FILE_NAME)
+        if schedule_df.empty:
+            st.error("Schedule file missing.")
+        else:
+            # Process Schedule
+            found_classes = []
+            normalized_subjects = {normalize_string(s): s for s in subjects}
+            time_slots = {2: "8-9 AM", 3: "9:10-10:10 AM", 4: "10:20-11:20 AM", 5: "11:30-12:30 PM",
+                          6: "12:30-1:30 PM", 7: "1:30-2:30 PM", 8: "2:40-3:40 PM", 9: "3:50-4:50 PM",
+                          10: "5-6 PM", 11: "6:10-7:10 PM", 12: "7:20-8:20 PM", 13: "8:30-9:30 PM"}
+
+            for _, row in schedule_df.iterrows():
+                row_date = row[0]
+                if pd.isna(row_date): continue
+                
+                for col_idx, time_str in time_slots.items():
+                    cell_val = str(row[col_idx])
+                    if not cell_val or cell_val.lower() == 'nan': continue
+                    
+                    parts = cell_val.split('/')
+                    for part in parts:
+                        norm_part = normalize_string(part)
+                        matched_subj = None
+                        
+                        # Match logic
+                        if norm_part in normalized_subjects:
+                            matched_subj = normalized_subjects[norm_part]
+                        else:
+                            for s_norm in normalized_subjects:
+                                if s_norm == norm_part: 
+                                    matched_subj = normalized_subjects[s_norm]; break
+                        
+                        if matched_subj:
+                            details = {'Venue': '-', 'Faculty': 'N/A'}
+                            norm_key = normalize_string(matched_subj)
+                            # Find details
+                            for k, v in COURSE_DETAILS_MAP.items():
+                                if normalize_string(k) == norm_key: details = v.copy(); break
+                            
+                            # Overrides
+                            is_override = False
+                            if row_date in DAY_SPECIFIC_OVERRIDES:
+                                if norm_key in DAY_SPECIFIC_OVERRIDES[row_date]:
+                                    ov = DAY_SPECIFIC_OVERRIDES[row_date][norm_key]
+                                    # Time match check
+                                    if ov.get('Target_Time', time_str) == time_str:
+                                        details.update(ov)
+                                        if 'Venue' in ov: is_override = True
+                            
+                            found_classes.append({
+                                'Date': row_date, 'Time': details.get('Time', time_str),
+                                'Subject': matched_subj, 'Venue': details['Venue'],
+                                'Faculty': details['Faculty'], 'Override': is_override
+                            })
+
+            # Add Additional Classes
+            for ac in ADDITIONAL_CLASSES:
+                norm_ac = normalize_string(ac['Subject'])
+                if any(norm_ac in normalize_string(s) for s in subjects):
+                    found_classes.append({
+                        'Date': ac['Date'], 'Time': ac['Time'], 'Subject': ac['Subject'],
+                        'Venue': ac.get('Venue','-'), 'Faculty': ac.get('Faculty','-'), 'Override': False
+                    })
             
-            e = Event()
-            e.name = class_info['Subject']
-            e.begin = start_dt.astimezone(pytz.utc)
-            e.end = end_dt.astimezone(pytz.utc)
-            e.location = class_info.get('Venue', 'TBA')
-            e.description = f"Faculty: {class_info.get('Faculty', 'N/A')}"
-            c.events.add(e)
-        except Exception:
-            continue
-    return c.serialize()
+            # Sort and Render
+            today = date.today()
+            
+            # --- DATE LOGIC FIX (Prevents Infinite Loop) ---
+            # Get only dates present in the data, plus today
+            unique_dates = sorted(list(set([c['Date'] for c in found_classes])))
+            if not unique_dates: unique_dates = [today]
+            
+            # Only show Upcoming (Today onwards)
+            upcoming = [c for c in found_classes if c['Date'] >= today]
+            upcoming.sort(key=lambda x: (x['Date'], x['Time']))
 
+            if not upcoming:
+                st.info("No upcoming classes found.")
+            else:
+                for c in upcoming:
+                    is_today = (c['Date'] == today)
+                    css = "today" if is_today else ""
+                    style = "color: #F87171;" if c['Override'] else ""
+                    
+                    st.markdown(f"""
+                    <div class="day-card {css}">
+                        <div style="display:flex; justify-content:space-between;">
+                            <div>
+                                <div class="meta">{c['Date'].strftime('%d %b, %a')} • {c['Time']}</div>
+                                <div class="subject">{c['Subject']}</div>
+                                <div class="meta">{c['Faculty']}</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div class="meta">Venue</div>
+                                <div style="{style} font-weight:bold;">{c['Venue']}</div>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+            # Show Past Classes (Expander)
+            with st.expander("Show Past Classes"):
+                 if st_keyup:
+                    query = st_keyup("Search history:", key="hist_search").lower()
+                 else:
+                    query = st.text_input("Search history:").lower()
+
+                 past = [c for c in found_classes if c['Date'] < today]
+                 past.sort(key=lambda x: (x['Date'], x['Time']), reverse=True)
+                 
+                 for c in past:
+                     if query and query not in str(c).lower(): continue
+                     st.markdown(f"**{c['Date'].strftime('%d %b')}**: {c['Subject']} ({c['Time']}) - {c['Venue']}")
+                     
 # --- 4. MAIN APP UI ---
 st.set_page_config(page_title="MBA Timetable", layout="centered", initial_sidebar_state="collapsed")
 
