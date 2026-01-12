@@ -135,9 +135,30 @@ local_css_string = """
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
     }
+    
+    /* Primary Gradient Button (Login) */
+    .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"] {
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); 
+        color: var(--bg);
+        font-weight:700; padding: 0.5rem 0.9rem; border-radius:10px; border:none;
+        box-shadow: 0 8px 20px rgba(96,165,250,0.1); width: 100%;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .stDownloadButton>button:hover, div[data-testid="stForm"] button[kind="primary"]:hover {
+        transform: translateY(-3px); box-shadow: 0 14px 30px rgba(96,165,250,0.15);
+    }
+
+    /* Secondary Button (Change Roll No) - FIXED: DARK BG, WHITE TEXT */
     .stButton>button {
         width: 100%; border-radius: 8px; font-weight: 600;
-        background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); border: none; color: black;
+        background-color: #0F172A !important; 
+        color: #FFFFFF !important; 
+        border: 1px solid #334155 !important;
+        background-image: none !important;
+    }
+    .stButton>button:hover { 
+        border-color: #60A5FA !important; 
+        color: #60A5FA !important;
     }
     
     /* Mess Menu Specifics */
@@ -347,7 +368,7 @@ if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
 
-    # 1. Login Form
+    # 1. Login Form (First as requested)
     st.markdown("""
         <div class="welcome-box">
             Welcome! Enter your roll number to get started!</strong>.
@@ -364,9 +385,7 @@ if not st.session_state.submitted:
             st.session_state.submitted = True
             st.rerun()
 
-    st.markdown("---")
-
-    # 2. Stats Expander
+    # 2. Stats Expander (Below Login, NO DIVIDER ABOVE)
     stats = calculate_global_stats()
     with st.expander("Sessions Taken till Now"):
         if not stats:
@@ -381,13 +400,14 @@ if not st.session_state.submitted:
             with sc2:
                 for k, v in sorted_stats[mid:]: st.markdown(f"**{k}**: {v}")
 
-    # 3. Mess Menu
+    # 3. Mess Menu (Below Stats)
     render_mess_menu()
 
 # --- PART B: DASHBOARD PAGE (LOGGED IN) ---
 else:
     roll = st.session_state.roll_number
     
+    # 1. Header Area
     c1, c2 = st.columns([3, 1])
     with c1:
         st.markdown(f"""
