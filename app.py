@@ -130,40 +130,14 @@ local_css_string = """
     .venue-changed { color: var(--venue-change-color) !important; font-weight: 600; }
     .strikethrough { text-decoration: line-through; opacity: 0.6; }
     
-    /* --- BUTTON STYLING --- */
-    
-    /* 1. Login/Submit Buttons (Colorful Gradient) */
-    .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"] {
-        background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); 
-        color: var(--bg);
-        font-weight:700; padding: 0.5rem 0.9rem; border-radius:10px; border:none;
-        box-shadow: 0 8px 20px rgba(96,165,250,0.1); width: 100%;
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
-    }
-    .stDownloadButton>button:hover, div[data-testid="stForm"] button[kind="primary"]:hover {
-        transform: translateY(-3px); box-shadow: 0 14px 30px rgba(96,165,250,0.15);
-    }
-
-    /* 2. Standard Buttons (Change Roll No) - Subtle & Dark */
-    .stButton>button {
-        width: 100%; 
-        border-radius: 8px; 
-        font-weight: 600;
-        background-color: var(--card); /* Dark Background */
-        color: #ffffff; /* White Text */
-        border: 1px solid var(--glass-border);
-        padding: 0.5rem 0.9rem;
-        transition: border 0.2s, color 0.2s;
-    }
-    .stButton>button:hover {
-        border-color: #60A5FA; /* Light Blue hover border */
-        color: #60A5FA; /* Light Blue hover text */
-    }
-    
-    /* Inputs */
+    /* STREAMLIT WIDGETS */
     .stTextInput>div>div>input {
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
+    }
+    .stButton>button {
+        width: 100%; border-radius: 8px; font-weight: 600;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); border: none; color: black;
     }
     
     /* Mess Menu Specifics */
@@ -390,8 +364,7 @@ if not st.session_state.submitted:
             st.session_state.submitted = True
             st.rerun()
 
-    # --- CUSTOM DIVIDER WITH SMALL GAP ---
-    st.markdown('<div style="height: 1px; background-color: #334155; margin-top: 10px; margin-bottom: 20px;"></div>', unsafe_allow_html=True)
+    st.markdown("---")
 
     # 2. Stats Expander
     stats = calculate_global_stats()
@@ -489,23 +462,9 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
-                    rows_html += f"""
-                    <div class="class-entry">
-                        <div class="left"><div class="subject-name {status_cls}">{c['DisplaySubject']}</div></div>
-                        <div class="meta">
-                            <span class="time {status_cls}">{c['Time']}</span>
-                            <span class="{ven_cls}">{venue}</span>
-                            <span class="faculty {status_cls}">{fac}</span>
-                        </div>
-                    </div>
-                    """
+                    rows_html += f"""<div class="class-entry"><div class="left"><div class="subject-name {status_cls}">{c['DisplaySubject']}</div></div><div class="meta"><span class="time {status_cls}">{c['Time']}</span><span class="{ven_cls}">{venue}</span><span class="faculty {status_cls}">{fac}</span></div></div>"""
                 
-                st.markdown(f"""
-                <div class="day-card" style="opacity:0.8;">
-                    <div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>
-                    {rows_html}
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
             if not found_any and q: st.warning("No matches found.")
 
@@ -537,24 +496,9 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
                     
-                    rows_html += f"""
-                    <div class="class-entry">
-                        <div class="left"><div class="subject-name {status_cls}">{c['DisplaySubject']}</div></div>
-                        <div class="meta">
-                            <span class="time {status_cls}">{c['Time']}</span>
-                            <span class="{ven_cls}">{venue}</span>
-                            <span class="faculty {status_cls}">{fac}</span>
-                        </div>
-                    </div>
-                    """
+                    rows_html += f"""<div class="class-entry"><div class="left"><div class="subject-name {status_cls}">{c['DisplaySubject']}</div></div><div class="meta"><span class="time {status_cls}">{c['Time']}</span><span class="{ven_cls}">{venue}</span><span class="faculty {status_cls}">{fac}</span></div></div>"""
             
-            st.markdown(f"""
-            <div class="day-card {today_cls}">
-                {badge_html}
-                <div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>
-                {rows_html}
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div class="day-card {today_cls}">{badge_html}<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
 st.markdown("---")
 st.caption("_Made by Vishesh_")
