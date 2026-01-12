@@ -14,6 +14,10 @@ from streamlit_extras.st_keyup import st_keyup
 import gc 
 import time 
 
+# Force garbage collection at startup
+gc.collect()
+
+
 # --- IMPORT DATA FROM EXTERNAL FILES ---
 try:
     from day_overrides import DAY_SPECIFIC_OVERRIDES
