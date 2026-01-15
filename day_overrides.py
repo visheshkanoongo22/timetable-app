@@ -29,5 +29,11 @@ DAY_SPECIFIC_OVERRIDES = {
     # --- NEW ENTRIES FOR JAN 10 ---
     date(2026, 1, 10): {
         'CRM': {'Venue': 'E2'}
+    },
+
+    date(2026, 1, 15): {
+        'MS(A)': {'Venue': 'E1'},
+        'IGR&MC': {'Venue': 'E1'},
+        'MS(C)': {'Venue': 'E2'}
     }
 }
