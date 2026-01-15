@@ -244,7 +244,7 @@ def get_hybrid_schedule(roll_no):
                 "DisplaySubject": ac['Subject'],
                 "Venue": ac.get('Venue', '-'),
                 "Faculty": ac.get('Faculty', '-'),
-                "Override": False
+                "Override": True
             })
 
     final_classes.sort(key=lambda x: (x['Date'], get_sort_key(x['Time'])))
