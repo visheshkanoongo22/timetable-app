@@ -1,7 +1,13 @@
 from datetime import date
 
-# List of dictionaries for extra classes
 ADDITIONAL_CLASSES = [
-    # Example:
-    # {'Date': date(2026, 1, 4), 'Time': '2:00 PM', 'Subject': 'CRM', 'Faculty': 'Guest', 'Venue': 'Auditorium'},
+    # ... keep any existing classes here ...
+
+    {
+        'Subject': 'IGR&MC',
+        'Date': date(2026, 1, 15),
+        'Time': '6:10-7:10PM',
+        'Venue': 'E1',      # From your previous instruction
+        'Faculty': 'Somayya Madakam'
+    },
 ]
