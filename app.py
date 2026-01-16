@@ -7,6 +7,7 @@ from collections import defaultdict
 import gc
 from ics import Calendar, Event
 import extra_streamlit_components as stx
+import time  # <--- NEW IMPORT FOR DELAY
 
 # --- OPTIONAL IMPORTS ---
 try:
@@ -368,6 +369,9 @@ if not st.session_state.submitted:
             
             st.session_state.roll_number = roll_input
             st.session_state.submitted = True
+            
+            # DELAY to allow cookie to save
+            time.sleep(0.5) 
             st.rerun()
 
     current_ist_str = get_ist_today().strftime("%Y-%m-%d")
@@ -399,6 +403,9 @@ else:
             cookie_manager.delete("roll_number")
             st.session_state.submitted = False
             st.session_state.roll_number = ""
+            
+            # DELAY to allow cookie to delete
+            time.sleep(0.5)
             st.rerun()
 
     with st.spinner("Finding your schedule..."):
@@ -412,6 +419,7 @@ else:
         if st.button("Go Back"):
             cookie_manager.delete("roll_number") # Also delete if invalid roll
             st.session_state.submitted = False
+            time.sleep(0.5)
             st.rerun()
     else:
         # ICS Download (No Cache)
