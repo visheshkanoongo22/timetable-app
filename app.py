@@ -113,6 +113,7 @@ local_css_string = """
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
     }
+    /* Login Button */
     .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"] {
         background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); 
         color: var(--bg); font-weight:700; padding: 0.5rem 0.9rem; border-radius:10px; border:none;
@@ -122,6 +123,7 @@ local_css_string = """
     .stDownloadButton>button:hover, div[data-testid="stForm"] button[kind="primary"]:hover {
         transform: translateY(-3px); box-shadow: 0 14px 30px rgba(96,165,250,0.15);
     }
+    /* Change Roll No Button (Dark) */
     .stButton>button {
         width: 100%; border-radius: 8px; font-weight: 600;
         background-color: #0F172A !important; 
@@ -153,8 +155,9 @@ local_css_string = """
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
-# --- HELPER FUNCTIONS ---
+# --- HELPER FUNCTIONS (NO PANDAS) ---
 def get_ist_today():
+    """Returns the current DATE in India Standard Time."""
     return datetime.now(pytz.timezone('Asia/Kolkata')).date()
 
 def normalize(text):
@@ -209,11 +212,12 @@ def get_hybrid_schedule(roll_no):
 
     final_classes = []
     
-    # Process Base Schedule
+    # 1. Base Schedule
     for cls in base_schedule:
         if cls['Date'] > SCHEDULE_END_DATE: continue
         if cls['Subject'] not in my_subjects: continue
         
+        # Date parsing without Pandas
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
         details = {'Venue': cls['Venue'], 'Faculty': cls['Faculty'], 'Time': cls['Time'], 'Override': False}
         
@@ -270,8 +274,9 @@ def calculate_global_stats(today_str):
         if ac['Date'].strftime("%Y-%m-%d") <= today_str: counts[ac['Subject']] += 1
     return counts
 
-# --- ICS GENERATOR ---
+# --- ICS GENERATOR (No Caching = No Memory Leaks) ---
 def generate_ics_safe(classes):
+    # No cache decorator here! It is fast enough without it.
     c = Calendar(creator="-//MBA Timetable//EN")
     local_tz = pytz.timezone('Asia/Kolkata')
     
@@ -306,6 +311,7 @@ def generate_ics_safe(classes):
 def render_mess_menu():
     if not MESS_MENU: return
     today = get_ist_today()
+    # 7 Days loop without Pandas
     week_dates = [today + timedelta(days=i) for i in range(7)]
     valid_dates = [d for d in week_dates if d in MESS_MENU]
     if not valid_dates: return
@@ -327,7 +333,7 @@ def render_mess_menu():
         with c4: st.markdown('<div class="menu-header">Dinner</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Dinner')))
 
 # --- COOKIE MANAGER SETUP ---
-@st.cache_resource(experimental_allow_widgets=True)
+@st.cache_resource
 def get_cookie_manager():
     return stx.CookieManager()
 
@@ -409,6 +415,7 @@ else:
             st.session_state.submitted = False
             st.rerun()
     else:
+        # ICS Download (No Cache)
         ics_str = generate_ics_safe(schedule)
         sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(db_key).replace(" ", "_")).upper()
         with st.expander("Download & Import to Calendar"):
