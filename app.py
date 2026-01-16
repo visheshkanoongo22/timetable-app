@@ -157,7 +157,6 @@ st.markdown(local_css_string, unsafe_allow_html=True)
 
 # --- HELPER FUNCTIONS (NO PANDAS) ---
 def get_ist_today():
-    """Returns the current DATE in India Standard Time."""
     return datetime.now(pytz.timezone('Asia/Kolkata')).date()
 
 def normalize(text):
@@ -333,7 +332,7 @@ def render_mess_menu():
         with c4: st.markdown('<div class="menu-header">Dinner</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Dinner')))
 
 # --- COOKIE MANAGER SETUP ---
-@st.cache_resource
+# REMOVED @st.cache_resource TO FIX THE WARNING
 def get_cookie_manager():
     return stx.CookieManager()
 
