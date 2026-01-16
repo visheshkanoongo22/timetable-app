@@ -5,8 +5,8 @@ from datetime import datetime, date, timedelta
 import pytz
 from collections import defaultdict
 import gc
-import time
 from ics import Calendar, Event
+import extra_streamlit_components as stx
 
 # --- OPTIONAL IMPORTS ---
 try:
@@ -113,7 +113,6 @@ local_css_string = """
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
     }
-    /* Login Button */
     .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"] {
         background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); 
         color: var(--bg); font-weight:700; padding: 0.5rem 0.9rem; border-radius:10px; border:none;
@@ -123,7 +122,6 @@ local_css_string = """
     .stDownloadButton>button:hover, div[data-testid="stForm"] button[kind="primary"]:hover {
         transform: translateY(-3px); box-shadow: 0 14px 30px rgba(96,165,250,0.15);
     }
-    /* Change Roll No Button (Dark) */
     .stButton>button {
         width: 100%; border-radius: 8px; font-weight: 600;
         background-color: #0F172A !important; 
@@ -155,9 +153,8 @@ local_css_string = """
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
-# --- HELPER FUNCTIONS (NO PANDAS) ---
+# --- HELPER FUNCTIONS ---
 def get_ist_today():
-    """Returns the current DATE in India Standard Time."""
     return datetime.now(pytz.timezone('Asia/Kolkata')).date()
 
 def normalize(text):
@@ -212,12 +209,11 @@ def get_hybrid_schedule(roll_no):
 
     final_classes = []
     
-    # 1. Base Schedule
+    # Process Base Schedule
     for cls in base_schedule:
         if cls['Date'] > SCHEDULE_END_DATE: continue
         if cls['Subject'] not in my_subjects: continue
         
-        # Date parsing without Pandas
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
         details = {'Venue': cls['Venue'], 'Faculty': cls['Faculty'], 'Time': cls['Time'], 'Override': False}
         
@@ -274,9 +270,8 @@ def calculate_global_stats(today_str):
         if ac['Date'].strftime("%Y-%m-%d") <= today_str: counts[ac['Subject']] += 1
     return counts
 
-# --- ICS GENERATOR (No Caching = No Memory Leaks) ---
+# --- ICS GENERATOR ---
 def generate_ics_safe(classes):
-    # No cache decorator here! It is fast enough without it.
     c = Calendar(creator="-//MBA Timetable//EN")
     local_tz = pytz.timezone('Asia/Kolkata')
     
@@ -311,7 +306,6 @@ def generate_ics_safe(classes):
 def render_mess_menu():
     if not MESS_MENU: return
     today = get_ist_today()
-    # 7 Days loop without Pandas
     week_dates = [today + timedelta(days=i) for i in range(7)]
     valid_dates = [d for d in week_dates if d in MESS_MENU]
     if not valid_dates: return
@@ -332,11 +326,23 @@ def render_mess_menu():
         with c3: st.markdown('<div class="menu-header">Hi-Tea</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Hi-Tea')))
         with c4: st.markdown('<div class="menu-header">Dinner</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Dinner')))
 
+# --- COOKIE MANAGER SETUP ---
+@st.cache_resource(experimental_allow_widgets=True)
+def get_cookie_manager():
+    return stx.CookieManager()
+
+cookie_manager = get_cookie_manager()
+
 # --- UI CONTROLLER ---
 
 if 'submitted' not in st.session_state: st.session_state.submitted = False
 if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
-if 'search_clear_counter' not in st.session_state: st.session_state.search_clear_counter = 0
+
+# Check Cookie on Load
+cookie_roll = cookie_manager.get(cookie="roll_number")
+if not st.session_state.submitted and cookie_roll:
+    st.session_state.roll_number = cookie_roll
+    st.session_state.submitted = True
 
 # --- PART A: LANDING PAGE ---
 if not st.session_state.submitted:
@@ -351,11 +357,14 @@ if not st.session_state.submitted:
             if roll_input.isdigit():
                 if int(roll_input) < 100: roll_input = f"21BCM{roll_input}"
                 elif int(roll_input) <= 999: roll_input = f"24MBA{roll_input}"
+            
+            # SET COOKIE ON LOGIN
+            cookie_manager.set("roll_number", roll_input, expires_at=datetime.now() + timedelta(days=30))
+            
             st.session_state.roll_number = roll_input
             st.session_state.submitted = True
             st.rerun()
 
-    # Stats (Cached)
     current_ist_str = get_ist_today().strftime("%Y-%m-%d")
     stats = calculate_global_stats(current_ist_str)
     with st.expander("Sessions Taken till Now"):
@@ -381,7 +390,10 @@ else:
     with c1: st.markdown(f"""<div class="welcome-message">Displaying schedule for: <strong>{roll}</strong></div>""", unsafe_allow_html=True)
     with c2:
         if st.button("Change Roll Number"):
+            # DELETE COOKIE ON LOGOUT
+            cookie_manager.delete("roll_number")
             st.session_state.submitted = False
+            st.session_state.roll_number = ""
             st.rerun()
 
     with st.spinner("Finding your schedule..."):
@@ -393,10 +405,10 @@ else:
             st.write(f"Searched for: {roll}")
             st.write(f"Sample DB Keys: {list(students_db.keys())[:5]}")
         if st.button("Go Back"):
+            cookie_manager.delete("roll_number") # Also delete if invalid roll
             st.session_state.submitted = False
             st.rerun()
     else:
-        # ICS Download (No Cache)
         ics_str = generate_ics_safe(schedule)
         sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(db_key).replace(" ", "_")).upper()
         with st.expander("Download & Import to Calendar"):
@@ -414,7 +426,6 @@ else:
         today_obj = get_ist_today()
         today_str = today_obj.strftime("%Y-%m-%d")
         
-        # 1. Past Classes
         past_dates = sorted([d for d in schedule_by_date.keys() if d < today_str], reverse=True)
         with st.expander("Show Previous Classes"):
             if st_keyup:
@@ -447,7 +458,6 @@ else:
 
             if not found_any and q: st.warning("No matches found.")
 
-        # 2. Upcoming Classes
         st.markdown('<div id="upcoming-anchor"></div>', unsafe_allow_html=True)
         upcoming_week = [today_obj + timedelta(days=i) for i in range(7)]
         
