@@ -1,3 +1,4 @@
 streamlit
 ics
 streamlit-keyup
+extra-streamlit-components
