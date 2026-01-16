@@ -5,9 +5,8 @@ from datetime import datetime, date, timedelta
 import pytz
 from collections import defaultdict
 import gc
-from ics import Calendar, Event
-import extra_streamlit_components as stx
 import time
+from ics import Calendar, Event
 
 # --- OPTIONAL IMPORTS ---
 try:
@@ -333,22 +332,11 @@ def render_mess_menu():
         with c3: st.markdown('<div class="menu-header">Hi-Tea</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Hi-Tea')))
         with c4: st.markdown('<div class="menu-header">Dinner</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Dinner')))
 
-# --- COOKIE MANAGER SETUP ---
-def get_cookie_manager():
-    return stx.CookieManager()
-
-cookie_manager = get_cookie_manager()
-
 # --- UI CONTROLLER ---
 
 if 'submitted' not in st.session_state: st.session_state.submitted = False
 if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
-
-# Check Cookie on Load
-cookie_roll = cookie_manager.get(cookie="roll_number")
-if not st.session_state.submitted and cookie_roll:
-    st.session_state.roll_number = cookie_roll
-    st.session_state.submitted = True
+if 'search_clear_counter' not in st.session_state: st.session_state.search_clear_counter = 0
 
 # --- PART A: LANDING PAGE ---
 if not st.session_state.submitted:
@@ -363,17 +351,11 @@ if not st.session_state.submitted:
             if roll_input.isdigit():
                 if int(roll_input) < 100: roll_input = f"21BCM{roll_input}"
                 elif int(roll_input) <= 999: roll_input = f"24MBA{roll_input}"
-            
-            # SET COOKIE ON LOGIN
-            cookie_manager.set("roll_number", roll_input, expires_at=datetime.now() + timedelta(days=30))
-            
             st.session_state.roll_number = roll_input
             st.session_state.submitted = True
-            
-            # DELAY to allow cookie to save
-            time.sleep(0.5) 
             st.rerun()
 
+    # Stats (Cached)
     current_ist_str = get_ist_today().strftime("%Y-%m-%d")
     stats = calculate_global_stats(current_ist_str)
     with st.expander("Sessions Taken till Now"):
@@ -399,13 +381,7 @@ else:
     with c1: st.markdown(f"""<div class="welcome-message">Displaying schedule for: <strong>{roll}</strong></div>""", unsafe_allow_html=True)
     with c2:
         if st.button("Change Roll Number"):
-            # DELETE COOKIE ON LOGOUT
-            cookie_manager.delete("roll_number")
             st.session_state.submitted = False
-            st.session_state.roll_number = ""
-            
-            # DELAY to allow cookie to delete
-            time.sleep(0.5)
             st.rerun()
 
     with st.spinner("Finding your schedule..."):
@@ -417,9 +393,7 @@ else:
             st.write(f"Searched for: {roll}")
             st.write(f"Sample DB Keys: {list(students_db.keys())[:5]}")
         if st.button("Go Back"):
-            cookie_manager.delete("roll_number") # Also delete if invalid roll
             st.session_state.submitted = False
-            time.sleep(0.5)
             st.rerun()
     else:
         # ICS Download (No Cache)
@@ -440,6 +414,7 @@ else:
         today_obj = get_ist_today()
         today_str = today_obj.strftime("%Y-%m-%d")
         
+        # 1. Past Classes
         past_dates = sorted([d for d in schedule_by_date.keys() if d < today_str], reverse=True)
         with st.expander("Show Previous Classes"):
             if st_keyup:
@@ -472,6 +447,7 @@ else:
 
             if not found_any and q: st.warning("No matches found.")
 
+        # 2. Upcoming Classes
         st.markdown('<div id="upcoming-anchor"></div>', unsafe_allow_html=True)
         upcoming_week = [today_obj + timedelta(days=i) for i in range(7)]
         
