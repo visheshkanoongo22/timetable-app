@@ -7,7 +7,7 @@ from collections import defaultdict
 import gc
 from ics import Calendar, Event
 import extra_streamlit_components as stx
-import time  # <--- NEW IMPORT FOR DELAY
+import time
 
 # --- OPTIONAL IMPORTS ---
 try:
