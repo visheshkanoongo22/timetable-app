@@ -245,7 +245,7 @@ def get_hybrid_schedule(roll_no):
         is_my_subject = subj_in_db in my_subjects
         
         # Check if this is a "special" MC variant (Strict matching)
-        is_mc_variant = "MC (AB)" in raw_disp or "MC (AS)" in raw_disp or "MC (RK)" in raw_disp
+        is_mc_variant = "MC  (AB)" in raw_disp or "MC (AS)" in raw_disp or "MC (RK)" in raw_disp
         
         # If the student has "MC" in their list, they should see all MC variants
         if "MC" in my_subjects and is_mc_variant:
