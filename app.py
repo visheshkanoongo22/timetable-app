@@ -287,15 +287,15 @@ def get_hybrid_schedule(roll_no):
     all_term_classes = []
     
     for cls in base_schedule:
-        # RAW Subject
         subj_raw = cls['Subject']
-        # Clean spacing for matching (e.g. "MC(AB)")
-        subj_clean = subj_raw.replace(" ", "").upper()
+        subj_upper = subj_raw.upper()
+        raw_disp = cls.get('DisplaySubject', '').upper()
         
         norm_subj = normalize(subj_raw)
         is_my_subject = norm_subj in my_subjects
         
-        # MC Check (Space Insensitive)
+        # Space Insensitive MC Check
+        subj_clean = subj_raw.replace(" ", "").upper()
         is_mc_ab = "MC(AB)" in subj_clean
         is_mc_as = "MC(AS)" in subj_clean
         is_mc_rk = "MC(RK)" in subj_clean
@@ -435,16 +435,14 @@ def render_mess_menu():
 if 'submitted' not in st.session_state: st.session_state.submitted = False
 if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 
-# --- PART A: LANDING PAGE (VISUALLY CENTERED) ---
+# --- PART A: LANDING PAGE (VISUALLY CENTERED with Padding) ---
 if not st.session_state.submitted:
+    # Safe "Visual Centering" that allows scrolling
     st.markdown("""
     <style>
     div.block-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        min-height: 80vh; 
-        padding-top: 15vh !important;
+        display: block !important;
+        padding-top: 25vh !important; /* Push content down 25% */
         padding-bottom: 5rem !important;
     }
     </style>
@@ -468,6 +466,7 @@ if not st.session_state.submitted:
 
 # --- PART B: DASHBOARD PAGE ---
 else:
+    # Reset padding to normal
     st.markdown("""
     <style>
     div.block-container {
@@ -501,7 +500,6 @@ else:
             st.session_state.submitted = False
             st.rerun()
     else:
-        # ICS Download
         ics_str = generate_ics_safe(all_classes_processed)
         sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(db_key).replace(" ", "_")).upper()
         with st.expander("Download & Import to Calendar"):
@@ -544,6 +542,7 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
+                    # FORCE RED STATUS for past days
                     rows_html += f"""<div class="class-row status-past"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
                 
                 st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj_past.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
@@ -581,8 +580,8 @@ else:
                     is_canc = "CANCELLED" in ven_up or "CANCELLED" in fac_up
                     is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
                     is_prep = "PREPONED" in ven_up or "PREPONED" in fac_up
-                    status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
-                    ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
+                    status_cls = "strikethrough" if (is_canc or is_post) else ""
+                    ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
                     row_status_class = "status-future"
                     if is_today:
