@@ -8,6 +8,7 @@ from collections import defaultdict
 import gc
 import time
 from ics import Calendar, Event
+import extra_streamlit_components as stx
 
 # --- OPTIONAL IMPORTS ---
 try:
