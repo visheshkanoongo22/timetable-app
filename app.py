@@ -182,13 +182,12 @@ def load_base_data():
 
 students_db, base_schedule = load_base_data()
 
-# --- HYBRID SCHEDULE ENGINE (With Session Counting) ---
+# --- HYBRID SCHEDULE ENGINE ---
 def get_hybrid_schedule(roll_no):
     roll_clean = str(roll_no).strip().upper().replace(" ", "")
     my_subjects = set()
     found_key = None
     
-    # 1. Match Student
     for db_roll, subjs in students_db.items():
         db_clean = str(db_roll).strip().upper().replace(" ", "")
         if (roll_clean == db_clean) or \
@@ -202,12 +201,10 @@ def get_hybrid_schedule(roll_no):
 
     all_term_classes = []
     
-    # 2. Gather ALL classes (Past & Future) for the term
+    # 2. Gather ALL classes (Past & Future)
     for cls in base_schedule:
-        # We DON'T filter by date here yet, we need everything to count sessions correctly
         if cls['Subject'] not in my_subjects: continue
         
-        # Apply Overrides
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
         details = {'Venue': cls['Venue'], 'Faculty': cls['Faculty'], 'Time': cls['Time'], 'Override': False}
         
@@ -237,7 +234,7 @@ def get_hybrid_schedule(roll_no):
                 "Override": True
             })
 
-    # 4. Sort Chronologically to assign session numbers
+    # 4. Sort Chronologically
     all_term_classes.sort(key=lambda x: (x['Date'], get_sort_key(x['Time'])))
 
     # 5. Assign Session Numbers
@@ -245,7 +242,6 @@ def get_hybrid_schedule(roll_no):
     final_processed_classes = []
     
     for cls in all_term_classes:
-        # Check if cancelled
         v_upper = str(cls['Venue']).upper()
         is_cancelled = "CANCELLED" in v_upper or "POSTPONED" in v_upper
         
@@ -259,7 +255,7 @@ def get_hybrid_schedule(roll_no):
 
     return final_processed_classes, found_key
 
-# --- STATS (Derived from the processed schedule now) ---
+# --- STATS ---
 @st.cache_data
 def calculate_stats_from_schedule(classes_list, today_str):
     counts = defaultdict(int)
@@ -334,8 +330,6 @@ if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
-
-    st.markdown("""<div class="welcome-box">Welcome! Enter your roll number to get started!</strong>.</div>""", unsafe_allow_html=True)
     
     with st.form("roll_number_form"):
         roll_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
@@ -348,11 +342,10 @@ if not st.session_state.submitted:
             st.session_state.submitted = True
             st.rerun()
 
-    # Note: Global stats on homepage without logging in is generic or empty in this logic 
-    # because we need a roll number to calculate accurate session counts per subject.
-    # We hide it here or show a placeholder.
-    st.info("Enter your roll number to see your personalized session counts and schedule.")
-
+    # NOTE: "Sessions Taken till Now" removed from home page as per requirement 
+    # (Since we need roll number to calculate it accurately now)
+    # If you really need it, we'd need to show generic stats, but you asked to use logic based on student.
+    
     render_mess_menu()
 
 # --- PART B: DASHBOARD PAGE ---
@@ -368,7 +361,6 @@ else:
             st.rerun()
 
     with st.spinner("Finding your schedule..."):
-        # This now returns ALL classes with session numbers assigned
         all_classes_processed, db_key = get_hybrid_schedule(roll)
 
     if not all_classes_processed and not db_key:
@@ -380,9 +372,7 @@ else:
             st.session_state.submitted = False
             st.rerun()
     else:
-        # ICS Download (No Cache)
-        # We need to filter only future/relevant classes for ICS if desired, 
-        # or give them the whole term. Let's give the whole term so their calendar is complete.
+        # ICS Download
         ics_str = generate_ics_safe(all_classes_processed)
         sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(db_key).replace(" ", "_")).upper()
         with st.expander("Download & Import to Calendar"):
@@ -394,7 +384,6 @@ else:
             )
             st.markdown("**How to Import:** Download the file, go to Google Calendar settings, select 'Import & Export', and upload the file.")
 
-        # Organize by Date for easy access
         schedule_by_date = defaultdict(list)
         for c in all_classes_processed:
             schedule_by_date[c['Date']].append(c)
@@ -402,21 +391,6 @@ else:
         today_obj = get_ist_today()
         today_str = today_obj.strftime("%Y-%m-%d")
         
-        # --- STATS SECTION (Now Personalized) ---
-        stats = calculate_stats_from_schedule(all_classes_processed, today_str)
-        with st.expander("Sessions Taken till Now"):
-            if not stats:
-                st.info("No past classes recorded.")
-            else:
-                st.markdown("Total sessions held *to date* (For your subjects):")
-                sc1, sc2 = st.columns(2)
-                sorted_stats = sorted(stats.items())
-                mid = len(sorted_stats) // 2 + (len(sorted_stats) % 2)
-                with sc1:
-                    for k, v in sorted_stats[:mid]: st.markdown(f"**{k}**: {v}")
-                with sc2:
-                    for k, v in sorted_stats[mid:]: st.markdown(f"**{k}**: {v}")
-
         # --- PAST CLASSES ---
         past_dates = sorted([d for d in schedule_by_date.keys() if d < today_str], reverse=True)
         with st.expander("Show Previous Classes"):
@@ -441,23 +415,8 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
-                    rows_html += f"""
-                    <div class="class-row">
-                        <div class="class-info-left">
-                            <div class="subj-title {status_cls}">{c['DisplaySubject']}</div>
-                            <div class="faculty-name {status_cls}">{fac}</div>
-                            <div class="meta-row">
-                                <span class="{status_cls}">{c['Time']}</span>
-                                <span style="color: #475569;">|</span>
-                                <span class="{ven_cls}">{venue}</span>
-                            </div>
-                        </div>
-                        <div class="session-badge-container">
-                            <div class="session-num">{c['SessionNumber']}</div>
-                            <div class="session-label">SESSION</div>
-                        </div>
-                    </div>
-                    """
+                    # Flattened HTML string (No indentation inside f-string)
+                    rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
                 
                 st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj_past.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
@@ -466,7 +425,6 @@ else:
         # --- UPCOMING CLASSES ---
         st.markdown('<div id="upcoming-anchor"></div>', unsafe_allow_html=True)
         
-        # Calculate days to display based on SCHEDULE_END_DATE
         end_date_obj = datetime.strptime(SCHEDULE_END_DATE, "%Y-%m-%d").date()
         days_to_display = (end_date_obj - today_obj).days + 1
         if days_to_display < 0: days_to_display = 0
@@ -486,8 +444,6 @@ else:
             classes = schedule_by_date.get(d_str, [])
             rows_html = ""
             
-            # Logic: Show "No classes" for the immediate week (7 days)
-            # Hide empty days completely if they are further out than 7 days
             days_from_now = (d_obj - today_obj).days
             
             if not classes:
@@ -505,23 +461,8 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
                     
-                    rows_html += f"""
-                    <div class="class-row">
-                        <div class="class-info-left">
-                            <div class="subj-title {status_cls}">{c['DisplaySubject']}</div>
-                            <div class="faculty-name {status_cls}">{fac}</div>
-                            <div class="meta-row">
-                                <span class="{status_cls}">{c['Time']}</span>
-                                <span style="color: #475569;">|</span>
-                                <span class="{ven_cls}">{venue}</span>
-                            </div>
-                        </div>
-                        <div class="session-badge-container">
-                            <div class="session-num">{c['SessionNumber']}</div>
-                            <div class="session-label">SESSION</div>
-                        </div>
-                    </div>
-                    """
+                    # Flattened HTML string (No indentation inside f-string)
+                    rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
             
             st.markdown(f"""<div class="day-card {today_cls}">{badge_html}<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
