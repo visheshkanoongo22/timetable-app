@@ -79,13 +79,13 @@ local_css_string = """
     }
     .welcome-message strong { color: #ffffff; }
 
-    /* INPUTS */
+    /* INPUTS (LEFT ALIGNED NOW) */
     .stTextInput>div>div>input {
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
-        text-align: center; /* Center text inside input */
+        text-align: left; /* Changed to LEFT */
     }
-    .stTextInput label { display: flex; justify-content: center; width: 100%; }
+    .stTextInput label { display: flex; justify-content: flex-start; width: 100%; } /* Label Left */
 
     /* BUTTONS */
     .stButton>button {
@@ -416,19 +416,17 @@ if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
     
-    # CENTERING THE LOGIN BOX (Horizontal)
-    _, c_form, _ = st.columns([1, 6, 1])
-    with c_form:
-        with st.form("roll_number_form"):
-            roll_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
-            if st.form_submit_button("Generate Timetable"):
-                if roll_input.isdigit():
-                    if int(roll_input) < 100: roll_input = f"21BCM{roll_input}"
-                    elif int(roll_input) <= 999: roll_input = f"24MBA{roll_input}"
-                
-                st.session_state.roll_number = roll_input
-                st.session_state.submitted = True
-                st.rerun()
+    # REMOVED COLUMN CENTERING -> NOW LEFT ALIGNED
+    with st.form("roll_number_form"):
+        roll_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
+        if st.form_submit_button("Generate Timetable"):
+            if roll_input.isdigit():
+                if int(roll_input) < 100: roll_input = f"21BCM{roll_input}"
+                elif int(roll_input) <= 999: roll_input = f"24MBA{roll_input}"
+            
+            st.session_state.roll_number = roll_input
+            st.session_state.submitted = True
+            st.rerun()
 
     render_mess_menu()
 
