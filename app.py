@@ -136,7 +136,7 @@ local_css_string = """
         transition: all 0.3s ease;
     }
     
-    /* --- STATUS STYLES (UPDATED COLORS) --- */
+    /* --- STATUS STYLES (NO DIMMING) --- */
     .class-row.status-past {
         border-left: 3px solid #EF4444; /* Red */
         background: linear-gradient(90deg, rgba(239, 68, 68, 0.05), rgba(239, 68, 68, 0.01));
@@ -287,15 +287,22 @@ def get_hybrid_schedule(roll_no):
     all_term_classes = []
     
     for cls in base_schedule:
+        # RAW Subject
         subj_raw = cls['Subject']
-        subj_upper = subj_raw.upper()
-        raw_disp = cls.get('DisplaySubject', '').upper()
+        # Clean spacing for matching (e.g. "MC(AB)")
+        subj_clean = subj_raw.replace(" ", "").upper()
         
         norm_subj = normalize(subj_raw)
         is_my_subject = norm_subj in my_subjects
         
-        is_mc_variant = ("MC (AB)" in subj_upper) or ("MC  (AS)" in subj_upper) or ("MC (RK)" in subj_upper)
-        if "MC" in my_subjects and is_mc_variant: is_my_subject = True
+        # MC Check (Space Insensitive)
+        is_mc_ab = "MC(AB)" in subj_clean
+        is_mc_as = "MC(AS)" in subj_clean
+        is_mc_rk = "MC(RK)" in subj_clean
+        is_mc_variant = is_mc_ab or is_mc_as or is_mc_rk
+        
+        if "MC" in my_subjects and is_mc_variant:
+            is_my_subject = True
             
         if not is_my_subject: continue
 
@@ -307,9 +314,9 @@ def get_hybrid_schedule(roll_no):
         if is_mc_variant:
             cls_obj['DisplaySubject'] = "MC" 
             cls_obj['Subject'] = "MC" 
-            if "(AS)" in raw_disp: details['Faculty'] = "Arvind Singh"
-            elif "(AB)" in raw_disp: details['Faculty'] = "Anupam Bhatnagar"
-            elif "(RK)" in raw_disp: details['Faculty'] = "Rajesh Kikani"
+            if is_mc_as: details['Faculty'] = "Arvind Singh"
+            elif is_mc_ab: details['Faculty'] = "Anupam Bhatnagar"
+            elif is_mc_rk: details['Faculty'] = "Rajesh Kikani"
         else:
             if 'DisplaySubject' not in cls_obj: cls_obj['DisplaySubject'] = cls_obj['Subject']
 
@@ -428,7 +435,7 @@ def render_mess_menu():
 if 'submitted' not in st.session_state: st.session_state.submitted = False
 if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 
-# --- PART A: LANDING PAGE ---
+# --- PART A: LANDING PAGE (VISUALLY CENTERED) ---
 if not st.session_state.submitted:
     st.markdown("""
     <style>
@@ -494,6 +501,7 @@ else:
             st.session_state.submitted = False
             st.rerun()
     else:
+        # ICS Download
         ics_str = generate_ics_safe(all_classes_processed)
         sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(db_key).replace(" ", "_")).upper()
         with st.expander("Download & Import to Calendar"):
@@ -536,7 +544,6 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
-                    # Force RED status for past lists
                     rows_html += f"""<div class="class-row status-past"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
                 
                 st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj_past.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
@@ -574,11 +581,10 @@ else:
                     is_canc = "CANCELLED" in ven_up or "CANCELLED" in fac_up
                     is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
                     is_prep = "PREPONED" in ven_up or "PREPONED" in fac_up
-                    status_cls = "strikethrough" if (is_canc or is_post) else ""
-                    ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
+                    status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
+                    ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
                     
-                    # Status Calculation
-                    row_status_class = "status-future" # Default Green
+                    row_status_class = "status-future"
                     if is_today:
                         row_status_class = get_class_status(c['Time'])
                     
