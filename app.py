@@ -31,7 +31,7 @@ except ImportError:
 
 # --- CONFIGURATION ---
 TIMEZONE = 'Asia/Kolkata'
-SCHEDULE_END_DATE = "2026-01-18" 
+SCHEDULE_END_DATE = "2026-03-25" 
 
 # --- CSS STYLING ---
 st.set_page_config(page_title="MBA Timetable", layout="centered", initial_sidebar_state="collapsed")
