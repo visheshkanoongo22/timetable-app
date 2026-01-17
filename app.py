@@ -7,7 +7,7 @@ from collections import defaultdict
 import gc
 from ics import Calendar, Event
 
-# --- OPTIONAL IMPORTS (Removed extra components) ---
+# --- OPTIONAL IMPORTS ---
 try:
     from day_overrides import DAY_SPECIFIC_OVERRIDES
 except ImportError:
@@ -408,6 +408,7 @@ else:
         today_obj = get_ist_today()
         today_str = today_obj.strftime("%Y-%m-%d")
         
+        # 1. Past Classes
         past_dates = sorted([d for d in schedule_by_date.keys() if d < today_str], reverse=True)
         with st.expander("Show Previous Classes"):
             q = st.text_input("Search past classes...").lower()
@@ -478,4 +479,4 @@ else:
             st.markdown(f"""<div class="day-card {today_cls}">{badge_html}<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
 st.markdown("---")
-st.caption("_Made by Vishesh_")
+st.caption("_Made by [Vishesh](https://www.linkedin.com/in/vishesh-kanoongo-8b192433b)_")
