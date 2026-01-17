@@ -244,7 +244,7 @@ def get_hybrid_schedule(roll_no):
         
         is_my_subject = subj_in_db in my_subjects
         
-        # Check if this is a "special" MC variant even if the base name doesn't match perfectly
+        # Check if this is a "special" MC variant (Strict matching)
         is_mc_variant = "MC (AB)" in raw_disp or "MC (AS)" in raw_disp or "MC (RK)" in raw_disp
         
         # If the student has "MC" in their list, they should see all MC variants
@@ -475,6 +475,7 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
+                    # Flattened HTML string (No indentation inside f-string)
                     rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
                 
                 st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj_past.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
@@ -520,6 +521,7 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
                     
+                    # Flattened HTML string (No indentation inside f-string)
                     rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
             
             st.markdown(f"""<div class="day-card {today_cls}">{badge_html}<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
