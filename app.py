@@ -269,7 +269,7 @@ def get_hybrid_schedule(roll_no):
             cls_obj['Subject'] = "MC" 
             
             # Force Faculty Name
-            if "MC (AS)" in subj_upper: details['Faculty'] = "Arvind Singh"
+            if "MC  (AS)" in subj_upper: details['Faculty'] = "Arvind Singh"
             elif "MC (AB)" in subj_upper: details['Faculty'] = "Anupam Bhatnagar"
             elif "MC (RK)" in subj_upper: details['Faculty'] = "Rajesh Kikani"
         else:
