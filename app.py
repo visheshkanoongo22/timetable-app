@@ -55,23 +55,29 @@ local_css_string = """
                     radial-gradient(1000px 500px at 90% 90%, rgba(129,140,248,0.06), transparent 10%), var(--bg);
         color: #ffffff; font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     }
+    
+    /* UTILS */
     .main-header { font-size: 2.4rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; }
     .header-sub { text-align:center; color:var(--muted); margin-top:0rem; margin-bottom:2rem; font-size:1.0rem; }
     
-    .welcome-box {
-        background: var(--card); border: 1px solid var(--glass-border); padding: 1rem 1.25rem;
-        border-radius: 14px; margin-bottom: 1.5rem; color: var(--muted); font-size: 0.95rem;
+    /* INPUTS */
+    .stTextInput>div>div>input {
+        background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
+        border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
     }
-    .welcome-box strong { color: #ffffff; font-weight: 600; }
-    .welcome-message { margin-top: 0rem; margin-bottom: 1rem; font-size: 1.1rem; color: var(--muted); }
-    .welcome-message strong { color: #ffffff; }
-    
+    .stButton>button {
+        width: 100%; border-radius: 8px; font-weight: 600;
+        background-color: #0F172A !important; color: #FFFFFF !important; 
+        border: 1px solid #334155 !important; background-image: none !important;
+    }
+    .stButton>button:hover { border-color: #60A5FA !important; color: #60A5FA !important; }
+
+    /* CARD DESIGN */
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-        border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem;
+        border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem;
         border: 1px solid var(--glass-border); 
-        position: relative;
-        overflow: visible;
+        position: relative; overflow: visible;
         box-shadow: 0 8px 30px rgba(0,0,0,0.4);
     }
     .day-card.today {
@@ -79,79 +85,68 @@ local_css_string = """
         box-shadow: 0 0 25px var(--today-glow-shadow);
     }
     .today-badge {
-        position: absolute; 
-        top: -14px; right: 20px; 
-        background: #5D5D5D; 
-        color: white; font-size: 0.7rem; font-weight: 800; 
-        padding: 4px 10px; border-radius: 6px;
-        letter-spacing: 0.5px; text-transform: uppercase; 
+        position: absolute; top: -14px; right: 20px; 
+        background: #5D5D5D; color: white; font-size: 0.7rem; font-weight: 800; 
+        padding: 4px 10px; border-radius: 6px; text-transform: uppercase; 
         z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
-    .day-header { font-size: 1.15rem; font-weight: 700; color: #E2E8F0; margin-bottom: 0.8rem; }
-    
-    .class-entry {
-        display:flex; flex-direction:row; align-items:center; justify-content:space-between;
-        padding-top:0.75rem; padding-bottom:0.75rem; border-bottom:1px solid rgba(255,255,255,0.04);
-    }
-    .class-entry:last-child { border-bottom: none; padding-bottom: 0; }
-    
-    .left { display:flex; flex-direction:column; gap:0.2rem; }
-    .subject-name { font-size:1.1rem; font-weight:700; margin:0; color: #FFFFFF; }
-    .meta { text-align:right; min-width:140px; }
-    .meta .time { display:block; font-weight:600; color:#fff; font-size:0.95rem; }
-    .meta .venue, .meta .faculty { display:block; font-size:0.85rem; color:var(--muted); text-align: right;}
-    .venue-changed { color: var(--venue-change-color) !important; font-weight: 600; }
-    .strikethrough { text-decoration: line-through; opacity: 0.6; }
-    
-    .stTextInput>div>div>input {
-        background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
-        border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
-    }
-    /* Login Button */
-    .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"] {
-        background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); 
-        color: var(--bg); font-weight:700; padding: 0.5rem 0.9rem; border-radius:10px; border:none;
-        box-shadow: 0 8px 20px rgba(96,165,250,0.1); width: 100%;
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
-    }
-    .stDownloadButton>button:hover, div[data-testid="stForm"] button[kind="primary"]:hover {
-        transform: translateY(-3px); box-shadow: 0 14px 30px rgba(96,165,250,0.15);
-    }
-    /* Change Roll No Button (Dark) */
-    .stButton>button {
-        width: 100%; border-radius: 8px; font-weight: 600;
-        background-color: #0F172A !important; 
-        color: #FFFFFF !important; 
-        border: 1px solid #334155 !important;
-        background-image: none !important;
-    }
-    .stButton>button:hover { 
-        border-color: #60A5FA !important; color: #60A5FA !important;
-    }
-    
-    .menu-header { color: #38BDF8; font-weight: bold; text-transform: uppercase; font-size: 0.9em; margin-bottom: 5px; }
-    div[data-testid="stMarkdownContainer"] ul { padding-left: 18px; margin-bottom: 10px; }
-    div[data-testid="stMarkdownContainer"] li { margin-bottom: 2px; font-size: 0.9em; color: #E2E8F0; }
+    .day-header { font-size: 1.15rem; font-weight: 700; color: #E2E8F0; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
+    /* NEW CLASS ROW LAYOUT */
+    .class-row {
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between;
+        margin-bottom: 12px;
+        padding: 10px;
+        background: rgba(255,255,255,0.02);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.03);
+    }
+    .class-info-left {
+        display: flex; 
+        flex-direction: column; 
+        gap: 2px;
+        flex-grow: 1;
+    }
+    .subj-title { font-size: 1.1rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.5px; }
+    .faculty-name { font-size: 0.85rem; color: #94A3B8; font-weight: 500; }
+    .meta-row { display: flex; gap: 10px; font-size: 0.85rem; margin-top: 4px; color: #CBD5E1; font-family: monospace; }
+    
+    .session-badge-container {
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center;
+        min-width: 70px;
+        margin-left: 10px;
+        background: linear-gradient(135deg, rgba(96,165,250,0.1), rgba(129,140,248,0.1));
+        border: 1px solid rgba(129,140,248,0.2);
+        border-radius: 10px;
+        padding: 8px 4px;
+    }
+    .session-num { font-size: 1.2rem; font-weight: 800; color: #60A5FA; line-height: 1; }
+    .session-label { font-size: 0.65rem; text-transform: uppercase; color: #94A3B8; letter-spacing: 1px; margin-top: 2px; }
+
+    /* STATES */
+    .strikethrough { text-decoration: line-through; opacity: 0.5; }
+    .venue-changed { color: #F87171 !important; font-weight: 700; }
+    
+    /* MENU */
+    .menu-header { color: #38BDF8; font-weight: bold; text-transform: uppercase; font-size: 0.9em; margin-bottom: 5px; }
+    
     @media (max-width: 600px) {
-        .day-card { padding: 0.8rem; margin-bottom: 1rem; }
-        .main-header { font-size: 1.6rem; }
-        .header-sub { font-size: 0.8rem; margin-bottom: 1.5rem; }
-        .day-header { font-size: 0.9rem; }
-        .subject-name { font-size: 0.9rem; }
-        .meta .time { font-size: 0.85rem; }
-        .meta .venue, .meta .faculty { font-size: 0.75rem; }
-        .stDownloadButton>button, div[data-testid="stForm"] button[kind="primary"], .stButton>button {
-            padding: 0.4rem 0.8rem; font-size: 0.9rem;
-        }
+        .main-header { font-size: 1.8rem; }
+        .day-card { padding: 1rem; }
+        .subj-title { font-size: 1rem; }
+        .session-num { font-size: 1.1rem; }
     }
 </style>
 """
 st.markdown(local_css_string, unsafe_allow_html=True)
 
-# --- HELPER FUNCTIONS (NO PANDAS) ---
+# --- HELPER FUNCTIONS ---
 def get_ist_today():
-    """Returns the current DATE in India Standard Time."""
     return datetime.now(pytz.timezone('Asia/Kolkata')).date()
 
 def normalize(text):
@@ -187,12 +182,13 @@ def load_base_data():
 
 students_db, base_schedule = load_base_data()
 
-# --- HYBRID SCHEDULE ENGINE ---
+# --- HYBRID SCHEDULE ENGINE (With Session Counting) ---
 def get_hybrid_schedule(roll_no):
     roll_clean = str(roll_no).strip().upper().replace(" ", "")
     my_subjects = set()
     found_key = None
     
+    # 1. Match Student
     for db_roll, subjs in students_db.items():
         db_clean = str(db_roll).strip().upper().replace(" ", "")
         if (roll_clean == db_clean) or \
@@ -204,14 +200,14 @@ def get_hybrid_schedule(roll_no):
             
     if not my_subjects: return [], None
 
-    final_classes = []
+    all_term_classes = []
     
-    # 1. Base Schedule
+    # 2. Gather ALL classes (Past & Future) for the term
     for cls in base_schedule:
-        if cls['Date'] > SCHEDULE_END_DATE: continue
+        # We DON'T filter by date here yet, we need everything to count sessions correctly
         if cls['Subject'] not in my_subjects: continue
         
-        # Date parsing without Pandas
+        # Apply Overrides
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
         details = {'Venue': cls['Venue'], 'Faculty': cls['Faculty'], 'Time': cls['Time'], 'Override': False}
         
@@ -225,13 +221,13 @@ def get_hybrid_schedule(roll_no):
         
         cls_obj = cls.copy()
         cls_obj.update(details)
-        final_classes.append(cls_obj)
+        all_term_classes.append(cls_obj)
 
-    # 2. Additional Classes
+    # 3. Add Additional Classes
     for ac in ADDITIONAL_CLASSES:
         norm_subj = normalize(ac['Subject'])
         if norm_subj in my_subjects:
-            final_classes.append({
+            all_term_classes.append({
                 "Date": ac['Date'].strftime("%Y-%m-%d"),
                 "Time": ac['Time'],
                 "Subject": norm_subj,
@@ -241,36 +237,40 @@ def get_hybrid_schedule(roll_no):
                 "Override": True
             })
 
-    final_classes.sort(key=lambda x: (x['Date'], get_sort_key(x['Time'])))
-    return final_classes, found_key
+    # 4. Sort Chronologically to assign session numbers
+    all_term_classes.sort(key=lambda x: (x['Date'], get_sort_key(x['Time'])))
 
-# --- STATS ---
-@st.cache_data
-def calculate_global_stats(today_str):
-    if not base_schedule: return {}
-    counts = defaultdict(int)
+    # 5. Assign Session Numbers
+    subject_counters = defaultdict(int)
+    final_processed_classes = []
     
-    for cls in base_schedule:
-        if cls['Date'] > today_str: continue
-        d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
-        is_cancelled = False
-        if d_obj in DAY_SPECIFIC_OVERRIDES:
-            day_ov = DAY_SPECIFIC_OVERRIDES[d_obj]
-            for ov_subj, ov_data in day_ov.items():
-                if normalize(ov_subj) in cls['Subject']:
-                    if ov_data.get('Target_Time', cls['Time']) == cls['Time']:
-                        v_txt = ov_data.get('Venue', '').upper()
-                        if "CANCELLED" in v_txt or "POSTPONED" in v_txt or "PREPONED" in v_txt:
-                            is_cancelled = True
-        if not is_cancelled: counts[cls['DisplaySubject']] += 1
+    for cls in all_term_classes:
+        # Check if cancelled
+        v_upper = str(cls['Venue']).upper()
+        is_cancelled = "CANCELLED" in v_upper or "POSTPONED" in v_upper
+        
+        if not is_cancelled:
+            subject_counters[cls['DisplaySubject']] += 1
+            cls['SessionNumber'] = subject_counters[cls['DisplaySubject']]
+        else:
+            cls['SessionNumber'] = "-"
+            
+        final_processed_classes.append(cls)
 
-    for ac in ADDITIONAL_CLASSES:
-        if ac['Date'].strftime("%Y-%m-%d") <= today_str: counts[ac['Subject']] += 1
+    return final_processed_classes, found_key
+
+# --- STATS (Derived from the processed schedule now) ---
+@st.cache_data
+def calculate_stats_from_schedule(classes_list, today_str):
+    counts = defaultdict(int)
+    for cls in classes_list:
+        if cls['Date'] <= today_str:
+            if cls['SessionNumber'] != "-":
+                counts[cls['DisplaySubject']] += 1
     return counts
 
-# --- ICS GENERATOR (No Caching = No Memory Leaks) ---
+# --- ICS GENERATOR ---
 def generate_ics_safe(classes):
-    # No cache decorator here! It is fast enough without it.
     c = Calendar(creator="-//MBA Timetable//EN")
     local_tz = pytz.timezone('Asia/Kolkata')
     
@@ -296,7 +296,7 @@ def generate_ics_safe(classes):
             e.begin = start_dt.astimezone(pytz.utc)
             e.end = end_dt.astimezone(pytz.utc)
             e.location = cls['Venue']
-            e.description = f"Faculty: {cls['Faculty']}"
+            e.description = f"Faculty: {cls['Faculty']}\nSession: {cls.get('SessionNumber', '')}"
             c.events.add(e)
         except: continue
     return c.serialize()
@@ -305,7 +305,6 @@ def generate_ics_safe(classes):
 def render_mess_menu():
     if not MESS_MENU: return
     today = get_ist_today()
-    # 7 Days loop without Pandas
     week_dates = [today + timedelta(days=i) for i in range(7)]
     valid_dates = [d for d in week_dates if d in MESS_MENU]
     if not valid_dates: return
@@ -349,20 +348,10 @@ if not st.session_state.submitted:
             st.session_state.submitted = True
             st.rerun()
 
-    current_ist_str = get_ist_today().strftime("%Y-%m-%d")
-    stats = calculate_global_stats(current_ist_str)
-    with st.expander("Sessions Taken till Now"):
-        if not stats:
-            st.info("No past classes recorded.")
-        else:
-            st.markdown("Total sessions held *to date* (Global):")
-            sc1, sc2 = st.columns(2)
-            sorted_stats = sorted(stats.items())
-            mid = len(sorted_stats) // 2 + (len(sorted_stats) % 2)
-            with sc1:
-                for k, v in sorted_stats[:mid]: st.markdown(f"**{k}**: {v}")
-            with sc2:
-                for k, v in sorted_stats[mid:]: st.markdown(f"**{k}**: {v}")
+    # Note: Global stats on homepage without logging in is generic or empty in this logic 
+    # because we need a roll number to calculate accurate session counts per subject.
+    # We hide it here or show a placeholder.
+    st.info("Enter your roll number to see your personalized session counts and schedule.")
 
     render_mess_menu()
 
@@ -379,9 +368,10 @@ else:
             st.rerun()
 
     with st.spinner("Finding your schedule..."):
-        schedule, db_key = get_hybrid_schedule(roll)
+        # This now returns ALL classes with session numbers assigned
+        all_classes_processed, db_key = get_hybrid_schedule(roll)
 
-    if not schedule and not db_key:
+    if not all_classes_processed and not db_key:
         st.error(f"Roll Number '{roll}' not found in database.")
         with st.expander("Debug Info"):
             st.write(f"Searched for: {roll}")
@@ -391,7 +381,9 @@ else:
             st.rerun()
     else:
         # ICS Download (No Cache)
-        ics_str = generate_ics_safe(schedule)
+        # We need to filter only future/relevant classes for ICS if desired, 
+        # or give them the whole term. Let's give the whole term so their calendar is complete.
+        ics_str = generate_ics_safe(all_classes_processed)
         sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(db_key).replace(" ", "_")).upper()
         with st.expander("Download & Import to Calendar"):
             st.download_button(
@@ -402,18 +394,35 @@ else:
             )
             st.markdown("**How to Import:** Download the file, go to Google Calendar settings, select 'Import & Export', and upload the file.")
 
+        # Organize by Date for easy access
         schedule_by_date = defaultdict(list)
-        for c in schedule: schedule_by_date[c['Date']].append(c)
+        for c in all_classes_processed:
+            schedule_by_date[c['Date']].append(c)
         
         today_obj = get_ist_today()
         today_str = today_obj.strftime("%Y-%m-%d")
         
-        # 1. Past Classes
+        # --- STATS SECTION (Now Personalized) ---
+        stats = calculate_stats_from_schedule(all_classes_processed, today_str)
+        with st.expander("Sessions Taken till Now"):
+            if not stats:
+                st.info("No past classes recorded.")
+            else:
+                st.markdown("Total sessions held *to date* (For your subjects):")
+                sc1, sc2 = st.columns(2)
+                sorted_stats = sorted(stats.items())
+                mid = len(sorted_stats) // 2 + (len(sorted_stats) % 2)
+                with sc1:
+                    for k, v in sorted_stats[:mid]: st.markdown(f"**{k}**: {v}")
+                with sc2:
+                    for k, v in sorted_stats[mid:]: st.markdown(f"**{k}**: {v}")
+
+        # --- PAST CLASSES ---
         past_dates = sorted([d for d in schedule_by_date.keys() if d < today_str], reverse=True)
         with st.expander("Show Previous Classes"):
             q = st.text_input("Search past classes...").lower()
-            
             found_any = False
+            
             for d in past_dates:
                 classes = schedule_by_date[d]
                 if q:
@@ -422,7 +431,7 @@ else:
                 if not classes: continue
                 found_any = True
                 
-                d_obj = datetime.strptime(d, "%Y-%m-%d")
+                d_obj_past = datetime.strptime(d, "%Y-%m-%d")
                 rows_html = ""
                 for c in classes:
                     venue, fac = str(c['Venue']), str(c['Faculty'])
@@ -432,13 +441,29 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
-                    rows_html += f"""<div class="class-entry"><div class="left"><div class="subject-name {status_cls}">{c['DisplaySubject']}</div></div><div class="meta"><span class="time {status_cls}">{c['Time']}</span><span class="{ven_cls}">{venue}</span><span class="faculty {status_cls}">{fac}</span></div></div>"""
+                    rows_html += f"""
+                    <div class="class-row">
+                        <div class="class-info-left">
+                            <div class="subj-title {status_cls}">{c['DisplaySubject']}</div>
+                            <div class="faculty-name {status_cls}">{fac}</div>
+                            <div class="meta-row">
+                                <span class="{status_cls}">{c['Time']}</span>
+                                <span style="color: #475569;">|</span>
+                                <span class="{ven_cls}">{venue}</span>
+                            </div>
+                        </div>
+                        <div class="session-badge-container">
+                            <div class="session-num">{c['SessionNumber']}</div>
+                            <div class="session-label">SESSION</div>
+                        </div>
+                    </div>
+                    """
                 
-                st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
+                st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj_past.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
             if not found_any and q: st.warning("No matches found.")
 
-        # 2. Upcoming Classes
+        # --- UPCOMING CLASSES ---
         st.markdown('<div id="upcoming-anchor"></div>', unsafe_allow_html=True)
         
         # Calculate days to display based on SCHEDULE_END_DATE
@@ -461,9 +486,15 @@ else:
             classes = schedule_by_date.get(d_str, [])
             rows_html = ""
             
-            # SHOW EVERYTHING: Even if no classes, show the card
+            # Logic: Show "No classes" for the immediate week (7 days)
+            # Hide empty days completely if they are further out than 7 days
+            days_from_now = (d_obj - today_obj).days
+            
             if not classes:
-                rows_html = '<div style="color:#94A3B8; font-style:italic; padding:10px;">No classes scheduled</div>'
+                if days_from_now < 7:
+                    rows_html = '<div style="color:#94A3B8; font-style:italic; padding:10px;">No classes scheduled</div>'
+                else:
+                    continue # Skip empty days far in the future
             else:
                 for c in classes:
                     venue, fac = str(c['Venue']), str(c['Faculty'])
@@ -474,7 +505,23 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
                     
-                    rows_html += f"""<div class="class-entry"><div class="left"><div class="subject-name {status_cls}">{c['DisplaySubject']}</div></div><div class="meta"><span class="time {status_cls}">{c['Time']}</span><span class="{ven_cls}">{venue}</span><span class="faculty {status_cls}">{fac}</span></div></div>"""
+                    rows_html += f"""
+                    <div class="class-row">
+                        <div class="class-info-left">
+                            <div class="subj-title {status_cls}">{c['DisplaySubject']}</div>
+                            <div class="faculty-name {status_cls}">{fac}</div>
+                            <div class="meta-row">
+                                <span class="{status_cls}">{c['Time']}</span>
+                                <span style="color: #475569;">|</span>
+                                <span class="{ven_cls}">{venue}</span>
+                            </div>
+                        </div>
+                        <div class="session-badge-container">
+                            <div class="session-num">{c['SessionNumber']}</div>
+                            <div class="session-label">SESSION</div>
+                        </div>
+                    </div>
+                    """
             
             st.markdown(f"""<div class="day-card {today_cls}">{badge_html}<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
