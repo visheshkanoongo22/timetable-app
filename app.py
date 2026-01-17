@@ -45,7 +45,7 @@ local_css_string = """
     }
     [data-testid="stHeader"] { display: none; visibility: hidden; height: 0; }
     
-    /* 1. REMOVE HUGE TOP WHITE SPACE (For Dashboard) */
+    /* 1. REMOVE HUGE TOP WHITE SPACE */
     div.block-container {
         padding-top: 2rem !important;
         padding-bottom: 5rem !important;
@@ -79,11 +79,11 @@ local_css_string = """
     }
     .welcome-message strong { color: #ffffff; }
 
-    /* INPUTS */
+    /* INPUTS (LEFT ALIGNED) */
     .stTextInput>div>div>input {
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
-        text-align: left; /* Left Aligned Text */
+        text-align: left;
     }
     .stTextInput label { display: flex; justify-content: flex-start; width: 100%; }
 
@@ -133,7 +133,25 @@ local_css_string = """
         background: rgba(255,255,255,0.02);
         border-radius: 10px;
         border: 1px solid rgba(255,255,255,0.03);
+        transition: all 0.3s ease;
     }
+    
+    /* --- STATUS STYLES --- */
+    .class-row.status-past {
+        opacity: 0.5;
+        filter: grayscale(0.8);
+        border-left: 3px solid #475569;
+    }
+    .class-row.status-ongoing {
+        border-left: 3px solid #38BDF8;
+        background: linear-gradient(90deg, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.02));
+        box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
+    }
+    .class-row.status-future {
+        border-left: 3px solid #818CF8;
+    }
+    /* -------------------- */
+
     .class-info-left {
         display: flex; 
         flex-direction: column; 
@@ -203,6 +221,77 @@ def get_sort_key(time_str):
         return h * 60 + m
     except: return 9999
 
+def get_class_status(time_str):
+    """
+    Parses "10:20-11:20AM" and returns 'status-past', 'status-ongoing', or 'status-future'.
+    Only meant to be used for TODAY'S classes.
+    """
+    now = datetime.now(pytz.timezone('Asia/Kolkata'))
+    
+    try:
+        # Determine strict Meridiem context from the full string first
+        full_str = time_str.strip().upper()
+        
+        # Simple extraction using regex
+        # This regex looks for patterns like: 10:20, 11:20, 2, 3:30 etc.
+        times = re.split(r'\s*-\s*', full_str)
+        if len(times) != 2: return "status-future"
+        
+        start_raw, end_raw = times[0], times[1]
+        
+        def parse_to_minutes(t_raw, context_str):
+            # Extract digits
+            nums = re.findall(r'\d+', t_raw)
+            if not nums: return 0
+            
+            h = int(nums[0])
+            m = int(nums[1]) if len(nums) > 1 else 0
+            
+            # Determine AM/PM
+            # If AM/PM is explicitly in this part, use it.
+            # Else fallback to the context of the full string (usually at end)
+            is_pm = "PM" in t_raw
+            is_am = "AM" in t_raw
+            global_pm = "PM" in context_str
+            
+            # Logic: If specific tag exists, use it. Else use global.
+            # But wait, "11:30-12:30PM". 11:30 is AM.
+            # Heuristic: Classes don't usually run overnight. 
+            # If h < 8 (e.g. 1, 2, 3), it's definitely PM (13, 14, 15).
+            # If h >= 8 and h < 12, it's AM.
+            # If h == 12, check PM/AM.
+            
+            if h < 8: 
+                h += 12 # 1-7 is PM
+            elif h == 12:
+                # 12 is PM unless specified AM, but 12PM is noon (12:00)
+                # 12 AM is midnight (00:00). Classes are noon.
+                if is_am: h = 0
+                # if is_pm or global_pm (default for 12 is noon) -> h=12.
+            
+            return h * 60 + m
+
+        s_min = parse_to_minutes(start_raw, full_str)
+        e_min = parse_to_minutes(end_raw, full_str)
+        
+        # Fix for 12PM crossover (e.g. 11:30 - 12:30)
+        # If start > end, it likely means start was parsed as PM (23:30) but should be AM (11:30)
+        # Or simplistic logic failed.
+        # But our heuristic "h < 8 => +12" handles 1-7 PM.
+        # 11:30 (AM) -> 690 min. 12:30 (PM) -> 750 min. Correct.
+        
+        curr_min = now.hour * 60 + now.minute
+        
+        if curr_min > e_min:
+            return "status-past"
+        elif s_min <= curr_min <= e_min:
+            return "status-ongoing"
+        else:
+            return "status-future"
+            
+    except:
+        return "status-future"
+
 # --- DATA LOADING ---
 @st.cache_data
 def load_base_data():
@@ -269,7 +358,7 @@ def get_hybrid_schedule(roll_no):
             cls_obj['Subject'] = "MC" 
             
             # Force Faculty Name
-            if "MC  (AS)" in subj_upper: details['Faculty'] = "Arvind Singh"
+            if "MC (AS)" in subj_upper: details['Faculty'] = "Arvind Singh"
             elif "MC (AB)" in subj_upper: details['Faculty'] = "Anupam Bhatnagar"
             elif "MC (RK)" in subj_upper: details['Faculty'] = "Rajesh Kikani"
         else:
@@ -505,7 +594,8 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
-                    rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
+                    # Flattened HTML string (No indentation inside f-string)
+                    rows_html += f"""<div class="class-row status-past"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
                 
                 st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj_past.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
@@ -533,6 +623,7 @@ else:
             classes = schedule_by_date.get(d_str, [])
             rows_html = ""
             
+            # --- FIX: ALWAYS SHOW EMPTY DAYS ---
             if not classes:
                 rows_html = '<div style="color:#94A3B8; font-style:italic; padding:10px;">No classes scheduled</div>'
             else:
@@ -545,7 +636,12 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
                     
-                    rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
+                    # Status Calculation (ONLY FOR TODAY)
+                    row_status_class = "status-future" # Default
+                    if is_today:
+                        row_status_class = get_class_status(c['Time'])
+                    
+                    rows_html += f"""<div class="class-row {row_status_class}"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
             
             st.markdown(f"""<div class="day-card {today_cls}">{badge_html}<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
