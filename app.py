@@ -238,11 +238,37 @@ def get_hybrid_schedule(roll_no):
     
     # 2. Gather ALL classes
     for cls in base_schedule:
-        if cls['Subject'] not in my_subjects: continue
+        # Check if subject matches (handling the MC variations if they exist in DB)
+        # We will do a looser check here to ensure we grab "MC (AS)" even if student has "MC"
+        subj_in_db = cls['Subject']
         
+        # NOTE: If your student DB has "MC" but schedule has "MC(AS)", we need to ensure they match.
+        # Assuming generate_data.py handled basic mapping, but if not, we rely on normalizing.
+        if subj_in_db not in my_subjects and "MC" not in subj_in_db: 
+             continue
+        if "MC" in subj_in_db and "MC" not in my_subjects: # Double check for MC specifically
+             continue
+
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
         details = {'Venue': cls['Venue'], 'Faculty': cls['Faculty'], 'Time': cls['Time'], 'Override': False}
         
+        # --- MC SPECIAL LOGIC START ---
+        # Detect if this is one of the specific MC variants
+        # Use DisplaySubject to check the raw text (e.g. "MC (AS)")
+        raw_disp = cls.get('DisplaySubject', '').upper()
+        if "MC" in raw_disp:
+            # 1. Unify the Subject Name for the Session Counter
+            cls['DisplaySubject'] = "MC"
+            
+            # 2. Override Faculty based on the suffix
+            if "(AS)" in raw_disp:
+                details['Faculty'] = "Arvind Singh"
+            elif "(AB)" in raw_disp:
+                details['Faculty'] = "Anupam Bhatnagar"
+            elif "(RK)" in raw_disp:
+                details['Faculty'] = "Rajesh Kikani"
+        # --- MC SPECIAL LOGIC END ---
+
         if d_obj in DAY_SPECIFIC_OVERRIDES:
             day_ov = DAY_SPECIFIC_OVERRIDES[d_obj]
             for ov_subj, ov_data in day_ov.items():
@@ -365,8 +391,6 @@ if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
-
-    st.markdown("""<div class="welcome-box">  </strong> </div>""", unsafe_allow_html=True)
     
     with st.form("roll_number_form"):
         roll_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
@@ -385,7 +409,6 @@ if not st.session_state.submitted:
 else:
     roll = st.session_state.roll_number
     
-    # Header with minimal vertical space
     c1, c2 = st.columns([3, 1], gap="small")
     with c1: 
         st.markdown(f"""<div class="welcome-message">Displaying schedule for: <strong>{roll}</strong></div>""", unsafe_allow_html=True)
@@ -450,7 +473,6 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
-                    # Flattened HTML string (No indentation inside f-string)
                     rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
                 
                 st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj_past.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
@@ -496,7 +518,6 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
                     
-                    # Flattened HTML string (No indentation inside f-string)
                     rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
             
             st.markdown(f"""<div class="day-card {today_cls}">{badge_html}<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
