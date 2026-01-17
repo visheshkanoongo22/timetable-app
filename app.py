@@ -238,25 +238,27 @@ def get_hybrid_schedule(roll_no):
     
     # 2. Gather ALL classes
     for cls in base_schedule:
-        # Check if subject matches (handling the MC variations if they exist in DB)
-        # We will do a looser check here to ensure we grab "MC (AS)" even if student has "MC"
+        # Check subject against student's list OR if it is one of the special MC variants
         subj_in_db = cls['Subject']
+        raw_disp = cls.get('DisplaySubject', '').upper()
         
-        # NOTE: If your student DB has "MC" but schedule has "MC(AS)", we need to ensure they match.
-        # Assuming generate_data.py handled basic mapping, but if not, we rely on normalizing.
-        if subj_in_db not in my_subjects and "MC" not in subj_in_db: 
-             continue
-        if "MC" in subj_in_db and "MC" not in my_subjects: # Double check for MC specifically
-             continue
+        is_my_subject = subj_in_db in my_subjects
+        
+        # Check if this is a "special" MC variant even if the base name doesn't match perfectly
+        is_mc_variant = "MC (AB)" in raw_disp or "MC (AS)" in raw_disp or "MC (RK)" in raw_disp
+        
+        # If the student has "MC" in their list, they should see all MC variants
+        if "MC" in my_subjects and is_mc_variant:
+            is_my_subject = True
+            
+        if not is_my_subject: continue
 
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
         details = {'Venue': cls['Venue'], 'Faculty': cls['Faculty'], 'Time': cls['Time'], 'Override': False}
         
         # --- MC SPECIAL LOGIC START ---
-        # Detect if this is one of the specific MC variants
-        # Use DisplaySubject to check the raw text (e.g. "MC (AS)")
-        raw_disp = cls.get('DisplaySubject', '').upper()
-        if "MC" in raw_disp:
+        # STRICT CHECK: Only match specific MC variations
+        if is_mc_variant:
             # 1. Unify the Subject Name for the Session Counter
             cls['DisplaySubject'] = "MC"
             
@@ -475,52 +477,4 @@ else:
                     
                     rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
                 
-                st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj_past.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
-
-            if not found_any and q: st.warning("No matches found.")
-
-        # --- UPCOMING CLASSES ---
-        st.markdown('<div id="upcoming-anchor"></div>', unsafe_allow_html=True)
-        
-        end_date_obj = datetime.strptime(SCHEDULE_END_DATE, "%Y-%m-%d").date()
-        days_to_display = (end_date_obj - today_obj).days + 1
-        if days_to_display < 0: days_to_display = 0
-        
-        upcoming_dates = [today_obj + timedelta(days=i) for i in range(days_to_display)]
-        
-        for d_obj in upcoming_dates:
-            d_str = d_obj.strftime("%Y-%m-%d")
-            
-            if d_str > SCHEDULE_END_DATE: 
-                break
-
-            is_today = (d_obj == today_obj)
-            today_cls = "today" if is_today else ""
-            badge_html = '<div class="today-badge">TODAY</div>' if is_today else ''
-            
-            classes = schedule_by_date.get(d_str, [])
-            rows_html = ""
-            
-            days_from_now = (d_obj - today_obj).days
-            
-            if not classes:
-                if days_from_now < 7:
-                    rows_html = '<div style="color:#94A3B8; font-style:italic; padding:10px;">No classes scheduled</div>'
-                else:
-                    continue # Skip empty days far in the future
-            else:
-                for c in classes:
-                    venue, fac = str(c['Venue']), str(c['Faculty'])
-                    ven_up, fac_up = venue.upper(), fac.upper()
-                    is_canc = "CANCELLED" in ven_up or "CANCELLED" in fac_up
-                    is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
-                    is_prep = "PREPONED" in ven_up or "PREPONED" in fac_up
-                    status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
-                    ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
-                    
-                    rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
-            
-            st.markdown(f"""<div class="day-card {today_cls}">{badge_html}<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
-
-st.markdown("---")
-st.caption("_Made by [Vishesh](https://www.linkedin.com/in/vishesh-kanoongo-8b192433b)_")
+                st.markdown(f"""<div class="day-card" style="opacity:0.
