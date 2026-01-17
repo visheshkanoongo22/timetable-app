@@ -79,7 +79,7 @@ local_css_string = """
     }
     .welcome-message strong { color: #ffffff; }
 
-    /* INPUTS (LEFT ALIGNED) */
+    /* INPUTS */
     .stTextInput>div>div>input {
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
@@ -136,19 +136,24 @@ local_css_string = """
         transition: all 0.3s ease;
     }
     
-    /* --- STATUS STYLES --- */
+    /* --- STATUS STYLES (UPDATED COLORS) --- */
+    /* Past: Red Border, No Dimming */
     .class-row.status-past {
-        opacity: 0.5;
-        filter: grayscale(0.8);
-        border-left: 3px solid #475569;
+        border-left: 3px solid #EF4444; /* Red-500 */
+        background: linear-gradient(90deg, rgba(239, 68, 68, 0.05), rgba(239, 68, 68, 0.01));
     }
+    
+    /* Ongoing: Yellow Border + Glow */
     .class-row.status-ongoing {
-        border-left: 3px solid #38BDF8;
-        background: linear-gradient(90deg, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.02));
-        box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
+        border-left: 3px solid #EAB308; /* Yellow-500 */
+        background: linear-gradient(90deg, rgba(234, 179, 8, 0.15), rgba(234, 179, 8, 0.05));
+        box-shadow: 0 0 15px rgba(234, 179, 8, 0.15);
     }
+    
+    /* Future: Green Border */
     .class-row.status-future {
-        border-left: 3px solid #818CF8;
+        border-left: 3px solid #22C55E; /* Green-500 */
+        background: linear-gradient(90deg, rgba(34, 197, 94, 0.05), rgba(34, 197, 94, 0.01));
     }
     /* -------------------- */
 
@@ -229,56 +234,31 @@ def get_class_status(time_str):
     now = datetime.now(pytz.timezone('Asia/Kolkata'))
     
     try:
-        # Determine strict Meridiem context from the full string first
         full_str = time_str.strip().upper()
-        
-        # Simple extraction using regex
-        # This regex looks for patterns like: 10:20, 11:20, 2, 3:30 etc.
         times = re.split(r'\s*-\s*', full_str)
         if len(times) != 2: return "status-future"
         
         start_raw, end_raw = times[0], times[1]
         
         def parse_to_minutes(t_raw, context_str):
-            # Extract digits
             nums = re.findall(r'\d+', t_raw)
             if not nums: return 0
             
             h = int(nums[0])
             m = int(nums[1]) if len(nums) > 1 else 0
             
-            # Determine AM/PM
-            # If AM/PM is explicitly in this part, use it.
-            # Else fallback to the context of the full string (usually at end)
             is_pm = "PM" in t_raw
             is_am = "AM" in t_raw
-            global_pm = "PM" in context_str
-            
-            # Logic: If specific tag exists, use it. Else use global.
-            # But wait, "11:30-12:30PM". 11:30 is AM.
-            # Heuristic: Classes don't usually run overnight. 
-            # If h < 8 (e.g. 1, 2, 3), it's definitely PM (13, 14, 15).
-            # If h >= 8 and h < 12, it's AM.
-            # If h == 12, check PM/AM.
             
             if h < 8: 
-                h += 12 # 1-7 is PM
+                h += 12 
             elif h == 12:
-                # 12 is PM unless specified AM, but 12PM is noon (12:00)
-                # 12 AM is midnight (00:00). Classes are noon.
                 if is_am: h = 0
-                # if is_pm or global_pm (default for 12 is noon) -> h=12.
             
             return h * 60 + m
 
         s_min = parse_to_minutes(start_raw, full_str)
         e_min = parse_to_minutes(end_raw, full_str)
-        
-        # Fix for 12PM crossover (e.g. 11:30 - 12:30)
-        # If start > end, it likely means start was parsed as PM (23:30) but should be AM (11:30)
-        # Or simplistic logic failed.
-        # But our heuristic "h < 8 => +12" handles 1-7 PM.
-        # 11:30 (AM) -> 690 min. 12:30 (PM) -> 750 min. Correct.
         
         curr_min = now.hour * 60 + now.minute
         
@@ -327,50 +307,38 @@ def get_hybrid_schedule(roll_no):
     
     # 2. Gather ALL classes
     for cls in base_schedule:
-        # RAW Subject from DB
         subj_raw = cls['Subject']
         subj_upper = subj_raw.upper()
         raw_disp = cls.get('DisplaySubject', '').upper()
         
-        # 1. Determine if this subject is relevant to the student
         norm_subj = normalize(subj_raw)
         is_my_subject = norm_subj in my_subjects
         
-        # 2. Check MC Variants (Strict Check)
+        # MC Check
         is_mc_variant = ("MC (AB)" in subj_upper) or ("MC (AS)" in subj_upper) or ("MC (RK)" in subj_upper)
-        
-        # If student has "MC" in their list, and this is a variant, allow it
         if "MC" in my_subjects and is_mc_variant:
             is_my_subject = True
             
         if not is_my_subject: continue
 
-        # 3. Create Class Object
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
         details = {'Venue': cls['Venue'], 'Faculty': cls['Faculty'], 'Time': cls['Time'], 'Override': False}
         
         cls_obj = cls.copy()
         
-        # 4. Apply MC Special Logic (Overrides)
         if is_mc_variant:
-            # Force Subject Name to MC for grouping
             cls_obj['DisplaySubject'] = "MC" 
             cls_obj['Subject'] = "MC" 
-            
-            # Force Faculty Name
-            if "MC (AS)" in subj_upper: details['Faculty'] = "Arvind Singh"
-            elif "MC (AB)" in subj_upper: details['Faculty'] = "Anupam Bhatnagar"
-            elif "MC (RK)" in subj_upper: details['Faculty'] = "Rajesh Kikani"
+            if "(AS)" in raw_disp: details['Faculty'] = "Arvind Singh"
+            elif "(AB)" in raw_disp: details['Faculty'] = "Anupam Bhatnagar"
+            elif "(RK)" in raw_disp: details['Faculty'] = "Rajesh Kikani"
         else:
-            # For non-MC classes, ensure DisplaySubject exists
             if 'DisplaySubject' not in cls_obj:
                 cls_obj['DisplaySubject'] = cls_obj['Subject']
 
-        # 5. Apply Day Overrides
         if d_obj in DAY_SPECIFIC_OVERRIDES:
             day_ov = DAY_SPECIFIC_OVERRIDES[d_obj]
             for ov_subj, ov_data in day_ov.items():
-                # Check against the Normalized Subject
                 current_subj_norm = normalize(cls_obj['Subject'])
                 if normalize(ov_subj) == current_subj_norm:
                     if ov_data.get('Target_Time', cls['Time']) == cls['Time']:
@@ -380,7 +348,6 @@ def get_hybrid_schedule(roll_no):
         cls_obj.update(details)
         all_term_classes.append(cls_obj)
 
-    # 3. Add Additional Classes
     for ac in ADDITIONAL_CLASSES:
         norm_subj = normalize(ac['Subject'])
         if norm_subj in my_subjects:
@@ -394,10 +361,8 @@ def get_hybrid_schedule(roll_no):
                 "Override": True
             })
 
-    # 4. Sort Chronologically
     all_term_classes.sort(key=lambda x: (x['Date'], get_sort_key(x['Time'])))
 
-    # 5. Assign Session Numbers
     subject_counters = defaultdict(int)
     final_processed_classes = []
     
@@ -488,12 +453,14 @@ if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 
 # --- PART A: LANDING PAGE (VISUALLY CENTERED) ---
 if not st.session_state.submitted:
-    # Use Padding to visually center, but allow scrolling
     st.markdown("""
     <style>
     div.block-container {
-        display: block !important;
-        padding-top: 15vh !important; /* Push down to visual center */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 80vh; /* Takes up 80% of viewport height */
+        padding-top: 0rem !important;
         padding-bottom: 5rem !important;
     }
     </style>
@@ -517,7 +484,6 @@ if not st.session_state.submitted:
 
 # --- PART B: DASHBOARD PAGE (TOP ALIGNED) ---
 else:
-    # Reset padding for dashboard view
     st.markdown("""
     <style>
     div.block-container {
@@ -551,7 +517,6 @@ else:
             st.session_state.submitted = False
             st.rerun()
     else:
-        # ICS Download
         ics_str = generate_ics_safe(all_classes_processed)
         sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(db_key).replace(" ", "_")).upper()
         with st.expander("Download & Import to Calendar"):
@@ -570,7 +535,6 @@ else:
         today_obj = get_ist_today()
         today_str = today_obj.strftime("%Y-%m-%d")
         
-        # --- PAST CLASSES ---
         past_dates = sorted([d for d in schedule_by_date.keys() if d < today_str], reverse=True)
         with st.expander("Show Previous Classes"):
             q = st.text_input("Search past classes...").lower()
@@ -594,14 +558,12 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
-                    # Flattened HTML string (No indentation inside f-string)
-                    rows_html += f"""<div class="class-row status-past"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
+                    rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
                 
                 st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj_past.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
             if not found_any and q: st.warning("No matches found.")
 
-        # --- UPCOMING CLASSES ---
         st.markdown('<div id="upcoming-anchor"></div>', unsafe_allow_html=True)
         
         end_date_obj = datetime.strptime(SCHEDULE_END_DATE, "%Y-%m-%d").date()
@@ -623,7 +585,6 @@ else:
             classes = schedule_by_date.get(d_str, [])
             rows_html = ""
             
-            # --- FIX: ALWAYS SHOW EMPTY DAYS ---
             if not classes:
                 rows_html = '<div style="color:#94A3B8; font-style:italic; padding:10px;">No classes scheduled</div>'
             else:
@@ -636,8 +597,7 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
                     
-                    # Status Calculation (ONLY FOR TODAY)
-                    row_status_class = "status-future" # Default
+                    row_status_class = "status-future"
                     if is_today:
                         row_status_class = get_class_status(c['Time'])
                     
