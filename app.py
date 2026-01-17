@@ -27,7 +27,7 @@ except ImportError:
 TIMEZONE = 'Asia/Kolkata'
 SCHEDULE_END_DATE = "2026-03-25" 
 
-# --- CSS STYLING ---
+# --- CSS STYLING (GLOBAL) ---
 st.set_page_config(page_title="MBA Timetable", layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown("""
@@ -35,6 +35,9 @@ st.markdown("""
     <meta name="theme-color" content="#0F172A">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 """, unsafe_allow_html=True)
+
+# Note: Removed .block-container styling from here. 
+# We will inject it dynamically based on the page (Login vs Dashboard).
 
 local_css_string = """
 <style>
@@ -45,12 +48,6 @@ local_css_string = """
     }
     [data-testid="stHeader"] { display: none; visibility: hidden; height: 0; }
     
-    /* 1. REMOVE HUGE TOP WHITE SPACE */
-    div.block-container {
-        padding-top: 2rem !important;
-        padding-bottom: 5rem !important;
-    }
-
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     :root{
         --bg:#0F172A; --card:#1E293B; --muted:#94A3B8; --accent-start:#60A5FA; --accent-end:#818CF8;
@@ -68,7 +65,7 @@ local_css_string = """
     .header-sub { text-align:center; color:var(--muted); margin-top:0rem; margin-bottom:1.5rem; font-size:0.95rem; }
     
     /* Center the Footer */
-    div.stCaption { text-align: center !important; }
+    div.stCaption { text-align: center !important; margin-top: 2rem; }
 
     /* WELCOME MESSAGE SPACING */
     .welcome-message { 
@@ -85,12 +82,7 @@ local_css_string = """
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
         text-align: center; /* Center text inside input */
     }
-    /* Center Label of Input if possible, otherwise default */
-    .stTextInput label {
-         display: flex;
-         justify-content: center;
-         width: 100%;
-    }
+    .stTextInput label { display: flex; justify-content: center; width: 100%; }
 
     /* BUTTONS */
     .stButton>button {
@@ -98,7 +90,7 @@ local_css_string = """
         background-color: #0F172A !important; color: #FFFFFF !important; 
         border: 1px solid #334155 !important; background-image: none !important;
         padding: 0.4rem 0.8rem;
-        display: flex; justify-content: center; align-items: center; /* Center text in button */
+        display: flex; justify-content: center; align-items: center; 
     }
     .stButton>button:hover { border-color: #60A5FA !important; color: #60A5FA !important; }
 
@@ -241,7 +233,6 @@ def get_hybrid_schedule(roll_no):
 
     all_term_classes = []
     
-    # 2. Gather ALL classes
     for cls in base_schedule:
         subj_in_db = cls['Subject']
         raw_disp = cls.get('DisplaySubject', '').upper()
@@ -257,7 +248,6 @@ def get_hybrid_schedule(roll_no):
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
         details = {'Venue': cls['Venue'], 'Faculty': cls['Faculty'], 'Time': cls['Time'], 'Override': False}
         
-        # --- MC SPECIAL LOGIC ---
         if is_mc_variant:
             cls['DisplaySubject'] = "MC"
             if "(AS)" in raw_disp: details['Faculty'] = "Arvind Singh"
@@ -276,7 +266,6 @@ def get_hybrid_schedule(roll_no):
         cls_obj.update(details)
         all_term_classes.append(cls_obj)
 
-    # 3. Add Additional Classes
     for ac in ADDITIONAL_CLASSES:
         norm_subj = normalize(ac['Subject'])
         if norm_subj in my_subjects:
@@ -290,10 +279,8 @@ def get_hybrid_schedule(roll_no):
                 "Override": True
             })
 
-    # 4. Sort Chronologically
     all_term_classes.sort(key=lambda x: (x['Date'], get_sort_key(x['Time'])))
 
-    # 5. Assign Session Numbers
     subject_counters = defaultdict(int)
     final_processed_classes = []
     
@@ -382,12 +369,26 @@ def render_mess_menu():
 if 'submitted' not in st.session_state: st.session_state.submitted = False
 if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 
-# --- PART A: LANDING PAGE ---
+# --- PART A: LANDING PAGE (VERTICAL CENTERED) ---
 if not st.session_state.submitted:
+    # 1. INJECT SPECIFIC CSS TO CENTER VERTICALLY
+    st.markdown("""
+    <style>
+    div.block-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 80vh; /* Takes up 80% of viewport height */
+        padding-top: 0rem !important;
+        padding-bottom: 5rem !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
     
-    # CENTERING THE LOGIN BOX
+    # CENTERING THE LOGIN BOX (Horizontal)
     _, c_form, _ = st.columns([1, 6, 1])
     with c_form:
         with st.form("roll_number_form"):
@@ -403,8 +404,20 @@ if not st.session_state.submitted:
 
     render_mess_menu()
 
-# --- PART B: DASHBOARD PAGE ---
+# --- PART B: DASHBOARD PAGE (TOP ALIGNED) ---
 else:
+    # 1. INJECT SPECIFIC CSS TO RESET TO TOP
+    st.markdown("""
+    <style>
+    div.block-container {
+        display: block; /* Reset to standard block */
+        min-height: auto;
+        padding-top: 2rem !important; /* Minimal top spacing */
+        padding-bottom: 5rem !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     roll = st.session_state.roll_number
     
     c1, c2 = st.columns([3, 1], gap="small")
