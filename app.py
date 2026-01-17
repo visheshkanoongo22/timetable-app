@@ -366,7 +366,7 @@ if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
 
-    st.markdown("""<div class="welcome-box">Welcome! Enter your roll number to get started!</strong>.</div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="welcome-box">  </strong>.</div>""", unsafe_allow_html=True)
     
     with st.form("roll_number_form"):
         roll_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
