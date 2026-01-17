@@ -137,22 +137,17 @@ local_css_string = """
     }
     
     /* --- STATUS STYLES (UPDATED COLORS) --- */
-    /* Past: Red Border, No Dimming */
     .class-row.status-past {
-        border-left: 3px solid #EF4444; /* Red-500 */
+        border-left: 3px solid #EF4444; /* Red */
         background: linear-gradient(90deg, rgba(239, 68, 68, 0.05), rgba(239, 68, 68, 0.01));
     }
-    
-    /* Ongoing: Yellow Border + Glow */
     .class-row.status-ongoing {
-        border-left: 3px solid #EAB308; /* Yellow-500 */
+        border-left: 3px solid #EAB308; /* Yellow */
         background: linear-gradient(90deg, rgba(234, 179, 8, 0.15), rgba(234, 179, 8, 0.05));
         box-shadow: 0 0 15px rgba(234, 179, 8, 0.15);
     }
-    
-    /* Future: Green Border */
     .class-row.status-future {
-        border-left: 3px solid #22C55E; /* Green-500 */
+        border-left: 3px solid #22C55E; /* Green */
         background: linear-gradient(90deg, rgba(34, 197, 94, 0.05), rgba(34, 197, 94, 0.01));
     }
     /* -------------------- */
@@ -227,12 +222,7 @@ def get_sort_key(time_str):
     except: return 9999
 
 def get_class_status(time_str):
-    """
-    Parses "10:20-11:20AM" and returns 'status-past', 'status-ongoing', or 'status-future'.
-    Only meant to be used for TODAY'S classes.
-    """
     now = datetime.now(pytz.timezone('Asia/Kolkata'))
-    
     try:
         full_str = time_str.strip().upper()
         times = re.split(r'\s*-\s*', full_str)
@@ -247,13 +237,8 @@ def get_class_status(time_str):
             h = int(nums[0])
             m = int(nums[1]) if len(nums) > 1 else 0
             
-            is_pm = "PM" in t_raw
-            is_am = "AM" in t_raw
-            
-            if h < 8: 
-                h += 12 
-            elif h == 12:
-                if is_am: h = 0
+            if h < 8: h += 12 
+            elif h == 12 and "AM" in t_raw: h = 0
             
             return h * 60 + m
 
@@ -262,13 +247,9 @@ def get_class_status(time_str):
         
         curr_min = now.hour * 60 + now.minute
         
-        if curr_min > e_min:
-            return "status-past"
-        elif s_min <= curr_min <= e_min:
-            return "status-ongoing"
-        else:
-            return "status-future"
-            
+        if curr_min > e_min: return "status-past"
+        elif s_min <= curr_min <= e_min: return "status-ongoing"
+        else: return "status-future"
     except:
         return "status-future"
 
@@ -305,7 +286,6 @@ def get_hybrid_schedule(roll_no):
 
     all_term_classes = []
     
-    # 2. Gather ALL classes
     for cls in base_schedule:
         subj_raw = cls['Subject']
         subj_upper = subj_raw.upper()
@@ -314,10 +294,8 @@ def get_hybrid_schedule(roll_no):
         norm_subj = normalize(subj_raw)
         is_my_subject = norm_subj in my_subjects
         
-        # MC Check
         is_mc_variant = ("MC (AB)" in subj_upper) or ("MC (AS)" in subj_upper) or ("MC (RK)" in subj_upper)
-        if "MC" in my_subjects and is_mc_variant:
-            is_my_subject = True
+        if "MC" in my_subjects and is_mc_variant: is_my_subject = True
             
         if not is_my_subject: continue
 
@@ -333,8 +311,7 @@ def get_hybrid_schedule(roll_no):
             elif "(AB)" in raw_disp: details['Faculty'] = "Anupam Bhatnagar"
             elif "(RK)" in raw_disp: details['Faculty'] = "Rajesh Kikani"
         else:
-            if 'DisplaySubject' not in cls_obj:
-                cls_obj['DisplaySubject'] = cls_obj['Subject']
+            if 'DisplaySubject' not in cls_obj: cls_obj['DisplaySubject'] = cls_obj['Subject']
 
         if d_obj in DAY_SPECIFIC_OVERRIDES:
             day_ov = DAY_SPECIFIC_OVERRIDES[d_obj]
@@ -451,7 +428,7 @@ def render_mess_menu():
 if 'submitted' not in st.session_state: st.session_state.submitted = False
 if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 
-# --- PART A: LANDING PAGE (VISUALLY CENTERED) ---
+# --- PART A: LANDING PAGE ---
 if not st.session_state.submitted:
     st.markdown("""
     <style>
@@ -459,8 +436,8 @@ if not st.session_state.submitted:
         display: flex;
         flex-direction: column;
         justify-content: center;
-        min-height: 80vh; /* Takes up 80% of viewport height */
-        padding-top: 0rem !important;
+        min-height: 80vh; 
+        padding-top: 15vh !important;
         padding-bottom: 5rem !important;
     }
     </style>
@@ -482,7 +459,7 @@ if not st.session_state.submitted:
 
     render_mess_menu()
 
-# --- PART B: DASHBOARD PAGE (TOP ALIGNED) ---
+# --- PART B: DASHBOARD PAGE ---
 else:
     st.markdown("""
     <style>
@@ -535,6 +512,7 @@ else:
         today_obj = get_ist_today()
         today_str = today_obj.strftime("%Y-%m-%d")
         
+        # --- PAST CLASSES ---
         past_dates = sorted([d for d in schedule_by_date.keys() if d < today_str], reverse=True)
         with st.expander("Show Previous Classes"):
             q = st.text_input("Search past classes...").lower()
@@ -558,12 +536,14 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
-                    rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
+                    # Force RED status for past lists
+                    rows_html += f"""<div class="class-row status-past"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
                 
                 st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj_past.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
             if not found_any and q: st.warning("No matches found.")
 
+        # --- UPCOMING CLASSES ---
         st.markdown('<div id="upcoming-anchor"></div>', unsafe_allow_html=True)
         
         end_date_obj = datetime.strptime(SCHEDULE_END_DATE, "%Y-%m-%d").date()
@@ -594,10 +574,11 @@ else:
                     is_canc = "CANCELLED" in ven_up or "CANCELLED" in fac_up
                     is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
                     is_prep = "PREPONED" in ven_up or "PREPONED" in fac_up
-                    status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
-                    ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
+                    status_cls = "strikethrough" if (is_canc or is_post) else ""
+                    ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
-                    row_status_class = "status-future"
+                    # Status Calculation
+                    row_status_class = "status-future" # Default Green
                     if is_today:
                         row_status_class = get_class_status(c['Time'])
                     
