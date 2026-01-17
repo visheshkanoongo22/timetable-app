@@ -45,7 +45,7 @@ local_css_string = """
     }
     [data-testid="stHeader"] { display: none; visibility: hidden; height: 0; }
     
-    /* 1. REMOVE HUGE TOP WHITE SPACE */
+    /* 1. REMOVE HUGE TOP WHITE SPACE (For Dashboard) */
     div.block-container {
         padding-top: 2rem !important;
         padding-bottom: 5rem !important;
@@ -79,13 +79,13 @@ local_css_string = """
     }
     .welcome-message strong { color: #ffffff; }
 
-    /* INPUTS (LEFT ALIGNED NOW) */
+    /* INPUTS */
     .stTextInput>div>div>input {
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
-        text-align: left; /* Changed to LEFT */
+        text-align: left; /* Left Aligned Text */
     }
-    .stTextInput label { display: flex; justify-content: flex-start; width: 100%; } /* Label Left */
+    .stTextInput label { display: flex; justify-content: flex-start; width: 100%; }
 
     /* BUTTONS */
     .stButton>button {
@@ -397,17 +397,14 @@ def render_mess_menu():
 if 'submitted' not in st.session_state: st.session_state.submitted = False
 if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 
-# --- PART A: LANDING PAGE (VERTICAL CENTERED) ---
+# --- PART A: LANDING PAGE (VISUALLY CENTERED) ---
 if not st.session_state.submitted:
-    # 1. INJECT SPECIFIC CSS TO CENTER VERTICALLY
+    # Use Padding to visually center, but allow scrolling
     st.markdown("""
     <style>
     div.block-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        min-height: 80vh; /* Takes up 80% of viewport height */
-        padding-top: 0rem !important;
+        display: block !important;
+        padding-top: 15vh !important; /* Push down to visual center */
         padding-bottom: 5rem !important;
     }
     </style>
@@ -416,7 +413,6 @@ if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
     
-    # REMOVED COLUMN CENTERING -> NOW LEFT ALIGNED
     with st.form("roll_number_form"):
         roll_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
         if st.form_submit_button("Generate Timetable"):
@@ -432,13 +428,12 @@ if not st.session_state.submitted:
 
 # --- PART B: DASHBOARD PAGE (TOP ALIGNED) ---
 else:
-    # 1. INJECT SPECIFIC CSS TO RESET TO TOP
+    # Reset padding for dashboard view
     st.markdown("""
     <style>
     div.block-container {
-        display: block; /* Reset to standard block */
-        min-height: auto;
-        padding-top: 2rem !important; /* Minimal top spacing */
+        display: block; 
+        padding-top: 2rem !important;
         padding-bottom: 5rem !important;
     }
     </style>
@@ -510,7 +505,6 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
-                    # Flattened HTML string (No indentation inside f-string)
                     rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
                 
                 st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj_past.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
@@ -539,7 +533,6 @@ else:
             classes = schedule_by_date.get(d_str, [])
             rows_html = ""
             
-            # --- FIX: ALWAYS SHOW EMPTY DAYS ---
             if not classes:
                 rows_html = '<div style="color:#94A3B8; font-style:italic; padding:10px;">No classes scheduled</div>'
             else:
