@@ -294,7 +294,7 @@ def get_hybrid_schedule(roll_no):
         norm_subj = normalize(subj_raw)
         is_my_subject = norm_subj in my_subjects
         
-        is_mc_variant = ("MC (AB)" in subj_upper) or ("MC (AS)" in subj_upper) or ("MC (RK)" in subj_upper)
+        is_mc_variant = ("MC (AB)" in subj_upper) or ("MC  (AS)" in subj_upper) or ("MC (RK)" in subj_upper)
         if "MC" in my_subjects and is_mc_variant: is_my_subject = True
             
         if not is_my_subject: continue
