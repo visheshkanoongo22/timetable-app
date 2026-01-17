@@ -47,7 +47,7 @@ local_css_string = """
     
     /* 1. REMOVE HUGE TOP WHITE SPACE */
     div.block-container {
-        padding-top: 2rem !important; /* Move content up */
+        padding-top: 2rem !important;
         padding-bottom: 5rem !important;
     }
 
@@ -63,14 +63,17 @@ local_css_string = """
         color: #ffffff; font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     }
     
-    /* UTILS */
+    /* UTILS & ALIGNMENT */
     .main-header { font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; line-height: 1.2; }
     .header-sub { text-align:center; color:var(--muted); margin-top:0rem; margin-bottom:1.5rem; font-size:0.95rem; }
     
+    /* Center the Footer */
+    div.stCaption { text-align: center !important; }
+
     /* WELCOME MESSAGE SPACING */
     .welcome-message { 
         margin-top: 0rem; 
-        margin-bottom: 0.5rem; /* Reduced gap between text and button */
+        margin-bottom: 0.5rem; 
         font-size: 1rem; 
         color: var(--muted); 
     }
@@ -80,12 +83,22 @@ local_css_string = """
     .stTextInput>div>div>input {
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
+        text-align: center; /* Center text inside input */
     }
+    /* Center Label of Input if possible, otherwise default */
+    .stTextInput label {
+         display: flex;
+         justify-content: center;
+         width: 100%;
+    }
+
+    /* BUTTONS */
     .stButton>button {
         width: 100%; border-radius: 8px; font-weight: 600;
         background-color: #0F172A !important; color: #FFFFFF !important; 
         border: 1px solid #334155 !important; background-image: none !important;
-        padding: 0.4rem 0.8rem; /* Make button slimmer */
+        padding: 0.4rem 0.8rem;
+        display: flex; justify-content: center; align-items: center; /* Center text in button */
     }
     .stButton>button:hover { border-color: #60A5FA !important; color: #60A5FA !important; }
 
@@ -93,8 +106,8 @@ local_css_string = """
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
         border-radius: 14px; 
-        padding: 1rem; /* Reduced padding */
-        margin-bottom: 1rem; /* Reduced margin */
+        padding: 1rem; 
+        margin-bottom: 1rem;
         border: 1px solid var(--glass-border); 
         position: relative; overflow: visible;
         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
@@ -120,8 +133,8 @@ local_css_string = """
         display: flex; 
         align-items: center; 
         justify-content: space-between;
-        margin-bottom: 8px; /* Tighter rows */
-        padding: 8px 10px; /* Slimmer rows */
+        margin-bottom: 8px; 
+        padding: 8px 10px; 
         background: rgba(255,255,255,0.02);
         border-radius: 10px;
         border: 1px solid rgba(255,255,255,0.03);
@@ -129,22 +142,14 @@ local_css_string = """
     .class-info-left {
         display: flex; 
         flex-direction: column; 
-        gap: 1px; /* Tighter text stacking */
+        gap: 1px;
         flex-grow: 1;
     }
-    .subj-title { 
-        font-size: 0.95rem; /* Smaller font */
-        font-weight: 700; 
-        color: #FFFFFF; 
-    }
-    .faculty-name { 
-        font-size: 0.75rem; /* Smaller font */
-        color: #94A3B8; 
-        font-weight: 500; 
-    }
+    .subj-title { font-size: 0.95rem; font-weight: 700; color: #FFFFFF; }
+    .faculty-name { font-size: 0.75rem; color: #94A3B8; font-weight: 500; }
     .meta-row { 
         display: flex; gap: 8px; 
-        font-size: 0.75rem; /* Smaller font */
+        font-size: 0.75rem; 
         margin-top: 3px; 
         color: #CBD5E1; 
         font-family: monospace; 
@@ -155,7 +160,7 @@ local_css_string = """
         flex-direction: column; 
         align-items: center; 
         justify-content: center;
-        min-width: 55px; /* Narrower badge */
+        min-width: 55px; 
         margin-left: 8px;
         background: linear-gradient(135deg, rgba(96,165,250,0.1), rgba(129,140,248,0.1));
         border: 1px solid rgba(129,140,248,0.2);
@@ -238,16 +243,12 @@ def get_hybrid_schedule(roll_no):
     
     # 2. Gather ALL classes
     for cls in base_schedule:
-        # Check subject against student's list OR if it is one of the special MC variants
         subj_in_db = cls['Subject']
         raw_disp = cls.get('DisplaySubject', '').upper()
         
         is_my_subject = subj_in_db in my_subjects
-        
-        # Check if this is a "special" MC variant (Strict matching)
         is_mc_variant = "MC (AB)" in raw_disp or "MC (AS)" in raw_disp or "MC (RK)" in raw_disp
         
-        # If the student has "MC" in their list, they should see all MC variants
         if "MC" in my_subjects and is_mc_variant:
             is_my_subject = True
             
@@ -256,20 +257,12 @@ def get_hybrid_schedule(roll_no):
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
         details = {'Venue': cls['Venue'], 'Faculty': cls['Faculty'], 'Time': cls['Time'], 'Override': False}
         
-        # --- MC SPECIAL LOGIC START ---
-        # STRICT CHECK: Only match specific MC variations
+        # --- MC SPECIAL LOGIC ---
         if is_mc_variant:
-            # 1. Unify the Subject Name for the Session Counter
             cls['DisplaySubject'] = "MC"
-            
-            # 2. Override Faculty based on the suffix
-            if "(AS)" in raw_disp:
-                details['Faculty'] = "Arvind Singh"
-            elif "(AB)" in raw_disp:
-                details['Faculty'] = "Anupam Bhatnagar"
-            elif "(RK)" in raw_disp:
-                details['Faculty'] = "Rajesh Kikani"
-        # --- MC SPECIAL LOGIC END ---
+            if "(AS)" in raw_disp: details['Faculty'] = "Arvind Singh"
+            elif "(AB)" in raw_disp: details['Faculty'] = "Anupam Bhatnagar"
+            elif "(RK)" in raw_disp: details['Faculty'] = "Rajesh Kikani"
 
         if d_obj in DAY_SPECIFIC_OVERRIDES:
             day_ov = DAY_SPECIFIC_OVERRIDES[d_obj]
@@ -394,16 +387,19 @@ if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
     
-    with st.form("roll_number_form"):
-        roll_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
-        if st.form_submit_button("Generate Timetable"):
-            if roll_input.isdigit():
-                if int(roll_input) < 100: roll_input = f"21BCM{roll_input}"
-                elif int(roll_input) <= 999: roll_input = f"24MBA{roll_input}"
-            
-            st.session_state.roll_number = roll_input
-            st.session_state.submitted = True
-            st.rerun()
+    # CENTERING THE LOGIN BOX
+    _, c_form, _ = st.columns([1, 6, 1])
+    with c_form:
+        with st.form("roll_number_form"):
+            roll_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
+            if st.form_submit_button("Generate Timetable"):
+                if roll_input.isdigit():
+                    if int(roll_input) < 100: roll_input = f"21BCM{roll_input}"
+                    elif int(roll_input) <= 999: roll_input = f"24MBA{roll_input}"
+                
+                st.session_state.roll_number = roll_input
+                st.session_state.submitted = True
+                st.rerun()
 
     render_mess_menu()
 
@@ -475,7 +471,6 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
-                    # Flattened HTML string (No indentation inside f-string)
                     rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
                 
                 st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj_past.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
@@ -521,7 +516,6 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
                     
-                    # Flattened HTML string (No indentation inside f-string)
                     rows_html += f"""<div class="class-row"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
             
             st.markdown(f"""<div class="day-card {today_cls}">{badge_html}<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
