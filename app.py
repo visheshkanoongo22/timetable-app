@@ -44,7 +44,14 @@ local_css_string = """
         background-color: var(--bg) !important; color: #ffffff !important;
     }
     [data-testid="stHeader"] { display: none; visibility: hidden; height: 0; }
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+    
+    /* 1. REMOVE HUGE TOP WHITE SPACE */
+    div.block-container {
+        padding-top: 2rem !important; /* Move content up */
+        padding-bottom: 5rem !important;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     :root{
         --bg:#0F172A; --card:#1E293B; --muted:#94A3B8; --accent-start:#60A5FA; --accent-end:#818CF8;
         --glass-border: rgba(255,255,255,0.08); --today-glow: #38BDF8; --today-glow-shadow: rgba(56, 189, 248, 0.4);
@@ -57,9 +64,18 @@ local_css_string = """
     }
     
     /* UTILS */
-    .main-header { font-size: 2.4rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; }
-    .header-sub { text-align:center; color:var(--muted); margin-top:0rem; margin-bottom:2rem; font-size:1.0rem; }
+    .main-header { font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; line-height: 1.2; }
+    .header-sub { text-align:center; color:var(--muted); margin-top:0rem; margin-bottom:1.5rem; font-size:0.95rem; }
     
+    /* WELCOME MESSAGE SPACING */
+    .welcome-message { 
+        margin-top: 0rem; 
+        margin-bottom: 0.5rem; /* Reduced gap between text and button */
+        font-size: 1rem; 
+        color: var(--muted); 
+    }
+    .welcome-message strong { color: #ffffff; }
+
     /* INPUTS */
     .stTextInput>div>div>input {
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
@@ -69,77 +85,96 @@ local_css_string = """
         width: 100%; border-radius: 8px; font-weight: 600;
         background-color: #0F172A !important; color: #FFFFFF !important; 
         border: 1px solid #334155 !important; background-image: none !important;
+        padding: 0.4rem 0.8rem; /* Make button slimmer */
     }
     .stButton>button:hover { border-color: #60A5FA !important; color: #60A5FA !important; }
 
-    /* CARD DESIGN */
+    /* CARD DESIGN - COMPACT */
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-        border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem;
+        border-radius: 14px; 
+        padding: 1rem; /* Reduced padding */
+        margin-bottom: 1rem; /* Reduced margin */
         border: 1px solid var(--glass-border); 
         position: relative; overflow: visible;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
     .day-card.today {
         border: 2px solid var(--today-glow);
-        box-shadow: 0 0 25px var(--today-glow-shadow);
+        box-shadow: 0 0 20px var(--today-glow-shadow);
     }
     .today-badge {
-        position: absolute; top: -14px; right: 20px; 
-        background: #5D5D5D; color: white; font-size: 0.7rem; font-weight: 800; 
-        padding: 4px 10px; border-radius: 6px; text-transform: uppercase; 
-        z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        position: absolute; top: -12px; right: 15px; 
+        background: #5D5D5D; color: white; font-size: 0.65rem; font-weight: 800; 
+        padding: 3px 8px; border-radius: 5px; text-transform: uppercase; 
+        z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.5);
     }
-    .day-header { font-size: 1.15rem; font-weight: 700; color: #E2E8F0; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .day-header { 
+        font-size: 1rem; font-weight: 700; color: #E2E8F0; 
+        margin-bottom: 0.8rem; padding-bottom: 0.4rem; 
+        border-bottom: 1px solid rgba(255,255,255,0.05); 
+    }
 
-    /* NEW CLASS ROW LAYOUT */
+    /* COMPACT CLASS ROW */
     .class-row {
         display: flex; 
         align-items: center; 
         justify-content: space-between;
-        margin-bottom: 12px;
-        padding: 10px;
+        margin-bottom: 8px; /* Tighter rows */
+        padding: 8px 10px; /* Slimmer rows */
         background: rgba(255,255,255,0.02);
-        border-radius: 12px;
+        border-radius: 10px;
         border: 1px solid rgba(255,255,255,0.03);
     }
     .class-info-left {
         display: flex; 
         flex-direction: column; 
-        gap: 2px;
+        gap: 1px; /* Tighter text stacking */
         flex-grow: 1;
     }
-    .subj-title { font-size: 1.1rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.5px; }
-    .faculty-name { font-size: 0.85rem; color: #94A3B8; font-weight: 500; }
-    .meta-row { display: flex; gap: 10px; font-size: 0.85rem; margin-top: 4px; color: #CBD5E1; font-family: monospace; }
+    .subj-title { 
+        font-size: 0.95rem; /* Smaller font */
+        font-weight: 700; 
+        color: #FFFFFF; 
+    }
+    .faculty-name { 
+        font-size: 0.75rem; /* Smaller font */
+        color: #94A3B8; 
+        font-weight: 500; 
+    }
+    .meta-row { 
+        display: flex; gap: 8px; 
+        font-size: 0.75rem; /* Smaller font */
+        margin-top: 3px; 
+        color: #CBD5E1; 
+        font-family: monospace; 
+    }
     
     .session-badge-container {
         display: flex; 
         flex-direction: column; 
         align-items: center; 
         justify-content: center;
-        min-width: 70px;
-        margin-left: 10px;
+        min-width: 55px; /* Narrower badge */
+        margin-left: 8px;
         background: linear-gradient(135deg, rgba(96,165,250,0.1), rgba(129,140,248,0.1));
         border: 1px solid rgba(129,140,248,0.2);
-        border-radius: 10px;
-        padding: 8px 4px;
+        border-radius: 8px;
+        padding: 6px 2px;
     }
-    .session-num { font-size: 1.2rem; font-weight: 800; color: #60A5FA; line-height: 1; }
-    .session-label { font-size: 0.65rem; text-transform: uppercase; color: #94A3B8; letter-spacing: 1px; margin-top: 2px; }
+    .session-num { font-size: 1.1rem; font-weight: 800; color: #60A5FA; line-height: 1; }
+    .session-label { font-size: 0.55rem; text-transform: uppercase; color: #94A3B8; letter-spacing: 0.5px; margin-top: 2px; }
 
     /* STATES */
     .strikethrough { text-decoration: line-through; opacity: 0.5; }
     .venue-changed { color: #F87171 !important; font-weight: 700; }
     
     /* MENU */
-    .menu-header { color: #38BDF8; font-weight: bold; text-transform: uppercase; font-size: 0.9em; margin-bottom: 5px; }
+    .menu-header { color: #38BDF8; font-weight: bold; text-transform: uppercase; font-size: 0.85em; margin-bottom: 4px; }
     
     @media (max-width: 600px) {
-        .main-header { font-size: 1.8rem; }
-        .day-card { padding: 1rem; }
-        .subj-title { font-size: 1rem; }
-        .session-num { font-size: 1.1rem; }
+        .main-header { font-size: 1.5rem; }
+        .day-card { padding: 0.8rem; }
     }
 </style>
 """
@@ -201,7 +236,7 @@ def get_hybrid_schedule(roll_no):
 
     all_term_classes = []
     
-    # 2. Gather ALL classes (Past & Future)
+    # 2. Gather ALL classes
     for cls in base_schedule:
         if cls['Subject'] not in my_subjects: continue
         
@@ -330,6 +365,8 @@ if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 if not st.session_state.submitted:
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
+
+    st.markdown("""<div class="welcome-box">Welcome! Enter your roll number to get started!</strong>.</div>""", unsafe_allow_html=True)
     
     with st.form("roll_number_form"):
         roll_input = st.text_input("Enter your Roll Number:", placeholder="e.g., 463 (Just the last 3 digits)").strip().upper()
@@ -342,18 +379,16 @@ if not st.session_state.submitted:
             st.session_state.submitted = True
             st.rerun()
 
-    # NOTE: "Sessions Taken till Now" removed from home page as per requirement 
-    # (Since we need roll number to calculate it accurately now)
-    # If you really need it, we'd need to show generic stats, but you asked to use logic based on student.
-    
     render_mess_menu()
 
 # --- PART B: DASHBOARD PAGE ---
 else:
     roll = st.session_state.roll_number
     
-    c1, c2 = st.columns([3, 1])
-    with c1: st.markdown(f"""<div class="welcome-message">Displaying schedule for: <strong>{roll}</strong></div>""", unsafe_allow_html=True)
+    # Header with minimal vertical space
+    c1, c2 = st.columns([3, 1], gap="small")
+    with c1: 
+        st.markdown(f"""<div class="welcome-message">Displaying schedule for: <strong>{roll}</strong></div>""", unsafe_allow_html=True)
     with c2:
         if st.button("Change Roll Number"):
             st.session_state.submitted = False
