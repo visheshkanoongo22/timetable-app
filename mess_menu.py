@@ -1443,7 +1443,6 @@ MESS_MENU = {
         * Boondi Raita
         * Ghee + Gud
         * Masala Papad
-        * Note: May change / inaccurate
         """
     },
 
@@ -1479,7 +1478,6 @@ MESS_MENU = {
         * Puri
         * Onion + Lemon
         * Roasted Masala Papad
-        * Note: May change / inaccurate
         """
     },
 
@@ -1515,7 +1513,6 @@ MESS_MENU = {
         * Puri
         * Onion + Lemon
         * Roasted Masala Papad
-        * Note: May change / inaccurate
         """
     },
 
@@ -1550,7 +1547,6 @@ MESS_MENU = {
         * Onion + Lemon
         * Fryums
         * **Sweet: Pista Halwa**
-        * Note: May change / inaccurate
         """
     },
 
@@ -1586,7 +1582,6 @@ MESS_MENU = {
         * Ring Onion
         * Green Chilli Fry
         * Masala Papad
-        * Note: May change / inaccurate
         """
     },
 
