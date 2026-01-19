@@ -8,6 +8,6 @@ ADDITIONAL_CLASSES = [
         "Time": "06:00-08:20PM",
         "Venue": "-",
         "Faculty": "-" 
-    },
+    }
 
 ]
