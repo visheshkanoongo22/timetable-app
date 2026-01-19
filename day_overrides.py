@@ -35,5 +35,10 @@ DAY_SPECIFIC_OVERRIDES = {
         'MS(A)': {'Venue': 'E1'},
         'IGR&MC': {'Venue': 'E1'},
         'MS(C)': {'Venue': 'E2'}
+    },
+
+    date(2026, 1, 21): {
+        "D&IT": {"Venue": "POSTPONED", "Target_Time": "ORIGINAL_TIME_HERE"} 
     }
+
 }
