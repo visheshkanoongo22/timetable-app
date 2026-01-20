@@ -42,7 +42,7 @@ DAY_SPECIFIC_OVERRIDES = {
     },
 
     date(2026, 1, 21): {
-        "GBL": {"Venue": "T7"}
+        "GBL": {"Venue": "T7"},
         "DIW": {"Venue": "T7"} 
     }
 }
