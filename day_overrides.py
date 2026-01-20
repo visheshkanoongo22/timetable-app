@@ -41,7 +41,7 @@ DAY_SPECIFIC_OVERRIDES = {
         "D&IT": {"Venue": "POSTPONED"} 
     },
 
-    date(2026, 1, 21): {
+    date(2026, 1, 20): {
         "GBL": {"Venue": "T7"},
         "DIW": {"Venue": "T7"} 
     }
