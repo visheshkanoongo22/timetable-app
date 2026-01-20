@@ -1445,7 +1445,38 @@ MESS_MENU = {
         * Masala Papad
         """
     },
-
+    date(2026, 1, 20): {
+        "Breakfast": """
+        * Suji ka Upma with Coconut Chutney
+        * Bread Pakoda with Green Chutney Sauce
+        * Fruit
+        * Regular Menu
+        """,
+        "Lunch": """
+        * Palak Paneer Masala
+        * Chole Masala
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion + Lemon
+        * Plain Curd
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * **Sweet: Boondi**
+        * Hot n Sour Soup
+        * Sev Roll with Chutney
+        * Pav Bhaji
+        * Veg Pulao
+        * Boondi Raita
+        * Masala Papad
+        * Veg Hakka Noodles
+        * Onion + Lemon
+        """
+    },
     # Wednesday (21/01/2026)
     date(2026, 1, 21): {
         "Breakfast": """
