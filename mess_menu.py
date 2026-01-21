@@ -1411,8 +1411,8 @@ MESS_MENU = {
         * Fryums
         """
     },
-{
-    Date(2026, 1, 19): {
+
+    date(2026, 1, 19): {
         "Breakfast": """
         * Poha, Lemon, Onion, Sev
         * Fruit
@@ -1441,7 +1441,7 @@ MESS_MENU = {
         * Masala Papad
         """
     },
-    Date(2026, 1, 20): {
+    date(2026, 1, 20): {
         "Breakfast": """
         * Suji Ka Upma With Coconut Chatni
         * Fruit
@@ -1469,7 +1469,7 @@ MESS_MENU = {
         * Onion + Lemon
         """
     },
-    Date(2026, 1, 21): {
+    date(2026, 1, 21): {
         "Breakfast": """
         * Idli Sambhar Chatni + Toast
         * Fruit + Mix Uttapam Sambhar Chatni
@@ -1498,7 +1498,7 @@ MESS_MENU = {
         * Pineapple Halwa
         """
     },
-    Date(2026, 1, 22): {
+    date(2026, 1, 22): {
         "Breakfast": """
         * Methi Ka Thepla With Curd & Pickle
         * Fruit
@@ -1525,7 +1525,7 @@ MESS_MENU = {
         * Roasted Papad Masala
         """
     },
-    Date(2026, 1, 23): {
+    date(2026, 1, 23): {
         "Breakfast": """
         * Masala Maggi + Fruit
         * Sandwich / Dhokla With Green Chatni
@@ -1551,7 +1551,7 @@ MESS_MENU = {
         * Fry Papad
         """
     },
-    Date(2026, 1, 24): {
+    date(2026, 1, 24): {
         "Breakfast": """
         * Paratha / Dal Pakwan With Chatni
         * Fruit
@@ -1578,7 +1578,7 @@ MESS_MENU = {
         * Masala Papad
         """
     },
-    Date(2026, 1, 25): {
+    date(2026, 1, 25): {
         "Breakfast": """
         * Mix Paratha With Curd & Pickle
         * Fruit + Khakra
