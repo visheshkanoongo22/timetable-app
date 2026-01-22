@@ -42,9 +42,11 @@ DAY_SPECIFIC_OVERRIDES = {
         "IGR&MC": {"Venue": "POSTPONED"}
     },
 
-    date(2026, 1, 20): {
+    date(2026, 1, 22): {
         "GBL": {"Venue": "T7"},
         "DIW": {"Venue": "T7"} 
-    }
+    },
+
+
 
 }
