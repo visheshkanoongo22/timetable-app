@@ -45,5 +45,9 @@ DAY_SPECIFIC_OVERRIDES = {
     date(2026, 1, 22): {
         "GBL": {"Venue": "T7"},
         "DIW": {"Venue": "T7"} 
+    },
+
+    date(2026, 1, 27): {
+        "MS(A)": {"Venue": "POSTPONED"} 
     }
 }
