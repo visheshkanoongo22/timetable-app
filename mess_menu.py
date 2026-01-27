@@ -1682,7 +1682,141 @@ MESS_MENU = {
         * Onion, Lemon
         * Suji Ka Halwa
         """
+    },
+    Date(2026, 1, 29): {
+        "Breakfast": """
+        * Methi Thepla
+        * Curd
+        * Pickle
+        * Fruit
+        * Sev Khamani
+        * Cornflakes
+        """,
+        "Lunch": """
+        * Veg Makhanwala
+        * Rajma Masala
+        * Dal Mix Tadka
+        * Jeera Rice
+        * Roti
+        * Green Salad
+        * Onion + Lemon
+        * Lemon Water
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Dum Aloo Masala
+        * Gobi Manchurian Dry
+        * Dal Makhani
+        * Mutter Rice
+        * Roti
+        * Puri
+        * Onion + Lemon
+        * Roasted Masala Papad
+        """
+    },
+    Date(2026, 1, 30): {
+        "Breakfast": """
+        * Masala Maggi
+        * Sandwich Dhokla
+        * Green Chutney
+        * Toast
+        * Bread Butter
+        * Bread Jam
+        * Tea
+        * Coffee
+        * Milk
+        * Fruit
+        """,
+        "Lunch": """
+        * Paneer Kadai Masala
+        * Dahi Chana Masala
+        * Mix Dal Tadka
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion + Lemon
+        * Plain Curd
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Sabudana Kheer
+        * Baingan Ka Bharta
+        * Aloo Capsicum Chips Dry
+        * Dal Fry
+        * Jeera Rice
+        * Bajra Ki Roti
+        * Puri
+        * Onion + Lemon
+        * Fry Papad
+        """
+    },
+    Date(2026, 1, 31): {
+        "Breakfast": """
+        * Paneer Paratha
+        * Curd
+        * Pickle
+        * Fruit
+        * Veg Sandwich
+        """,
+        "Lunch": """
+        * Veg Jai Puri Masala
+        * Masala Maggi
+        * Dal Fry
+        * Jeera Rice
+        * Roti
+        * Green Salad
+        * Onion + Lemon
+        * Jeera Water
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Cheese Corn Soup
+        * Navratan Samosa
+        * Chole Bhature
+        * Kadhi
+        * Veg Pulao
+        * Tomato Raita
+        * Ring Onion
+        * Green Chilli Fry
+        * Masala Papad
+        """
+    },
+    Date(2026, 2, 1): {
+        "Breakfast": """
+        * Mix Paratha
+        * Curd
+        * Pickle
+        * Fruit
+        * Veg Sandwich
+        """,
+        "Lunch": """
+        * Mix Veg Masala
+        * Ragi Pakoda
+        * Dal Mix Tadka
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion + Lemon
+        * Lemon Water
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Cheese Butter Masala
+        * Soya Mutter Masala
+        * Dal Mix Tadka
+        * Jeera Rice
+        * Roti
+        * Onion + Lemon
+        * Ice Cream
+        """
     }
-
 }
 
