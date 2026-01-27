@@ -1643,6 +1643,45 @@ MESS_MENU = {
         * Lemon
         * Onion
         """
+    },
+
+    date(2026, 1, 28): {
+        "Breakfast": """
+        * Masala Idli
+        * Green Chutney
+        * Mix Uttapam
+        * Sambhar
+        * Coconut Chutney
+        * Bread Butter & Jam
+        * Tea, Coffee, Milk
+        * Fruit
+        """,
+        "Lunch": """
+        * Gobi Capsicum Mutter Dry
+        * Mix Kathol
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion, Lemon
+        * Butter Milk
+        """,
+        "Hi-Tea": """
+        * Tea, Coffee, Milk
+        """,
+        "Dinner": """
+        * Veg Manchow Soup
+        * Live Dhokla
+        * Aloo Rasewala
+        * Plain Kaddi
+        * Rajwadi Khichadi
+        * Methi Thepla
+        * Lasoon Ki Chutney
+        * Roti
+        * Frymes
+        * Onion, Lemon
+        * Suji Ka Halwa
+        """
     }
 
 }
