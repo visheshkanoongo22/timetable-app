@@ -1683,7 +1683,7 @@ MESS_MENU = {
         * Suji Ka Halwa
         """
     },
-    Date(2026, 1, 29): {
+    date(2026, 1, 29): {
         "Breakfast": """
         * Methi Thepla
         * Curd
@@ -1716,7 +1716,7 @@ MESS_MENU = {
         * Roasted Masala Papad
         """
     },
-    Date(2026, 1, 30): {
+    date(2026, 1, 30): {
         "Breakfast": """
         * Masala Maggi
         * Sandwich Dhokla
@@ -1754,7 +1754,7 @@ MESS_MENU = {
         * Fry Papad
         """
     },
-    Date(2026, 1, 31): {
+    date(2026, 1, 31): {
         "Breakfast": """
         * Paneer Paratha
         * Curd
@@ -1787,7 +1787,7 @@ MESS_MENU = {
         * Masala Papad
         """
     },
-    Date(2026, 2, 1): {
+    date(2026, 2, 1): {
         "Breakfast": """
         * Mix Paratha
         * Curd
