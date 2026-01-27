@@ -1603,6 +1603,47 @@ MESS_MENU = {
         * Onion + Lemon
         * Ice Cream
         """
+    },
+
+    date(2026, 1, 27): {
+        "Breakfast": """
+        * Suji Upma
+        * Coconut Chutney
+        * Dabeli
+        * Green Chutney
+        * Bread Butter
+        * Bread Jam
+        * Tea
+        * Coffee
+        * Milk
+        * Fruit
+        """,
+        "Lunch": """
+        * Palak Paneer Masala
+        * Moong Masala
+        * Mix Dal Tadka
+        * Jeera Rice
+        * Roti
+        * Green Chutney
+        * Lemon
+        * Onion
+        * Plain Curd
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Sweet Jalebi
+        * Chinese Samosa
+        * Pav Bhaji
+        * Dum Biryani
+        * Boondi Raita
+        * Roasted Papad
+        * Veg Hakka Noodles
+        * Lemon
+        * Onion
+        """
     }
+
 }
 
