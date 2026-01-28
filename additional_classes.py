@@ -43,5 +43,5 @@ ADDITIONAL_CLASSES = [
         "Time": "06:10-07:10PM",
         "Venue": "Online", # Or your designated venue
         "Faculty": "Praneti Shah"
-    },
+    }
 ]
