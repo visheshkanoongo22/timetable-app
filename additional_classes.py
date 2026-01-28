@@ -15,10 +15,11 @@ ADDITIONAL_CLASSES = [
         "Venue": "T6", # Or your designated venue
         "Faculty": "Dhaval Patanvadia"
     },
+    
     {
         "Subject": "MS(A)",
         "Date": date(2026, 1, 31),
-        "Time": "05:00-06:00PM",
+        "Time": "06:10-07:10PM",
         "Venue": "T6", # Or your designated venue
         "Faculty": "Ashwini Awasthi"
     },
@@ -28,5 +29,19 @@ ADDITIONAL_CLASSES = [
         "Time": "06:10-07:10PM",
         "Venue": "T6", # Or your designated venue
         "Faculty": "Ashwini Awasthi"
-    }
+    },
+    {
+        "Subject": "IL(A)",
+        "Date": date(2026, 1, 28),
+        "Time": "06:10-07:10PM",
+        "Venue": "Online", # Or your designated venue
+        "Faculty": "Praneti Shah"
+    },
+    {
+        "Subject": "IL(B)",
+        "Date": date(2026, 1, 28),
+        "Time": "06:10-07:10PM",
+        "Venue": "Online", # Or your designated venue
+        "Faculty": "Praneti Shah"
+    },
 ]
