@@ -1683,56 +1683,46 @@ MESS_MENU = {
         * Suji Ka Halwa
         """
     },
+    
     date(2026, 1, 29): {
         "Breakfast": """
-        * Methi Thepla
-        * Curd
-        * Pickle
-        * Fruit
-        * Sev Khamani
-        * Cornflakes
+        * Methi Ka Thepla With Curd & Pickle
+        * Sandwich Dhokla Green Chutney
+        * Regular Menu
         """,
         "Lunch": """
         * Veg Makhanwala
         * Rajma Masala
-        * Dal Mix Tadka
+        * Mix Dal Tadka
         * Jeera Rice
         * Roti
         * Green Salad
-        * Onion + Lemon
+        * Onion, Lemon
         * Lemon Water
         """,
         "Hi-Tea": """
         * Tea / Coffee
         """,
         "Dinner": """
-        * Dum Aloo Masala
-        * Gobi Manchurian Dry
-        * Dal Makhani
-        * Mutter Rice
-        * Roti
-        * Puri
+        * Palak Corn Capsicum
+        * Chole Masala
+        * Dal Mix Tadka
+        * Plain Rice
+        * Roti + Puri
         * Onion + Lemon
-        * Roasted Masala Papad
+        * Cabbage Sambharo
         """
     },
     date(2026, 1, 30): {
         "Breakfast": """
-        * Masala Maggi
-        * Sandwich Dhokla
-        * Green Chutney
-        * Toast
-        * Bread Butter
-        * Bread Jam
-        * Tea
-        * Coffee
-        * Milk
-        * Fruit
+        * Bread Pakoda With Chutney & Toast
+        * Fruit + Moong Dal Chilla With Chutney
+        * Regular Menu
         """,
         "Lunch": """
-        * Paneer Kadai Masala
-        * Dahi Chana Masala
-        * Mix Dal Tadka
+        * Mutter Paneer Masala
+        * Sukhi Bhaji
+        * Dal Fry
         * Plain Rice
         * Roti
         * Green Salad
@@ -1743,15 +1733,16 @@ MESS_MENU = {
         * Tea / Coffee
         """,
         "Dinner": """
-        * Sabudana Kheer
-        * Baingan Ka Bharta
-        * Aloo Capsicum Chips Dry
-        * Dal Fry
-        * Jeera Rice
-        * Bajra Ki Roti
-        * Puri
-        * Onion + Lemon
-        * Fry Papad
+        * Tomato Soup
+        * Lilva Kachori
+        * Aloo Paneer Paratha
+        * Manchurian Fried Rice
+        * Papadi Chat
+        * Pani Puri
+        * Masala Papad
+        * Chana Jor Garam
+        * Plain Curd
+        * Pickle
         """
     },
     date(2026, 1, 31): {
