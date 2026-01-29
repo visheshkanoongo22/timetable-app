@@ -19,7 +19,7 @@ ADDITIONAL_CLASSES = [
     {
         "Subject": "MS(A)",
         "Date": date(2026, 1, 31),
-        "Time": "06:10-07:10PM",
+        "Time": "05:00-06:00PM",
         "Venue": "T6", # Or your designated venue
         "Faculty": "Ashwini Awasthi"
     },
@@ -43,5 +43,19 @@ ADDITIONAL_CLASSES = [
         "Time": "06:10-07:10PM",
         "Venue": "Online", # Or your designated venue
         "Faculty": "Praneti Shah"
+    },
+    {
+        "Subject": "MS(B)",
+        "Date": date(2026, 1, 30),
+        "Time": "06:10-07:10PM",
+        "Venue": "T6", # Or your designated venue
+        "Faculty": "Ashwini Awasthi"
+    },
+    {
+        "Subject": "MS(B)",
+        "Date": date(2026, 1, 30),
+        "Time": "07:20-08:20PM",
+        "Venue": "T6", # Or your designated venue
+        "Faculty": "Ashwini Awasthi"
     }
 ]
