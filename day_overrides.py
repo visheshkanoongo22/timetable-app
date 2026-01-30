@@ -61,6 +61,32 @@ DAY_SPECIFIC_OVERRIDES = {
         "PPC(B)": {'Venue': '216'},
         "SNA":    {'Venue': '216'},
         "MC":     {'Venue': 'E1'}
+    },
+    # CRM Postponement
+    date(2026, 2, 6): {
+        "CRM": {"Venue": "POSTPONED"}
+    },
+
+    # IGR&MC Postponements
+    date(2026, 2, 18): {
+        "IGR&MC": {"Venue": "POSTPONED"}
+    },
+    date(2026, 3, 11): {
+        "IGR&MC": {"Venue": "CANCELLED"}
+    },
+    date(2026, 3, 18): {
+        "IGR&MC": {"Venue": "CANCELLED"}
+    },
+
+    # PPC Preponements (20 Feb)
+    date(2026, 2, 20): {
+        "PPC(B)": {"Venue": "PREPONED"},
+        "PPC(C)": {"Venue": "PREPONED"}
+    },
+
+    # PPC Preponement (20 Mar)
+    date(2026, 3, 20): {
+        "PPC(B)": {"Venue": "PREPONED"}
     }
 
 }
