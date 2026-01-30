@@ -64,7 +64,7 @@ DAY_SPECIFIC_OVERRIDES = {
     },
 
     date(2026, 1, 30): {
-        "MC": {"Venue": "214"}
+        "MC": {"Venue": "POSTPONED"}
     },
 
     # CRM Postponement
