@@ -57,5 +57,63 @@ ADDITIONAL_CLASSES = [
         "Time": "07:20-08:20PM",
         "Venue": "T6", # Or your designated venue
         "Faculty": "Ashwini Awasthi"
+    },
+    # --- CRM Changes ---
+    {
+        "Subject": "CRM",
+        "Date": date(2026, 2, 20),
+        "Time": "03:50-04:50PM",
+        "Venue": "T6", 
+        "Faculty": "T. S. Joshi" 
+    },
+
+    # --- IGR&MC Changes ---
+    {
+        "Subject": "IGR&MC",
+        "Date": date(2026, 2, 20),
+        "Time": "05:00-06:00PM",
+        "Venue": "T6", 
+        "Faculty": "Somayya Madakkam"
+    },
+    # 13th March Double Session (Split into two)
+    {
+        "Subject": "IGR&MC",
+        "Date": date(2026, 3, 13),
+        "Time": "03:50-04:50PM",
+        "Venue": "T6", 
+        "Faculty": "Somayya Madakkam"
+    },
+    {
+        "Subject": "IGR&MC",
+        "Date": date(2026, 3, 13),
+        "Time": "05:00-06:00PM",
+        "Venue": "T6", 
+        "Faculty": "Somayya Madakkam"
+    },
+
+    # --- PPC Changes ---
+    # 18th Feb Sessions
+    {
+        "Subject": "PPC(B)",
+        "Date": date(2026, 2, 18),
+        "Time": "05:00-06:00PM",
+        "Venue": "T3", 
+        "Faculty": "Ritesh Patel" # Assuming Faculty based on previous data
+    },
+    {
+        "Subject": "PPC(C)",
+        "Date": date(2026, 2, 18),
+        "Time": "06:10-07:10PM",
+        "Venue": "T3", 
+        "Faculty": "Ritesh Patel"
+    },
+    # 18th March Session
+    {
+        "Subject": "PPC(B)",
+        "Date": date(2026, 3, 18),
+        "Time": "05:00-06:00PM",
+        "Venue": "T3", 
+        "Faculty": "Ritesh Patel"
     }
+
 ]
