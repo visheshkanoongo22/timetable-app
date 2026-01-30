@@ -7,21 +7,33 @@ from collections import defaultdict
 import gc
 from ics import Calendar, Event
 
-# --- OPTIONAL IMPORTS ---
+import importlib
+
+# --- DYNAMIC DATA LOADING (HOT RELOAD) ---
+# We use importlib to force Python to re-read these files every time the app updates.
+# This allows you to change the schedule in the background without rebooting.
+
 try:
-    from day_overrides import DAY_SPECIFIC_OVERRIDES
+    import day_overrides
+    importlib.reload(day_overrides) # <--- Force Reload
+    DAY_SPECIFIC_OVERRIDES = day_overrides.DAY_SPECIFIC_OVERRIDES
 except ImportError:
     DAY_SPECIFIC_OVERRIDES = {}
 
 try:
-    from additional_classes import ADDITIONAL_CLASSES
+    import additional_classes
+    importlib.reload(additional_classes) # <--- Force Reload
+    ADDITIONAL_CLASSES = additional_classes.ADDITIONAL_CLASSES
 except ImportError:
     ADDITIONAL_CLASSES = []
 
 try:
-    from mess_menu import MESS_MENU
+    import mess_menu
+    importlib.reload(mess_menu) # <--- Force Reload
+    MESS_MENU = mess_menu.MESS_MENU
 except ImportError:
     MESS_MENU = {}
+
 
 # --- CONFIGURATION ---
 TIMEZONE = 'Asia/Kolkata'
