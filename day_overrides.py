@@ -63,7 +63,7 @@ DAY_SPECIFIC_OVERRIDES = {
         "MC":     {'Venue': 'E1'}
     },
 
-    date(2026, 2, 6): {
+    date(2026, 1, 30): {
         "MC": {"Venue": "214"}
     },
 
