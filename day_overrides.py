@@ -80,13 +80,13 @@ DAY_SPECIFIC_OVERRIDES = {
 
     # PPC Preponements (20 Feb)
     date(2026, 2, 20): {
-        "PPC(B)": {"Venue": "PREPONED"},
-        "PPC(C)": {"Venue": "PREPONED"}
+        "PPC(B)": {"Venue": "CANCELLED"},
+        "PPC(C)": {"Venue": "CANCELLED"}
     },
 
     # PPC Preponement (20 Mar)
     date(2026, 3, 20): {
-        "PPC(B)": {"Venue": "PREPONED"}
+        "PPC(B)": {"Venue": "CANCELLED"}
     }
 
 }
