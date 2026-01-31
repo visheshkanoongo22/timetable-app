@@ -78,9 +78,18 @@ DAY_SPECIFIC_OVERRIDES = {
 
     # CRM Postponement
     date(2026, 2, 6): {
-        "CRM": {"Venue": "POSTPONED"}
+        "CRM": {"Venue": "POSTPONED"},
+        "M&A(A)": {"Venue": "POSTPONED"},
+        "M&A(B)": {"Venue": "POSTPONED"},
+        "M&A(C)": {"Venue": "POSTPONED"}
     },
-
+    # --- M&A Postponements (Feb 4 & Feb 6) ---
+    date(2026, 2, 4): {
+        "M&A(A)": {"Venue": "POSTPONED"},
+        "M&A(B)": {"Venue": "POSTPONED"},
+        "M&A(C)": {"Venue": "POSTPONED"}
+    },
+   
     # IGR&MC Postponements
     date(2026, 2, 18): {
         "IGR&MC": {"Venue": "POSTPONED"}
