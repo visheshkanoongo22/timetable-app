@@ -55,8 +55,8 @@ DAY_SPECIFIC_OVERRIDES = {
         "PS&PS": {"Venue": "POSTPONED"} 
     },
 
-    date(2026, 1, 29): {
-        "PPC(C)": {'Venue': 'T7'},
+   date(2026, 1, 29): {
+        "PPC('C)": {'Venue': 'T7'},
         "PPC(A)": {'Venue': '216'},
         "PPC(B)": {'Venue': '216'},
         "SNA":    {'Venue': '216'},
@@ -88,6 +88,12 @@ DAY_SPECIFIC_OVERRIDES = {
         "PS&PS": {"Venue": "E3"}
     },
 
+
+   date(2026, 2, 3): {
+        "PPC('C)": {'Venue': '216'},
+        "PPC(A)": {'Venue': '216'},
+        "PPC(B)": {'Venue': '216'},
+    },
 
     # --- M&A Postponements (Feb 4 & Feb 6) ---
     date(2026, 2, 4): {
