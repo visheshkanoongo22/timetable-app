@@ -93,6 +93,8 @@ DAY_SPECIFIC_OVERRIDES = {
         "PPC('C)": {'Venue': '216'},
         "PPC(A)": {'Venue': '216'},
         "PPC(B)": {'Venue': '216'},
+        "IF(A)": {'Venue': 'E3'},
+        "IGR&MC": {'Venue': 'E3'},
     },
 
     # --- M&A Postponements (Feb 4 & Feb 6) ---
