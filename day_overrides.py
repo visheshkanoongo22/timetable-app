@@ -100,9 +100,16 @@ DAY_SPECIFIC_OVERRIDES = {
     # --- M&A Postponements (Feb 4 & Feb 6) ---
     date(2026, 2, 4): {
         "M&A(A)": {"Venue": "POSTPONED"},
-        "M&A(B)": {"Venue": "POSTPONED"},
-        "M&A(C)": {"Venue": "POSTPONED"}
+        "M&A(C)": {"Venue": "POSTPONED"},
+        "M&A(B)": {"Venue": "T4"},
+        "MA":     {"Venue": "T1"},
+        "IGR&MC": {"Venue": "E3"},
+        "IM":     {"Venue": "T1"},
+        "PRM(A)": {"Venue": "T1"},
+        "PRM(B)": {"Venue": "T1"}
     },
+
+
    
     # IGR&MC Postponements
     date(2026, 2, 18): {
