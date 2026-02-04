@@ -109,6 +109,11 @@ DAY_SPECIFIC_OVERRIDES = {
         "PRM(B)": {"Venue": "T1"}
     },
 
+    date(2026, 2, 5): {
+        "RURMKT(A)": {"Venue": "T1"},
+        "RURMKT(B)": {"Venue": "T3", "Time": '8-9AM'}
+    },
+
 
    
     # IGR&MC Postponements
