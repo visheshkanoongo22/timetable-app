@@ -112,8 +112,8 @@ DAY_SPECIFIC_OVERRIDES = {
     date(2026, 2, 5): {
         "RURMKT(A)": {"Venue": "T1"},
         "RURMKT(B)": {"Venue": "T3", "Time": '8-9AM'},
-        "PPC(A)": {"Venue": "T6"},
-        "PPC(B)": {"Venue": "T6"},
+        "PPC(A)": {"Venue": "T7"},
+        "PPC(B)": {"Venue": "T7"},
         "IF(A)":  {"Venue": "T3"},
         "IGR&MC": {"Venue": "E3"}
     },
