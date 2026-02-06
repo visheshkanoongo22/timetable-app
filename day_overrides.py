@@ -118,6 +118,11 @@ DAY_SPECIFIC_OVERRIDES = {
         "IGR&MC": {"Venue": "E3"}
     },
 
+    date(2026, 2, 7): {
+        "RUR.MKT(A)": {"Venue": "T3"},
+        "RUR.MKT(B)": {"Venue": "T3"},
+        "PPC(C)":     {"Venue": "T6"}
+    },
 
    
     # IGR&MC Postponements
