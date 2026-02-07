@@ -123,6 +123,13 @@ DAY_SPECIFIC_OVERRIDES = {
         "RUR.MKT(B)": {"Venue": "T3"},
         "PPC(C)":     {"Venue": "T6"}
     },
+
+    date(2026, 2, 9): {
+        "FT(A)": {"Venue": "T4"},
+        "FT(B)": {"Venue": "T4"}
+    },
+
+
     date(2026, 2, 11): {
         "D&IT": {"Venue": "CANCELLED"}
     },
