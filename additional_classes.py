@@ -66,6 +66,20 @@ ADDITIONAL_CLASSES = [
         "Venue": "T6", 
         "Faculty": "T. S. Joshi" 
     },
+    {
+        "Subject": "D&IT",
+        "Date": date(2026, 2, 11),
+        "Time": "06:10-07:10PM",
+        "Venue": "T6",
+        "Faculty": "Dhaval Patanvadia"
+    },
+    {
+        "Subject": "D&IT",
+        "Date": date(2026, 2, 11),
+        "Time": "07:20-08:20PM",
+        "Venue": "T6",
+        "Faculty": "Dhaval Patanvadia"
+    },
 
     # --- IGR&MC Changes ---
     {
