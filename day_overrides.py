@@ -124,7 +124,7 @@ DAY_SPECIFIC_OVERRIDES = {
         "PPC(C)":     {"Venue": "T6"}
     },
     date(2026, 2, 11): {
-        "D&IT": {"Venue": "POSTPONED"}
+        "D&IT": {"Venue": "CANCELLED"}
     },
 
    
