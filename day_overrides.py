@@ -134,6 +134,10 @@ DAY_SPECIFIC_OVERRIDES = {
         "D&IT": {"Venue": "CANCELLED"}
     },
 
+    date(2026, 2, 12): {
+        "RURMKT(A)": {"Venue": "T1"},
+        "RURMKT(B)": {"Venue": "T1"}
+    },
    
     # IGR&MC Postponements
     date(2026, 2, 18): {
