@@ -55,6 +55,7 @@ local_css_string = """
     }
     [data-testid="stHeader"] { display: none; visibility: hidden; height: 0; }
     
+    /* Standard padding for dashboard */
     div.block-container {
         padding-top: 2rem !important;
         padding-bottom: 5rem !important;
@@ -74,7 +75,7 @@ local_css_string = """
     
     .main-header { font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; line-height: 1.2; }
     .header-sub { text-align:center; color:var(--muted); margin-top:0rem; margin-bottom:1.5rem; font-size:0.95rem; }
-    div.stCaption { text-align: center !important; margin-top: 2rem; }
+    div.stCaption { text-align: center !important; margin-top: 1rem; } /* Reduced margin */
 
     .welcome-message { 
         margin-top: 0rem; 
@@ -408,30 +409,6 @@ def generate_ics_safe(classes):
         except: continue
     return c.serialize()
 
-# --- MESS MENU ---
-def render_mess_menu():
-    if not MESS_MENU: return
-    today = get_ist_today()
-    week_dates = [today + timedelta(days=i) for i in range(7)]
-    valid_dates = [d for d in week_dates if d in MESS_MENU]
-    if not valid_dates: return
-
-    with st.expander("🍽️ Mess Menu for the Week", expanded=False):
-        opts = [d.strftime("%d %b") + (" (Today)" if d == today else "") for d in valid_dates]
-        sel = st.radio("Select a day:", opts, index=0, horizontal=True)
-        sel_date = valid_dates[opts.index(sel)]
-        data = MESS_MENU[sel_date]
-        def fmt(txt):
-            if not txt or str(txt).lower() == 'nan': return "-"
-            items = [i.strip() for i in str(txt).split('*') if i.strip()]
-            return "\n".join([f"- {i}" for i in items])
-        st.markdown(f"**Menu for {sel_date.strftime('%d %B %Y')}**")
-        c1, c2, c3, c4 = st.columns(4)
-        with c1: st.markdown('<div class="menu-header">Breakfast</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Breakfast')))
-        with c2: st.markdown('<div class="menu-header">Lunch</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Lunch')))
-        with c3: st.markdown('<div class="menu-header">Hi-Tea</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Hi-Tea')))
-        with c4: st.markdown('<div class="menu-header">Dinner</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Dinner')))
-
 # --- FEEDBACK SYSTEM ---
 def save_feedback(name, message):
     entry = {
@@ -475,16 +452,27 @@ if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 
 # --- PART A: LANDING PAGE ---
 if not st.session_state.submitted:
+    # 1. Reset Padding to standard for Top Button
     st.markdown("""
     <style>
     div.block-container {
         display: block !important;
-        padding-top: 20vh !important;
+        padding-top: 3rem !important; 
         padding-bottom: 5rem !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
+    # 2. Top Left Feedback Button
+    c_btn, c_empty = st.columns([1.5, 3]) # Adjust ratio for button width
+    with c_btn:
+        if st.button("❤️ Feedback / Love"):
+            open_feedback_dialog()
+
+    # 3. Spacer to push content down to center (Visual Centering)
+    st.markdown("<div style='height: 12vh'></div>", unsafe_allow_html=True)
+
+    # 4. Main Content
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
     
@@ -501,9 +489,7 @@ if not st.session_state.submitted:
 
     render_mess_menu()
     
-    st.markdown("---")
-    if st.button("❤️ Leave a feedback / Appreciation"):
-        open_feedback_dialog()
+    # NO EXTRA BUTTON AT BOTTOM. NO GAP.
 
 # --- PART B: DASHBOARD PAGE ---
 else:
@@ -635,8 +621,8 @@ else:
                     is_canc = "CANCELLED" in ven_up or "CANCELLED" in fac_up
                     is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
                     is_prep = "PREPONED" in ven_up or "PREPONED" in fac_up
-                    status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
-                    ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
+                    status_cls = "strikethrough" if (is_canc or is_post) else ""
+                    ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
                     row_status_class = "status-future"
                     if is_today:
@@ -645,10 +631,6 @@ else:
                     rows_html += f"""<div class="class-row {row_status_class}"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
             
             st.markdown(f"""<div class="day-card {today_cls}">{badge_html}<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("❤️ Leave a feedback / Appreciation", key="dashboard_feedback"):
-        open_feedback_dialog()
 
 st.markdown("---")
 st.caption("_Made by [Vishesh](https://www.linkedin.com/in/vishesh-kanoongo-8b192433b)_")
