@@ -1,43 +1,41 @@
 import streamlit as st
 import json
 import re
+import os
+import time
 from datetime import datetime, date, timedelta
 import pytz
 from collections import defaultdict
 import gc
 from ics import Calendar, Event
-
 import importlib
 
 # --- DYNAMIC DATA LOADING (HOT RELOAD) ---
-# We use importlib to force Python to re-read these files every time the app updates.
-# This allows you to change the schedule in the background without rebooting.
-
 try:
     import day_overrides
-    importlib.reload(day_overrides) # <--- Force Reload
+    importlib.reload(day_overrides)
     DAY_SPECIFIC_OVERRIDES = day_overrides.DAY_SPECIFIC_OVERRIDES
 except ImportError:
     DAY_SPECIFIC_OVERRIDES = {}
 
 try:
     import additional_classes
-    importlib.reload(additional_classes) # <--- Force Reload
+    importlib.reload(additional_classes)
     ADDITIONAL_CLASSES = additional_classes.ADDITIONAL_CLASSES
 except ImportError:
     ADDITIONAL_CLASSES = []
 
 try:
     import mess_menu
-    importlib.reload(mess_menu) # <--- Force Reload
+    importlib.reload(mess_menu)
     MESS_MENU = mess_menu.MESS_MENU
 except ImportError:
     MESS_MENU = {}
 
-
 # --- CONFIGURATION ---
 TIMEZONE = 'Asia/Kolkata'
 SCHEDULE_END_DATE = "2026-03-25" 
+FEEDBACK_FILE = "feedback_db.json"
 
 # --- CSS STYLING ---
 st.set_page_config(page_title="MBA Timetable", layout="centered", initial_sidebar_state="collapsed")
@@ -57,7 +55,6 @@ local_css_string = """
     }
     [data-testid="stHeader"] { display: none; visibility: hidden; height: 0; }
     
-    /* 1. REMOVE HUGE TOP WHITE SPACE (For Dashboard) */
     div.block-container {
         padding-top: 2rem !important;
         padding-bottom: 5rem !important;
@@ -75,14 +72,10 @@ local_css_string = """
         color: #ffffff; font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     }
     
-    /* UTILS & ALIGNMENT */
     .main-header { font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; line-height: 1.2; }
     .header-sub { text-align:center; color:var(--muted); margin-top:0rem; margin-bottom:1.5rem; font-size:0.95rem; }
-    
-    /* Center the Footer */
     div.stCaption { text-align: center !important; margin-top: 2rem; }
 
-    /* WELCOME MESSAGE SPACING */
     .welcome-message { 
         margin-top: 0rem; 
         margin-bottom: 0.5rem; 
@@ -91,15 +84,13 @@ local_css_string = """
     }
     .welcome-message strong { color: #ffffff; }
 
-    /* INPUTS */
     .stTextInput>div>div>input {
         background: rgba(255,255,255,0.02) !important; color: #E2E8F0 !important;
         border: 1px solid rgba(255,255,255,0.06) !important; padding: 0.6rem !important; border-radius: 8px !important;
-        text-align: left; /* Left Aligned Text */
+        text-align: left;
     }
     .stTextInput label { display: flex; justify-content: flex-start; width: 100%; }
 
-    /* BUTTONS */
     .stButton>button {
         width: 100%; border-radius: 8px; font-weight: 600;
         background-color: #0F172A !important; color: #FFFFFF !important; 
@@ -109,7 +100,6 @@ local_css_string = """
     }
     .stButton>button:hover { border-color: #60A5FA !important; color: #60A5FA !important; }
 
-    /* CARD DESIGN - COMPACT */
     .day-card {
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
         border-radius: 14px; 
@@ -135,7 +125,6 @@ local_css_string = """
         border-bottom: 1px solid rgba(255,255,255,0.05); 
     }
 
-    /* COMPACT CLASS ROW */
     .class-row {
         display: flex; 
         align-items: center; 
@@ -148,21 +137,19 @@ local_css_string = """
         transition: all 0.3s ease;
     }
     
-    /* --- STATUS STYLES (NO DIMMING) --- */
     .class-row.status-past {
-        border-left: 3px solid #EF4444; /* Red */
+        border-left: 3px solid #EF4444; 
         background: linear-gradient(90deg, rgba(239, 68, 68, 0.05), rgba(239, 68, 68, 0.01));
     }
     .class-row.status-ongoing {
-        border-left: 3px solid #EAB308; /* Yellow */
+        border-left: 3px solid #EAB308; 
         background: linear-gradient(90deg, rgba(234, 179, 8, 0.15), rgba(234, 179, 8, 0.05));
         box-shadow: 0 0 15px rgba(234, 179, 8, 0.15);
     }
     .class-row.status-future {
-        border-left: 3px solid #22C55E; /* Green */
+        border-left: 3px solid #22C55E; 
         background: linear-gradient(90deg, rgba(34, 197, 94, 0.05), rgba(34, 197, 94, 0.01));
     }
-    /* -------------------- */
 
     .class-info-left {
         display: flex; 
@@ -195,11 +182,8 @@ local_css_string = """
     .session-num { font-size: 1.1rem; font-weight: 800; color: #60A5FA; line-height: 1; }
     .session-label { font-size: 0.55rem; text-transform: uppercase; color: #94A3B8; letter-spacing: 0.5px; margin-top: 2px; }
 
-    /* STATES */
     .strikethrough { text-decoration: line-through; opacity: 0.5; }
     .venue-changed { color: #F87171 !important; font-weight: 700; }
-    
-    /* MENU */
     .menu-header { color: #38BDF8; font-weight: bold; text-transform: uppercase; font-size: 0.85em; margin-bottom: 4px; }
     
     @media (max-width: 600px) {
@@ -249,14 +233,11 @@ def get_class_status(time_str):
             h = int(nums[0])
             m = int(nums[1]) if len(nums) > 1 else 0
             
-            # IMPROVED PM LOGIC
             is_pm = "PM" in t_raw
             is_am = "AM" in t_raw
             
-            # If explicit PM is present, use it
             if is_pm:
                 if h != 12: h += 12
-            # Else fallback to heuristic (Small hours = PM)
             elif h < 8: 
                 h += 12 
             elif h == 12 and is_am: 
@@ -308,56 +289,42 @@ def get_hybrid_schedule(roll_no):
 
     all_term_classes = []
     
-    # 2. Gather ALL classes
     for cls in base_schedule:
-        # RAW Subject from DB
         subj_raw = cls['Subject']
         subj_upper = subj_raw.upper()
         raw_disp = cls.get('DisplaySubject', '').upper()
         
-        # 1. Determine if this subject is relevant to the student
         norm_subj = normalize(subj_raw)
         is_my_subject = norm_subj in my_subjects
         
-        # 2. Check MC Variants (Space Insensitive)
         subj_clean = subj_raw.replace(" ", "").upper()
         is_mc_ab = "MC(AB)" in subj_clean
         is_mc_as = "MC(AS)" in subj_clean
         is_mc_rk = "MC(RK)" in subj_clean
         is_mc_variant = is_mc_ab or is_mc_as or is_mc_rk
         
-        # If student has "MC" in their list, and this is a variant, allow it
         if "MC" in my_subjects and is_mc_variant:
             is_my_subject = True
             
         if not is_my_subject: continue
 
-        # 3. Create Class Object
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
         details = {'Venue': cls['Venue'], 'Faculty': cls['Faculty'], 'Time': cls['Time'], 'Override': False}
         
         cls_obj = cls.copy()
         
-        # 4. Apply MC Special Logic (Overrides)
         if is_mc_variant:
-            # Force Subject Name to MC for grouping
             cls_obj['DisplaySubject'] = "MC" 
             cls_obj['Subject'] = "MC" 
-            
-            # Force Faculty Name
             if is_mc_as: details['Faculty'] = "Arvind Singh"
             elif is_mc_ab: details['Faculty'] = "Anupam Bhatnagar"
             elif is_mc_rk: details['Faculty'] = "Rajesh Kikani"
         else:
-            # For non-MC classes, ensure DisplaySubject exists
-            if 'DisplaySubject' not in cls_obj:
-                cls_obj['DisplaySubject'] = cls_obj['Subject']
+            if 'DisplaySubject' not in cls_obj: cls_obj['DisplaySubject'] = cls_obj['Subject']
 
-        # 5. Apply Day Overrides
         if d_obj in DAY_SPECIFIC_OVERRIDES:
             day_ov = DAY_SPECIFIC_OVERRIDES[d_obj]
             for ov_subj, ov_data in day_ov.items():
-                # Check against the Normalized Subject
                 current_subj_norm = normalize(cls_obj['Subject'])
                 if normalize(ov_subj) == current_subj_norm:
                     if ov_data.get('Target_Time', cls['Time']) == cls['Time']:
@@ -367,7 +334,6 @@ def get_hybrid_schedule(roll_no):
         cls_obj.update(details)
         all_term_classes.append(cls_obj)
 
-    # 3. Add Additional Classes
     for ac in ADDITIONAL_CLASSES:
         norm_subj = normalize(ac['Subject'])
         if norm_subj in my_subjects:
@@ -381,10 +347,8 @@ def get_hybrid_schedule(roll_no):
                 "Override": True
             })
 
-    # 4. Sort Chronologically
     all_term_classes.sort(key=lambda x: (x['Date'], get_sort_key(x['Time'])))
 
-    # 5. Assign Session Numbers
     subject_counters = defaultdict(int)
     final_processed_classes = []
     
@@ -468,20 +432,54 @@ def render_mess_menu():
         with c3: st.markdown('<div class="menu-header">Hi-Tea</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Hi-Tea')))
         with c4: st.markdown('<div class="menu-header">Dinner</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Dinner')))
 
+# --- FEEDBACK SYSTEM ---
+def save_feedback(name, message):
+    entry = {
+        "timestamp": datetime.now(pytz.timezone(TIMEZONE)).strftime("%Y-%m-%d %H:%M:%S"),
+        "name": name,
+        "message": message
+    }
+    
+    data = []
+    if os.path.exists(FEEDBACK_FILE):
+        try:
+            with open(FEEDBACK_FILE, "r") as f:
+                data = json.load(f)
+        except: pass
+    
+    data.append(entry)
+    
+    with open(FEEDBACK_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
+@st.dialog("❤️ Send Appreciation")
+def open_feedback_dialog():
+    st.write("If this app made your MBA life a little easier, I'd love to hear about it!")
+    name = st.text_input("Your Name", placeholder="Optional")
+    msg = st.text_area("Your Message", placeholder="Write something nice...", height=150)
+    
+    if st.button("Submit Feedback", type="primary"):
+        if msg.strip():
+            save_feedback(name if name else "Anonymous", msg)
+            st.success("Thank you! Your message reached me.")
+            st.balloons()
+            time.sleep(2)
+            st.rerun()
+        else:
+            st.warning("Please write a message first.")
+
 # --- UI CONTROLLER ---
 
 if 'submitted' not in st.session_state: st.session_state.submitted = False
 if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 
-# --- PART A: LANDING PAGE (VISUALLY CENTERED - SCROLLABLE) ---
+# --- PART A: LANDING PAGE ---
 if not st.session_state.submitted:
-    # Key Fix: Use display: block with padding-top instead of Flexbox centering
-    # This ensures the page extends normally when content (like Mess Menu) expands.
     st.markdown("""
     <style>
     div.block-container {
         display: block !important;
-        padding-top: 20vh !important; /* Push content down for visual center */
+        padding-top: 20vh !important;
         padding-bottom: 5rem !important;
     }
     </style>
@@ -502,10 +500,13 @@ if not st.session_state.submitted:
             st.rerun()
 
     render_mess_menu()
+    
+    st.markdown("---")
+    if st.button("❤️ Leave a feedback / Appreciation"):
+        open_feedback_dialog()
 
 # --- PART B: DASHBOARD PAGE ---
 else:
-    # Reset padding for dashboard view
     st.markdown("""
     <style>
     div.block-container {
@@ -515,6 +516,24 @@ else:
     }
     </style>
     """, unsafe_allow_html=True)
+    
+    # ADMIN VIEW TRAPDOOR
+    if st.session_state.roll_number == "ADMIN_VIEW":
+        st.title("💌 Appreciation Messages")
+        if os.path.exists(FEEDBACK_FILE):
+            with open(FEEDBACK_FILE, "r") as f:
+                msgs = json.load(f)
+            
+            for m in reversed(msgs):
+                st.info(f"**{m['name']}** ({m['timestamp']})\n\n{m['message']}")
+        else:
+            st.write("No messages yet.")
+            
+        if st.button("Back to Home"):
+            st.session_state.submitted = False
+            st.session_state.roll_number = ""
+            st.rerun()
+        st.stop()
 
     roll = st.session_state.roll_number
     
@@ -539,7 +558,6 @@ else:
             st.session_state.submitted = False
             st.rerun()
     else:
-        # ICS Download
         ics_str = generate_ics_safe(all_classes_processed)
         sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(db_key).replace(" ", "_")).upper()
         with st.expander("Download & Import to Calendar"):
@@ -558,7 +576,6 @@ else:
         today_obj = get_ist_today()
         today_str = today_obj.strftime("%Y-%m-%d")
         
-        # --- PAST CLASSES ---
         past_dates = sorted([d for d in schedule_by_date.keys() if d < today_str], reverse=True)
         with st.expander("Show Previous Classes"):
             q = st.text_input("Search past classes...").lower()
@@ -582,14 +599,12 @@ else:
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
                     
-                    # FORCE RED STATUS for past lists
                     rows_html += f"""<div class="class-row status-past"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
                 
                 st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj_past.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
             if not found_any and q: st.warning("No matches found.")
 
-        # --- UPCOMING CLASSES ---
         st.markdown('<div id="upcoming-anchor"></div>', unsafe_allow_html=True)
         
         end_date_obj = datetime.strptime(SCHEDULE_END_DATE, "%Y-%m-%d").date()
@@ -620,8 +635,8 @@ else:
                     is_canc = "CANCELLED" in ven_up or "CANCELLED" in fac_up
                     is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
                     is_prep = "PREPONED" in ven_up or "PREPONED" in fac_up
-                    status_cls = "strikethrough" if (is_canc or is_post) else ""
-                    ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
+                    status_cls = "strikethrough" if (is_canc or is_post or is_prep) else ""
+                    ven_cls = "venue-changed" if (is_canc or is_post or is_prep or c['Override']) else "venue"
                     
                     row_status_class = "status-future"
                     if is_today:
@@ -630,6 +645,10 @@ else:
                     rows_html += f"""<div class="class-row {row_status_class}"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
             
             st.markdown(f"""<div class="day-card {today_cls}">{badge_html}<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("❤️ Leave a feedback / Appreciation", key="dashboard_feedback"):
+        open_feedback_dialog()
 
 st.markdown("---")
 st.caption("_Made by [Vishesh](https://www.linkedin.com/in/vishesh-kanoongo-8b192433b)_")
