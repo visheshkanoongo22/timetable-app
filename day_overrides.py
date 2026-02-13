@@ -143,6 +143,17 @@ DAY_SPECIFIC_OVERRIDES = {
         "PRM(A)": {"Venue": "T3"},
         "MA": {"Venue": "T1"}
     },
+
+    date(2026, 2, 16): {
+        "D&IT":   {"Venue": "T1"},
+        "IM":     {"Venue": "T1"},
+        "MA":     {"Venue": "T1"},
+        "MS(B)":  {"Venue": "T1"},
+        "PRM(A)": {"Venue": "T1"},
+        "PRM(B)": {"Venue": "T3"},
+        "PS&PS":  {"Venue": "E2"}
+    },
+
    
     # IGR&MC Postponements
     date(2026, 2, 18): {
