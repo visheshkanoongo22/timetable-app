@@ -9,6 +9,7 @@ from collections import defaultdict
 import gc
 from ics import Calendar, Event
 import importlib
+import requests  # <--- Added for sending emails
 
 # --- DYNAMIC DATA LOADING (HOT RELOAD) ---
 try:
@@ -35,7 +36,6 @@ except ImportError:
 # --- CONFIGURATION ---
 TIMEZONE = 'Asia/Kolkata'
 SCHEDULE_END_DATE = "2026-03-25" 
-FEEDBACK_FILE = "feedback_db.json"
 
 # --- CSS STYLING ---
 st.set_page_config(page_title="MBA Timetable", layout="centered", initial_sidebar_state="collapsed")
@@ -55,6 +55,7 @@ local_css_string = """
     }
     [data-testid="stHeader"] { display: none; visibility: hidden; height: 0; }
     
+    /* Standard padding for dashboard */
     div.block-container {
         padding-top: 2rem !important;
         padding-bottom: 5rem !important;
@@ -74,7 +75,7 @@ local_css_string = """
     
     .main-header { font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; line-height: 1.2; }
     .header-sub { text-align:center; color:var(--muted); margin-top:0rem; margin-bottom:1.5rem; font-size:0.95rem; }
-    div.stCaption { text-align: center !important; margin-top: 1rem; }
+    div.stCaption { text-align: center !important; margin-top: 1rem; } 
 
     .welcome-message { 
         margin-top: 0rem; 
@@ -233,7 +234,6 @@ def get_class_status(time_str):
             h = int(nums[0])
             m = int(nums[1]) if len(nums) > 1 else 0
             
-            # IMPROVED PM LOGIC
             is_pm = "PM" in t_raw
             is_am = "AM" in t_raw
             
@@ -433,25 +433,25 @@ def render_mess_menu():
         with c3: st.markdown('<div class="menu-header">Hi-Tea</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Hi-Tea')))
         with c4: st.markdown('<div class="menu-header">Dinner</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Dinner')))
 
-# --- FEEDBACK SYSTEM ---
+# --- FEEDBACK SYSTEM (VIA EMAIL) ---
 def save_feedback(name, message):
-    entry = {
-        "timestamp": datetime.now(pytz.timezone(TIMEZONE)).strftime("%Y-%m-%d %H:%M:%S"),
+    # Sends to Formspree which forwards to your email
+    FORMSPREE_URL = "https://formspree.io/f/xvzbkdgy"
+    
+    data = {
         "name": name,
-        "message": message
+        "message": message,
+        "timestamp": datetime.now(pytz.timezone(TIMEZONE)).strftime("%Y-%m-%d %H:%M:%S")
     }
     
-    data = []
-    if os.path.exists(FEEDBACK_FILE):
-        try:
-            with open(FEEDBACK_FILE, "r") as f:
-                data = json.load(f)
-        except: pass
-    
-    data.append(entry)
-    
-    with open(FEEDBACK_FILE, "w") as f:
-        json.dump(data, f, indent=4)
+    try:
+        response = requests.post(FORMSPREE_URL, json=data)
+        if response.status_code == 200:
+            return True
+        else:
+            return False
+    except:
+        return False
 
 @st.dialog("❤️ Send Appreciation")
 def open_feedback_dialog():
@@ -461,11 +461,16 @@ def open_feedback_dialog():
     
     if st.button("Submit Feedback", type="primary"):
         if msg.strip():
-            save_feedback(name if name else "Anonymous", msg)
-            st.success("Thank you! Your message reached me.")
-            st.balloons()
-            time.sleep(2)
-            st.rerun()
+            with st.spinner("Sending..."):
+                success = save_feedback(name if name else "Anonymous", msg)
+            
+            if success:
+                st.success("Thank you! Your message has been sent to me.")
+                st.balloons()
+                time.sleep(2)
+                st.rerun()
+            else:
+                st.error("Something went wrong sending the message. Please try again.")
         else:
             st.warning("Please write a message first.")
 
@@ -489,7 +494,7 @@ if not st.session_state.submitted:
     # Top Left Feedback Button
     c_btn, c_empty = st.columns([1.5, 3])
     with c_btn:
-        if st.button("❤️ Feedback"):
+        if st.button("❤️ Feedback / Love"):
             open_feedback_dialog()
 
     st.markdown("<div style='height: 12vh'></div>", unsafe_allow_html=True)
@@ -522,23 +527,6 @@ else:
     </style>
     """, unsafe_allow_html=True)
     
-    if st.session_state.roll_number == "ADMIN_VIEW":
-        st.title("💌 Appreciation Messages")
-        if os.path.exists(FEEDBACK_FILE):
-            with open(FEEDBACK_FILE, "r") as f:
-                msgs = json.load(f)
-            
-            for m in reversed(msgs):
-                st.info(f"**{m['name']}** ({m['timestamp']})\n\n{m['message']}")
-        else:
-            st.write("No messages yet.")
-            
-        if st.button("Back to Home"):
-            st.session_state.submitted = False
-            st.session_state.roll_number = ""
-            st.rerun()
-        st.stop()
-
     roll = st.session_state.roll_number
     
     c1, c2 = st.columns([3, 1], gap="small")
