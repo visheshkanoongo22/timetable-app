@@ -2,3 +2,4 @@ streamlit
 ics
 streamlit-keyup
 extra_streamlit_components
+requests
