@@ -151,7 +151,8 @@ DAY_SPECIFIC_OVERRIDES = {
         "MS(B)":  {"Venue": "T1"},
         "PRM(A)": {"Venue": "T1"},
         "PRM(B)": {"Venue": "T3"},
-        "PS&PS":  {"Venue": "E2"}
+        "PS&PS":  {"Venue": "E2"},
+        "MS(D)":  {"Venue": "POSTPONED"}
     },
 
    
