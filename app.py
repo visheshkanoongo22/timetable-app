@@ -55,7 +55,6 @@ local_css_string = """
     }
     [data-testid="stHeader"] { display: none; visibility: hidden; height: 0; }
     
-    /* Standard padding for dashboard */
     div.block-container {
         padding-top: 2rem !important;
         padding-bottom: 5rem !important;
@@ -75,7 +74,7 @@ local_css_string = """
     
     .main-header { font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; line-height: 1.2; }
     .header-sub { text-align:center; color:var(--muted); margin-top:0rem; margin-bottom:1.5rem; font-size:0.95rem; }
-    div.stCaption { text-align: center !important; margin-top: 1rem; } /* Reduced margin */
+    div.stCaption { text-align: center !important; margin-top: 1rem; }
 
     .welcome-message { 
         margin-top: 0rem; 
@@ -234,6 +233,7 @@ def get_class_status(time_str):
             h = int(nums[0])
             m = int(nums[1]) if len(nums) > 1 else 0
             
+            # IMPROVED PM LOGIC
             is_pm = "PM" in t_raw
             is_am = "AM" in t_raw
             
@@ -409,6 +409,30 @@ def generate_ics_safe(classes):
         except: continue
     return c.serialize()
 
+# --- MESS MENU ---
+def render_mess_menu():
+    if not MESS_MENU: return
+    today = get_ist_today()
+    week_dates = [today + timedelta(days=i) for i in range(7)]
+    valid_dates = [d for d in week_dates if d in MESS_MENU]
+    if not valid_dates: return
+
+    with st.expander("🍽️ Mess Menu for the Week", expanded=False):
+        opts = [d.strftime("%d %b") + (" (Today)" if d == today else "") for d in valid_dates]
+        sel = st.radio("Select a day:", opts, index=0, horizontal=True)
+        sel_date = valid_dates[opts.index(sel)]
+        data = MESS_MENU[sel_date]
+        def fmt(txt):
+            if not txt or str(txt).lower() == 'nan': return "-"
+            items = [i.strip() for i in str(txt).split('*') if i.strip()]
+            return "\n".join([f"- {i}" for i in items])
+        st.markdown(f"**Menu for {sel_date.strftime('%d %B %Y')}**")
+        c1, c2, c3, c4 = st.columns(4)
+        with c1: st.markdown('<div class="menu-header">Breakfast</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Breakfast')))
+        with c2: st.markdown('<div class="menu-header">Lunch</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Lunch')))
+        with c3: st.markdown('<div class="menu-header">Hi-Tea</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Hi-Tea')))
+        with c4: st.markdown('<div class="menu-header">Dinner</div>', unsafe_allow_html=True); st.markdown(fmt(data.get('Dinner')))
+
 # --- FEEDBACK SYSTEM ---
 def save_feedback(name, message):
     entry = {
@@ -452,7 +476,6 @@ if 'roll_number' not in st.session_state: st.session_state.roll_number = ""
 
 # --- PART A: LANDING PAGE ---
 if not st.session_state.submitted:
-    # 1. Reset Padding to standard for Top Button
     st.markdown("""
     <style>
     div.block-container {
@@ -463,16 +486,14 @@ if not st.session_state.submitted:
     </style>
     """, unsafe_allow_html=True)
 
-    # 2. Top Left Feedback Button
-    c_btn, c_empty = st.columns([1.5, 3]) # Adjust ratio for button width
+    # Top Left Feedback Button
+    c_btn, c_empty = st.columns([1.5, 3])
     with c_btn:
         if st.button("❤️ Feedback / Love"):
             open_feedback_dialog()
 
-    # 3. Spacer to push content down to center (Visual Centering)
     st.markdown("<div style='height: 12vh'></div>", unsafe_allow_html=True)
 
-    # 4. Main Content
     st.markdown('<p class="main-header">MBA Timetable Assistant</p>', unsafe_allow_html=True)
     st.markdown('<div class="header-sub"> Your Term VI Schedule</div>', unsafe_allow_html=True)
     
@@ -488,8 +509,6 @@ if not st.session_state.submitted:
             st.rerun()
 
     render_mess_menu()
-    
-    # NO EXTRA BUTTON AT BOTTOM. NO GAP.
 
 # --- PART B: DASHBOARD PAGE ---
 else:
@@ -503,7 +522,6 @@ else:
     </style>
     """, unsafe_allow_html=True)
     
-    # ADMIN VIEW TRAPDOOR
     if st.session_state.roll_number == "ADMIN_VIEW":
         st.title("💌 Appreciation Messages")
         if os.path.exists(FEEDBACK_FILE):
