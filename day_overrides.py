@@ -157,6 +157,11 @@ DAY_SPECIFIC_OVERRIDES = {
         "MS(D)":  {"Venue": "POSTPONED"}
     },
 
+    date(2026, 2, 17): {
+        "SNA":   {"Venue": "POSTPONED"},
+        "MS(C)": {"Venue": "POSTPONED"}
+    },
+
    
     # IGR&MC Postponements
     date(2026, 2, 18): {
