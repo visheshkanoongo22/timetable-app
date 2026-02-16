@@ -81,6 +81,14 @@ ADDITIONAL_CLASSES = [
         "Faculty": "Dhaval Patanvadia"
     },
 
+    {
+        "Subject": "DIW",
+        "Date": date(2026, 2, 17),
+        "Time": "12:30-01:30PM",
+        "Venue": "T5", 
+        "Faculty": "Nitin Pillai"
+    },
+
     # --- IGR&MC Changes ---
     {
         "Subject": "IGR&MC",
