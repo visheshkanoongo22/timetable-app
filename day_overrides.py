@@ -164,13 +164,27 @@ DAY_SPECIFIC_OVERRIDES = {
         "RUR.MKT(B)": {"Venue": "T1"},
         "PPC(A)": {"Venue": "309-F"},
         "PPC(B)": {"Venue": "309-F"},
-        "PPC(C)": {"Venue": "309-F"}
+        "PPC(C)": {"Venue": "309-F"},
+        "MS(A)": {"Venue": "T1"},
+        "IGR&MC": {"Venue": "T1"}
     },
 
    
     # IGR&MC Postponements
     date(2026, 2, 18): {
-        "IGR&MC": {"Venue": "POSTPONED"}
+        "IGR&MC": {"Venue": "POSTPONED"},
+        # Postponements
+        "M&A(A)": {"Venue": "POSTPONED"},
+        "M&A(B)": {"Venue": "POSTPONED"},
+        "M&A(C)": {"Venue": "POSTPONED"},
+        "MA":     {"Venue": "POSTPONED"},
+        "MS(D)":  {"Venue": "POSTPONED"},
+
+        # Time Changes (Updates the existing slot directly)
+        "PPC(B)": {"Time": "01:30-02:30PM"},
+        "PPC(C)": {"Time": "05:00-06:00PM"}
+    },
+
     },
     date(2026, 3, 11): {
         "IGR&MC": {"Venue": "CANCELLED"}
