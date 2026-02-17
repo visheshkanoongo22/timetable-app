@@ -35,7 +35,7 @@ except ImportError:
 
 # --- CONFIGURATION ---
 TIMEZONE = 'Asia/Kolkata'
-SCHEDULE_END_DATE = "2026-03-25" 
+SCHEDULE_END_DATE = "2026-03-29" 
 FEEDBACK_FILE = "feedback_db.json"
 
 # --- CSS STYLING ---
