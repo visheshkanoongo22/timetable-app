@@ -179,10 +179,6 @@ DAY_SPECIFIC_OVERRIDES = {
         "M&A(C)": {"Venue": "POSTPONED"},
         "MA":     {"Venue": "POSTPONED"},
         "MS(D)":  {"Venue": "POSTPONED"},
-
-        # Time Changes (Updates the existing slot directly)
-        "PPC(B)": {"Time": "01:30-02:30PM"},
-        "PPC(C)": {"Time": "05:00-06:00PM"}
     },
 
     },
