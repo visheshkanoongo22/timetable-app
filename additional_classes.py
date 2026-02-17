@@ -118,14 +118,14 @@ ADDITIONAL_CLASSES = [
     {
         "Subject": "PPC(B)",
         "Date": date(2026, 2, 18),
-        "Time": "05:00-06:00PM",
+        "Time": "01:30-02:30PM",
         "Venue": "T3", 
         "Faculty": "Ritesh Patel" # Assuming Faculty based on previous data
     },
     {
         "Subject": "PPC('C)",
         "Date": date(2026, 2, 18),
-        "Time": "06:10-07:10PM",
+        "Time": "05:00-06:00PM",
         "Venue": "T3", 
         "Faculty": "Ritesh Patel"
     },
