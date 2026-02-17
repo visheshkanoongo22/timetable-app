@@ -3,3 +3,4 @@ ics
 streamlit-keyup
 extra_streamlit_components
 requests
+tatsu==5.8.3
