@@ -9,7 +9,7 @@ from collections import defaultdict
 import gc
 from ics import Calendar, Event
 import importlib
-import requests  # <--- Added for sending emails
+import requests
 
 # --- DYNAMIC DATA LOADING (HOT RELOAD) ---
 try:
@@ -36,6 +36,7 @@ except ImportError:
 # --- CONFIGURATION ---
 TIMEZONE = 'Asia/Kolkata'
 SCHEDULE_END_DATE = "2026-03-25" 
+FEEDBACK_FILE = "feedback_db.json"
 
 # --- CSS STYLING ---
 st.set_page_config(page_title="MBA Timetable", layout="centered", initial_sidebar_state="collapsed")
@@ -55,7 +56,6 @@ local_css_string = """
     }
     [data-testid="stHeader"] { display: none; visibility: hidden; height: 0; }
     
-    /* Standard padding for dashboard */
     div.block-container {
         padding-top: 2rem !important;
         padding-bottom: 5rem !important;
@@ -590,8 +590,10 @@ else:
                     is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
-                    
-                    rows_html += f"""<div class="class-row status-past"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
+                    # RED FOR TIME TOO
+                    time_cls = "venue-changed" if c['Override'] else status_cls
+
+                    rows_html += f"""<div class="class-row status-past"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{time_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
                 
                 st.markdown(f"""<div class="day-card" style="opacity:0.8;"><div class="day-header">{d_obj_past.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
@@ -629,12 +631,14 @@ else:
                     is_prep = "PREPONED" in ven_up or "PREPONED" in fac_up
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
+                    # RED FOR TIME TOO
+                    time_cls = "venue-changed" if c['Override'] else status_cls
                     
                     row_status_class = "status-future"
                     if is_today:
                         row_status_class = get_class_status(c['Time'])
                     
-                    rows_html += f"""<div class="class-row {row_status_class}"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{status_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
+                    rows_html += f"""<div class="class-row {row_status_class}"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{time_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
             
             st.markdown(f"""<div class="day-card {today_cls}">{badge_html}<div class="day-header">{d_obj.strftime("%d %B %Y, %A")}</div>{rows_html}</div>""", unsafe_allow_html=True)
 
