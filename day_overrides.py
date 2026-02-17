@@ -179,9 +179,11 @@ DAY_SPECIFIC_OVERRIDES = {
         "M&A(C)": {"Venue": "POSTPONED"},
         "MA":     {"Venue": "POSTPONED"},
         "MS(D)":  {"Venue": "POSTPONED"},
+        "PPC(B)": {"Time": "01:30-02:30PM"},
+        "PPC(C)": {"Time": "05:00-06:00PM"}
     },
 
-    },
+  
     date(2026, 3, 11): {
         "IGR&MC": {"Venue": "CANCELLED"}
     },
