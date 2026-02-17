@@ -310,7 +310,15 @@ def get_hybrid_schedule(roll_no):
         if not is_my_subject: continue
 
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
-        details = {'Venue': cls['Venue'], 'Faculty': cls['Faculty'], 'Time': cls['Time'], 'Override': False}
+        # Initial Details
+        details = {
+            'Venue': cls['Venue'], 
+            'Faculty': cls['Faculty'], 
+            'Time': cls['Time'], 
+            'Override': False,
+            'TimeChange': False, # New Flag
+            'VenueChange': False # New Flag
+        }
         
         cls_obj = cls.copy()
         
@@ -323,14 +331,28 @@ def get_hybrid_schedule(roll_no):
         else:
             if 'DisplaySubject' not in cls_obj: cls_obj['DisplaySubject'] = cls_obj['Subject']
 
+        # CHECK OVERRIDES
         if d_obj in DAY_SPECIFIC_OVERRIDES:
             day_ov = DAY_SPECIFIC_OVERRIDES[d_obj]
             for ov_subj, ov_data in day_ov.items():
                 current_subj_norm = normalize(cls_obj['Subject'])
                 if normalize(ov_subj) == current_subj_norm:
+                    # Match found! Check Target Time if exists
                     if ov_data.get('Target_Time', cls['Time']) == cls['Time']:
-                        details.update(ov_data)
-                        if 'Venue' in ov_data or 'Time' in ov_data: details['Override'] = True
+                        
+                        # 1. Update Venue
+                        if 'Venue' in ov_data:
+                            details['Venue'] = ov_data['Venue']
+                            details['VenueChange'] = True
+                            details['Override'] = True
+
+                        # 2. Update Time (CRITICAL FIX)
+                        if 'Time' in ov_data:
+                            details['Time'] = ov_data['Time']
+                            details['TimeChange'] = True
+                            details['Override'] = True
+                        
+                        details.update(ov_data) # Update other fields just in case
         
         cls_obj.update(details)
         all_term_classes.append(cls_obj)
@@ -345,7 +367,9 @@ def get_hybrid_schedule(roll_no):
                 "DisplaySubject": ac['Subject'],
                 "Venue": ac.get('Venue', '-'),
                 "Faculty": ac.get('Faculty', '-'),
-                "Override": True
+                "Override": True,
+                "TimeChange": False, # Additional classes are "Normal" in terms of display color usually
+                "VenueChange": True  # But treat them as changed to highlight if needed
             })
 
     all_term_classes.sort(key=lambda x: (x['Date'], get_sort_key(x['Time'])))
@@ -355,7 +379,7 @@ def get_hybrid_schedule(roll_no):
     
     for cls in all_term_classes:
         v_upper = str(cls['Venue']).upper()
-        is_cancelled = "CANCELLED" in v_upper or "POSTPONED" in v_upper
+        is_cancelled = "CANCELLED" in v_upper or "POSTPONED" in v_upper or "RESCHEDULED" in v_upper
         
         if not is_cancelled:
             subject_counters[cls['DisplaySubject']] += 1
@@ -589,9 +613,9 @@ else:
                     is_canc = "CANCELLED" in ven_up or "CANCELLED" in fac_up
                     is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
-                    ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
-                    # RED FOR TIME TOO
-                    time_cls = "venue-changed" if c['Override'] else status_cls
+                    ven_cls = "venue-changed" if c.get('VenueChange') else "venue"
+                    # Time is red only if TimeChange is True and NOT Cancelled
+                    time_cls = "venue-changed" if (c.get('TimeChange') and not is_canc) else status_cls
 
                     rows_html += f"""<div class="class-row status-past"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{time_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
                 
@@ -630,9 +654,13 @@ else:
                     is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
                     is_prep = "PREPONED" in ven_up or "PREPONED" in fac_up
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
-                    ven_cls = "venue-changed" if (is_canc or is_post or c['Override']) else "venue"
-                    # RED FOR TIME TOO
-                    time_cls = "venue-changed" if c['Override'] else status_cls
+                    
+                    # LOGIC:
+                    # 1. Venue is Red if VenueChange is True OR Cancelled/Postponed
+                    ven_cls = "venue-changed" if (c.get('VenueChange') or is_canc or is_post or is_prep) else "venue"
+                    
+                    # 2. Time is Red ONLY if TimeChange is True AND NOT Cancelled
+                    time_cls = "venue-changed" if (c.get('TimeChange') and not (is_canc or is_post)) else status_cls
                     
                     row_status_class = "status-future"
                     if is_today:
