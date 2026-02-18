@@ -179,7 +179,8 @@ DAY_SPECIFIC_OVERRIDES = {
         "M&A(C)": {"Venue": "POSTPONED"},
         "MA":     {"Venue": "POSTPONED"},
         "MS(D)":  {"Venue": "POSTPONED"},
-        "PRM(A)": {"Venue": "T1"}
+        "PRM(A)": {"Venue": "T1"},
+        "PS&PS":  {"Venue": "POSTPONED"}
     },
 
   
