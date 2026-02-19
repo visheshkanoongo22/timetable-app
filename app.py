@@ -518,7 +518,7 @@ if not st.session_state.submitted:
     # Top Left Feedback Button
     c_btn, c_empty = st.columns([1.5, 3])
     with c_btn:
-        if st.button("❤️ Feedback / Love"):
+        if st.button("❤️ Feedback"):
             open_feedback_dialog()
 
     st.markdown("<div style='height: 12vh'></div>", unsafe_allow_html=True)
