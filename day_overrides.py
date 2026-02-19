@@ -183,7 +183,7 @@ DAY_SPECIFIC_OVERRIDES = {
         "PS&PS":  {"Venue": "POSTPONED"}
     },
 
-   date(2026, 2, 19): {
+    date(2026, 2, 19): {
         "PPC(A)": {"Venue": "309-F"},
         "PPC(B)": {"Venue": "309-F"},
         "PPC(C)": {"Venue": "309-F"},
@@ -193,6 +193,9 @@ DAY_SPECIFIC_OVERRIDES = {
         "MC": {"Time": "01:30-02:30PM"}
     },
 
+    date(2026, 2, 20): {
+        "MA": {"Venue": "POSTPONED"}
+    },
 
     date(2026, 3, 11): {
         "IGR&MC": {"Venue": "CANCELLED"}
