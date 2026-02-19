@@ -89,6 +89,21 @@ ADDITIONAL_CLASSES = [
         "Faculty": "Nitin Pillai"
     },
 
+    {
+        "Subject": "PS&PS",
+        "Date": date(2026, 2, 20),
+        "Time": "06:10-07:10PM",
+        "Venue": "E3", 
+        "Faculty": "Guest Lecture"
+    },
+
+    {
+        "Subject": "PS&PS",
+        "Date": date(2026, 2, 20),
+        "Time": "07:20-08:20PM",
+        "Venue": "E3", 
+        "Faculty": "Guest Lecture"
+    },
     # --- IGR&MC Changes ---
     {
         "Subject": "IGR&MC",
