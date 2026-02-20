@@ -195,7 +195,7 @@ DAY_SPECIFIC_OVERRIDES = {
 
     date(2026, 2, 20): {
         "MA": {"Venue": "POSTPONED"},
-        "PRM(A)": {"Venue": "E3"}
+        "PRM(A)": {"Venue": "T6"}
     },
 
     date(2026, 3, 11): {
