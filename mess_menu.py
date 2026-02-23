@@ -101,7 +101,7 @@ MESS_MENU = {
         * Ice Cream
         """
     },
-{
+
     date(2026, 2, 24): {
         "Breakfast": """
         * Methi Thepla with Curd & Pickle
