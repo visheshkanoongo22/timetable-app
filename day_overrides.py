@@ -216,6 +216,12 @@ DAY_SPECIFIC_OVERRIDES = {
         "D&IT": {"Venue": "POSTPONED"}
     },
 
+    date(2026, 2, 23): {
+        "M&A(A)": {"Venue": "T5"},
+        "M&A(B)": {"Venue": "T6"},
+        "M&A(C)": {"Venue": "T7"},
+    },
+
     # PPC Preponement (20 Mar)
     date(2026, 3, 20): {
         "PPC(B)": {"Venue": "CANCELLED"}
