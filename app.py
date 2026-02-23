@@ -35,8 +35,29 @@ except ImportError:
 
 # --- CONFIGURATION ---
 TIMEZONE = 'Asia/Kolkata'
-SCHEDULE_END_DATE = "2026-03-29" 
+SCHEDULE_END_DATE = "2026-03-25" 
 FEEDBACK_FILE = "feedback_db.json"
+
+# --- TERM END EXAM SCHEDULE ---
+TERM_END_EXAMS = [
+    {"Date": date(2026, 3, 30), "Time": "09:15 AM - 12:15 PM", "Subject": "IM",      "FullName": "International Marketing"},
+    {"Date": date(2026, 3, 30), "Time": "02:00 PM - 05:00 PM", "Subject": "M&A",     "FullName": "Mergers and Acquisitions"},
+    {"Date": date(2026, 4, 1),  "Time": "09:15 AM - 12:15 PM", "Subject": "SNA",     "FullName": "Social Network Analysis"},
+    {"Date": date(2026, 4, 1),  "Time": "02:00 PM - 05:00 PM", "Subject": "PPC",     "FullName": "Project Planning and Control"},
+    {"Date": date(2026, 4, 2),  "Time": "09:15 AM - 12:15 PM", "Subject": "CRM",     "FullName": "Customer Relationship Management"},
+    {"Date": date(2026, 4, 2),  "Time": "02:00 PM - 05:00 PM", "Subject": "RUR.MKT", "FullName": "Rural Marketing"},
+    {"Date": date(2026, 4, 3),  "Time": "09:15 AM - 12:15 PM", "Subject": "MC",      "FullName": "Management Consulting"},
+    {"Date": date(2026, 4, 3),  "Time": "02:00 PM - 05:00 PM", "Subject": "IL",      "FullName": "International Logistics"},
+    {"Date": date(2026, 4, 4),  "Time": "09:15 AM - 12:15 PM", "Subject": "MA",      "FullName": "Marketing Analytics"},
+    {"Date": date(2026, 4, 6),  "Time": "09:15 AM - 12:15 PM", "Subject": "GBL",     "FullName": "Global Business Leadership"},
+    {"Date": date(2026, 4, 6),  "Time": "02:00 PM - 05:00 PM", "Subject": "FT",      "FullName": "Financial Technologies"},
+    {"Date": date(2026, 4, 7),  "Time": "09:15 AM - 12:15 PM", "Subject": "D&IT",    "FullName": "Direct & Indirect Taxes"},
+    {"Date": date(2026, 4, 7),  "Time": "09:15 AM - 12:15 PM", "Subject": "IMR",     "FullName": "International Market Research"},
+    {"Date": date(2026, 4, 7),  "Time": "02:00 PM - 05:00 PM", "Subject": "IF",      "FullName": "International Finance"},
+    {"Date": date(2026, 4, 8),  "Time": "09:15 AM - 12:15 PM", "Subject": "IGR&MC",  "FullName": "InfoSec for Gov, Risk Mgmt & Compliance"},
+    {"Date": date(2026, 4, 8),  "Time": "02:00 PM - 05:00 PM", "Subject": "PRM",      "FullName": "Project Management"},
+    {"Date": date(2026, 4, 9),  "Time": "09:15 AM - 12:15 PM", "Subject": "DIW",     "FullName": "Diversity and Inclusion at Workplace"}
+]
 
 # --- CSS STYLING ---
 st.set_page_config(page_title="MBA Timetable", layout="centered", initial_sidebar_state="collapsed")
@@ -257,6 +278,37 @@ def get_class_status(time_str):
     except:
         return "status-future"
 
+def get_user_exams(roll_no, db):
+    roll_clean = str(roll_no).strip().upper().replace(" ", "")
+    my_subjects = set()
+    for db_roll, subjs in db.items():
+        db_clean = str(db_roll).strip().upper().replace(" ", "")
+        if (roll_clean == db_clean) or (roll_clean in db_clean and db_clean.endswith(roll_clean)) or (db_clean in roll_clean and roll_clean.endswith(db_clean)):
+            my_subjects = set(subjs)
+            break
+            
+    if not my_subjects:
+        return []
+        
+    my_exams = []
+    for exam in TERM_END_EXAMS:
+        exam_norm = normalize(exam["Subject"])
+        
+        is_match = False
+        if exam_norm in my_subjects:
+            is_match = True
+        # Match sectioned subjects (e.g., if exam is "PPC", student has "PPC(B)")
+        elif any(s.startswith(exam_norm + "(") for s in my_subjects):
+            is_match = True
+        # Match MC variants
+        elif exam_norm == "MC" and any(s.startswith("MC") for s in my_subjects):
+            is_match = True
+            
+        if is_match:
+            my_exams.append(exam)
+            
+    return my_exams
+
 # --- DATA LOADING ---
 @st.cache_data
 def load_base_data():
@@ -310,14 +362,13 @@ def get_hybrid_schedule(roll_no):
         if not is_my_subject: continue
 
         d_obj = datetime.strptime(cls['Date'], "%Y-%m-%d").date()
-        # Initial Details
         details = {
             'Venue': cls['Venue'], 
             'Faculty': cls['Faculty'], 
             'Time': cls['Time'], 
             'Override': False,
-            'TimeChange': False, # New Flag
-            'VenueChange': False # New Flag
+            'TimeChange': False,
+            'VenueChange': False
         }
         
         cls_obj = cls.copy()
@@ -335,24 +386,25 @@ def get_hybrid_schedule(roll_no):
         if d_obj in DAY_SPECIFIC_OVERRIDES:
             day_ov = DAY_SPECIFIC_OVERRIDES[d_obj]
             for ov_subj, ov_data in day_ov.items():
-                current_subj_norm = normalize(cls_obj['Subject'])
-                if normalize(ov_subj) == current_subj_norm:
-                    # Match found! Check Target Time if exists
+                
+                norm_ov = normalize(ov_subj)
+                match_subject = (norm_ov == normalize(cls_obj['Subject']))
+                match_display = (norm_ov == normalize(cls_obj.get('DisplaySubject', '')))
+
+                if match_subject or match_display:
                     if ov_data.get('Target_Time', cls['Time']) == cls['Time']:
                         
-                        # 1. Update Venue
                         if 'Venue' in ov_data:
                             details['Venue'] = ov_data['Venue']
                             details['VenueChange'] = True
                             details['Override'] = True
 
-                        # 2. Update Time (CRITICAL FIX)
                         if 'Time' in ov_data:
                             details['Time'] = ov_data['Time']
                             details['TimeChange'] = True
                             details['Override'] = True
                         
-                        details.update(ov_data) # Update other fields just in case
+                        details.update(ov_data)
         
         cls_obj.update(details)
         all_term_classes.append(cls_obj)
@@ -368,8 +420,8 @@ def get_hybrid_schedule(roll_no):
                 "Venue": ac.get('Venue', '-'),
                 "Faculty": ac.get('Faculty', '-'),
                 "Override": True,
-                "TimeChange": False, # Additional classes are "Normal" in terms of display color usually
-                "VenueChange": True  # But treat them as changed to highlight if needed
+                "TimeChange": False, 
+                "VenueChange": True
             })
 
     all_term_classes.sort(key=lambda x: (x['Date'], get_sort_key(x['Time'])))
@@ -459,23 +511,17 @@ def render_mess_menu():
 
 # --- FEEDBACK SYSTEM (VIA EMAIL) ---
 def save_feedback(name, message):
-    # Sends to Formspree which forwards to your email
     FORMSPREE_URL = "https://formspree.io/f/xvzbkdgy"
-    
     data = {
         "name": name,
         "message": message,
         "timestamp": datetime.now(pytz.timezone(TIMEZONE)).strftime("%Y-%m-%d %H:%M:%S")
     }
-    
     try:
         response = requests.post(FORMSPREE_URL, json=data)
-        if response.status_code == 200:
-            return True
-        else:
-            return False
-    except:
-        return False
+        if response.status_code == 200: return True
+        else: return False
+    except: return False
 
 @st.dialog("❤️ Send Appreciation")
 def open_feedback_dialog():
@@ -487,7 +533,6 @@ def open_feedback_dialog():
         if msg.strip():
             with st.spinner("Sending..."):
                 success = save_feedback(name if name else "Anonymous", msg)
-            
             if success:
                 st.success("Thank you! Your message has been sent to me.")
                 st.balloons()
@@ -515,10 +560,9 @@ if not st.session_state.submitted:
     </style>
     """, unsafe_allow_html=True)
 
-    # Top Left Feedback Button
     c_btn, c_empty = st.columns([1.5, 3])
     with c_btn:
-        if st.button("❤️ Feedback"):
+        if st.button("❤️ Feedback / Love"):
             open_feedback_dialog()
 
     st.markdown("<div style='height: 12vh'></div>", unsafe_allow_html=True)
@@ -576,6 +620,7 @@ else:
     else:
         ics_str = generate_ics_safe(all_classes_processed)
         sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(db_key).replace(" ", "_")).upper()
+        
         with st.expander("Download & Import to Calendar"):
             st.download_button(
                 label="Download .ics Calendar File",
@@ -584,6 +629,20 @@ else:
                 mime='text/calendar'
             )
             st.markdown("**How to Import:** Download the file, go to Google Calendar settings, select 'Import & Export', and upload the file.")
+
+        # --- TERM END EXAM SCHEDULE COMPONENT ---
+        my_exams = get_user_exams(roll, students_db)
+        if my_exams:
+            with st.expander("🎓 Term End Exam Schedule", expanded=False):
+                st.markdown("<h4 style='text-align:center; color:#38BDF8; margin-top:0px; margin-bottom: 15px;'>Your Final Exams</h4>", unsafe_allow_html=True)
+                for ex in my_exams:
+                    st.markdown(f"""
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 10px;">
+                        <div style="color: #E2E8F0; font-weight: 700; font-size: 1.05rem;">{ex['FullName']} ({ex['Subject']})</div>
+                        <div style="color: #94A3B8; font-size: 0.85rem; margin-top: 4px;">📅 {ex['Date'].strftime('%d %B %Y, %A')}</div>
+                        <div style="color: #CBD5E1; font-family: monospace; font-size: 0.85rem; margin-top: 2px;">⏰ {ex['Time']}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
 
         schedule_by_date = defaultdict(list)
         for c in all_classes_processed:
@@ -614,7 +673,6 @@ else:
                     is_post = "POSTPONED" in ven_up or "POSTPONED" in fac_up
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     ven_cls = "venue-changed" if c.get('VenueChange') else "venue"
-                    # Time is red only if TimeChange is True and NOT Cancelled
                     time_cls = "venue-changed" if (c.get('TimeChange') and not is_canc) else status_cls
 
                     rows_html += f"""<div class="class-row status-past"><div class="class-info-left"><div class="subj-title {status_cls}">{c['DisplaySubject']}</div><div class="faculty-name {status_cls}">{fac}</div><div class="meta-row"><span class="{time_cls}">{c['Time']}</span><span style="color: #475569;">|</span><span class="{ven_cls}">{venue}</span></div></div><div class="session-badge-container"><div class="session-num">{c['SessionNumber']}</div><div class="session-label">SESSION</div></div></div>"""
@@ -655,11 +713,7 @@ else:
                     is_prep = "PREPONED" in ven_up or "PREPONED" in fac_up
                     status_cls = "strikethrough" if (is_canc or is_post) else ""
                     
-                    # LOGIC:
-                    # 1. Venue is Red if VenueChange is True OR Cancelled/Postponed
                     ven_cls = "venue-changed" if (c.get('VenueChange') or is_canc or is_post or is_prep) else "venue"
-                    
-                    # 2. Time is Red ONLY if TimeChange is True AND NOT Cancelled
                     time_cls = "venue-changed" if (c.get('TimeChange') and not (is_canc or is_post)) else status_cls
                     
                     row_status_class = "status-future"
