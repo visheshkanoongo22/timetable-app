@@ -112,6 +112,13 @@ ADDITIONAL_CLASSES = [
         "Venue": "T6", 
         "Faculty": "Somayya Madakkam"
     },
+    {
+        "Subject": "IGR&MC",
+        "Date": date(2026, 2, 26),
+        "Time": "06:10-07:10PM",
+        "Venue": "T6", 
+        "Faculty": "Somayya Madakkam"
+    },
     # 13th March Double Session (Split into two)
     {
         "Subject": "IGR&MC",
