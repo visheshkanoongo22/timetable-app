@@ -202,7 +202,7 @@ DAY_SPECIFIC_OVERRIDES = {
         "RURMKT(B)": {"Venue": "T1"}
     },
 
-    date(2026, 2, 21): {
+    date(2026, 2, 26): {
         "MS(D)": {"Venue": "T7"}
     },
 
