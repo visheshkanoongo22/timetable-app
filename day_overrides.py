@@ -223,7 +223,13 @@ DAY_SPECIFIC_OVERRIDES = {
     date(2026, 2, 23): {
         "M&A(A)": {"Venue": "T5"},
         "M&A(B)": {"Venue": "T6"},
-        "M&A(C)": {"Venue": "T7"},
+        "M&A(C)": {"Venue": "T7"}
+    },
+
+   date(2026, 2, 28): {
+        "M&A(A)": {"Venue": "Online"},
+        "M&A(B)": {"Venue": "Online"},
+        "M&A(C)": {"Venue": "Online"}
     },
 
     date(2026, 2, 25): {
