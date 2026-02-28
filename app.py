@@ -621,14 +621,14 @@ else:
         ics_str = generate_ics_safe(all_classes_processed)
         sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', str(db_key).replace(" ", "_")).upper()
         
-        # with st.expander("Download & Import to Calendar"):
-        #     st.download_button(
-        #         label="Download .ics Calendar File",
-        #         data=ics_str,
-        #         file_name=f"{sanitized_name}_Timetable.ics",
-        #         mime='text/calendar'
-        #     )
-        #     st.markdown("**How to Import:** Download the file, go to Google Calendar settings, select 'Import & Export', and upload the file.")
+        with st.expander("Download & Import to Calendar"):
+            st.download_button(
+                label="Download .ics Calendar File",
+                data=ics_str,
+                file_name=f"{sanitized_name}_Timetable.ics",
+                mime='text/calendar'
+            )
+            st.markdown("**How to Import:** Download the file, go to Google Calendar settings, select 'Import & Export', and upload the file.")
 
         # --- TERM END EXAM SCHEDULE COMPONENT ---
         my_exams = get_user_exams(roll, students_db)
