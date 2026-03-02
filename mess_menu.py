@@ -248,8 +248,214 @@ MESS_MENU = {
         * Onion & Lemon
         * Fryums
         """
-    }
+    },
 
+    date(2026, 3, 2): {
+        "Breakfast": """
+        * Indori Sev Poha
+        * Veg sandwich
+        * Fruit
+        * Bread Butter & Jam
+        * Tea & Coffee
+        """,
+        "Lunch": """
+        * Veg Kohlapuri
+        * Mix Kathol
+        * Butter milk
+        * Dal
+        * Mutter Rice
+        * Roti
+        * Salad
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Paneer Tikka Masala
+        * Moong Masala
+        * Frymes
+        * Dal tadka
+        * Rice
+        * Roti
+        """
+    },
+    date(2026, 3, 3): {
+        "Breakfast": """
+        * Methi Thepla
+        * Sev Khamni
+        * Bread Butter & Jam
+        * Tea & Coffee
+        * Cornflakes
+        """,
+        "Lunch": """
+        * Palak paneer Masala
+        * Choli masala
+        * Dahi
+        * Dal
+        * Rice
+        * Roti
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Nargis kofta
+        * Veg Crispy
+        * Roti
+        * Butter Milk
+        * Frymes
+        * Dal Fry
+        * Plain Rice
+        """
+    },
+    date(2026, 3, 4): {
+        "Breakfast": """
+        * Mix Uttapam
+        * Masala Idli - sambhar
+        * Bread Butter & Jam
+        * Tea & Coffee
+        """,
+        "Lunch": """
+        * Paneer Patiala
+        * Loki Chana masala
+        * Lemon water
+        * Plain Rice
+        * Dal Fry
+        * Roti
+        * Salad
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Chole Bhature/Kulcha
+        * Cheese Corn Soup
+        * Chineese Samosa
+        * Dal
+        * Plain Veg Pulav
+        * Boondi Raita
+        * Roti
+        """
+    },
+    date(2026, 3, 5): {
+        "Breakfast": """
+        * Bread Pakoda
+        * Nylon Khaman
+        * Bread Butter & Jam
+        * Tea & Coffee
+        * Fruit
+        """,
+        "Lunch": """
+        * Gajar Mutter
+        * Rajma
+        * Buttermilk
+        * Jeera Rice
+        * Dal Tadka
+        * Roti
+        * Salad
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Pani Puri
+        * Aloo paneer parotha
+        * Papdi chaat
+        * Chana jor garam
+        * Dahi vada
+        * Dum Biryani
+        * Curd
+        * Pickle
+        """
+    },
+    date(2026, 3, 6): {
+        "Breakfast": """
+        * Veg Sandwich
+        * Dal Pakwan
+        * Bread Butter & Jam
+        * Tea & Coffee
+        * Fruit
+        """,
+        "Lunch": """
+        * Paneer Lababdar
+        * Kala Chana
+        * Dal Tadka
+        * Rice
+        * Limbu Pani
+        * Roti
+        * Salad
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Sweet-Srikhand
+        * Cheese butter Masala
+        * Aloo Chips
+        * Rice
+        * Puri
+        * Butter milk
+        * Rosted Papad
+        """
+    },
+    date(2026, 3, 7): {
+        "Breakfast": """
+        * Dabeli
+        * Suji Upma
+        * Boil Chana Rajma
+        * Bread Butter & Jam
+        * Tea & Coffee
+        * Fruit
+        """,
+        "Lunch": """
+        * Mix Veg masala
+        * Malai Kofta
+        * Dal Fry
+        * Rice
+        * Roti
+        * Salad
+        * Dahi
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Kaju Curry
+        * Veg Manchurian
+        * Dal Tadka Rice
+        * Gulab Jamun
+        * Fryms
+        """
+    },
+    date(2026, 3, 8): {
+        "Breakfast": """
+        * Aloo Paratha / Paneer Paratha
+        * Khakhra
+        * Bread Butter & Jam
+        * Tea & Coffee
+        * Fruit
+        """,
+        "Lunch": """
+        * Mix Uttapam
+        * Masala Dosa
+        * Idli, Medu Vada
+        * Sambhar
+        * Coconut Chutney
+        * Schezwan Rice
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Tomato Soup
+        * Pav Bhaji
+        * Hara Bhara Kabab
+        * Veg Biryani
+        * Boondi Raita
+        * Masala Papad
+        * Ice Cream
+        """
+    }
 
 }
 
