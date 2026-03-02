@@ -243,7 +243,8 @@ DAY_SPECIFIC_OVERRIDES = {
     },
 
     date(2026, 3, 5): {
-        "MS(C)": {"Venue": "POSTPONED"}  
+        "MS(C)": {"Venue": "POSTPONED"},
+        "IGR&MC": {"Faculty": "Guest Session"}         
     },    
     
     # PPC Preponement (20 Mar)
