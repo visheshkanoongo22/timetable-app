@@ -151,6 +151,23 @@ ADDITIONAL_CLASSES = [
         "Venue": "T3", 
         "Faculty": "Ritesh Patel"
     },
+
+    {
+        "Subject": "IGR&MC",
+        "Date": date(2026, 3, 5),
+        "Time": "06:00-07:10PM",
+        "Venue": "T6", 
+        "Faculty": "Guest Session"
+    },
+
+    {
+        "Subject": "IGR&MC",
+        "Date": date(2026, 3, 6),
+        "Time": "06:00-07:10PM",
+        "Venue": "T6", 
+        "Faculty": "Guest Session"
+    },
+
     # 18th March Session
     {
         "Subject": "PPC(B)",
