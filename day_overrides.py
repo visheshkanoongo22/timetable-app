@@ -253,7 +253,8 @@ DAY_SPECIFIC_OVERRIDES = {
         "IL(B)":  {"Venue": "T3"},
         "FT(B)":  {"Venue": "T3"},
         "PRM(B)": {"Venue": "T3"},
-        "IGR&MC": {"Venue": "T3"}
+        "IGR&MC": {"Venue": "T3"},
+        "RUR.MKT(B)": {"Venue": "POSTPONED"}
     },
 
     date(2026, 3, 7): {
