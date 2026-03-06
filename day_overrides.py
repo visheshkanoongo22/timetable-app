@@ -256,6 +256,13 @@ DAY_SPECIFIC_OVERRIDES = {
         "IGR&MC": {"Venue": "T3"}
     },
 
+    date(2026, 3, 7): {
+        "PPC('C)": {'Venue': '216'},
+        "PPC(A)": {'Venue': '216'},
+        "PPC(B)": {'Venue': '216'},
+        "SNA":    {'Venue': '216'}
+    },
+
     # PPC Preponement (20 Mar)
     date(2026, 3, 20): {
         "PPC(B)": {"Venue": "CANCELLED"}
