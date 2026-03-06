@@ -120,6 +120,40 @@ ADDITIONAL_CLASSES = [
         "Faculty": "Somayya Madakkam"
     },
     # 13th March Double Session (Split into two)
+
+    # --- MAR 7: PRM(A) Individual Online Guest Sessions ---
+    {
+        "Subject": "PRM(A)",
+        "Date": date(2026, 3, 7),
+        "Time": "07:15-08:15PM",
+        "Venue": "Online", 
+        "Faculty": "Guest"
+    },
+    {
+        "Subject": "PRM(A)",
+        "Date": date(2026, 3, 7),
+        "Time": "08:15-09:15PM",
+        "Venue": "Online", 
+        "Faculty": "Guest"
+    },
+
+    # --- MAR 7: PRM(B) Individual Online Guest Sessions ---
+    {
+        "Subject": "PRM(B)",
+        "Date": date(2026, 3, 7),
+        "Time": "07:15-08:15PM",
+        "Venue": "Online", 
+        "Faculty": "Guest"
+    },
+    {
+        "Subject": "PRM(B)",
+        "Date": date(2026, 3, 7),
+        "Time": "08:15-09:15PM",
+        "Venue": "Online", 
+        "Faculty": "Guest"
+    },
+
+
     {
         "Subject": "IGR&MC",
         "Date": date(2026, 3, 13),
