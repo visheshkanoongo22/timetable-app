@@ -153,7 +153,36 @@ ADDITIONAL_CLASSES = [
         "Faculty": "Guest"
     },
 
+    {
+        "Subject": "FT(A)",
+        "Date": date(2026, 3, 8),
+        "Time": "10:00-11:00AM",
+        "Venue": "Online", 
+        "Faculty": "Guest"
+    },
+    {
+        "Subject": "FT(A)",
+        "Date": date(2026, 3, 8),
+        "Time": "11:00AM-12:00PM",
+        "Venue": "Online", 
+        "Faculty": "Guest"
+    },
 
+    # --- MAR 8: FT(B) Individual Online Guest Sessions ---
+    {
+        "Subject": "FT(B)",
+        "Date": date(2026, 3, 8),
+        "Time": "10:00-11:00AM",
+        "Venue": "Online", 
+        "Faculty": "Guest"
+    },
+    {
+        "Subject": "FT(B)",
+        "Date": date(2026, 3, 8),
+        "Time": "11:00AM-12:00PM",
+        "Venue": "Online", 
+        "Faculty": "Guest"
+    },
     {
         "Subject": "IGR&MC",
         "Date": date(2026, 3, 13),
