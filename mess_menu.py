@@ -489,6 +489,98 @@ MESS_MENU = {
         * Onion & Lemon
         """
     },
+
+    date(2026, 3, 10): {
+        "Breakfast": """
+        * Sandwich Dhokla With Green Chutney
+        * Fruit + Methi Ka Thepla With Curd
+        """,
+        "Lunch": """
+        * Palak Paneer Masala
+        * Chole Masala
+        * Dal Mix Tadka
+        * Jeera Rice
+        * Roti
+        * Mix Sprout Salad
+        * Onion & Lemon
+        * Lemon Water
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Sweet Aamras
+        * Veg Jaipuri
+        * Moong Masala
+        * Dal Fry
+        * Mutter Rice
+        * Roti
+        * Onion & Lemon
+        * Frymes
+        """
+    },
+    date(2026, 3, 11): {
+        "Breakfast": """
+        * Idli Sambhar Chutney + Toast
+        * Fruit + Mix Uttapam Sambhar Chutney
+        """,
+        "Lunch": """
+        * Mix Veg Masala Dry
+        * Kadi Pakoda
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Chana Chat Salad
+        * Onion & Lemon
+        * Plain Curd
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Mix Fruit Juice
+        * Corn Tikki
+        * Chole Bhature
+        * Dal Fry
+        * Jeera Rice
+        * Kulcha
+        * Green Chilli Fry
+        * Ring Onion & Lemon
+        * Roasted Papad
+        * Roti
+        """
+    },
+    date(2026, 3, 12): {
+        "Breakfast": """
+        * Masala Maggi + Cornflakes
+        * Fruit + Aloo Mutter Sandwich
+        """,
+        "Lunch": """
+        * Rajma Masala
+        * Methi Mutter Malai
+        * Aloo Capsicum Dry
+        * Dal Fry
+        * Jeera Rice
+        * Roti
+        * Green Salad
+        * Onion & Lemon
+        * Buttermilk
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Orange Rasna
+        * Paneer Bhurji
+        * Cheese Samosa
+        * Dal Fry
+        * Plain Rice
+        * Red Pasta
+        * Roti
+        * Onion & Lemon
+        * Sweet Ice Cream
+        """
+    },
     date(2026, 3, 13): {
         "Breakfast": """
         * Dal Pakwan With Chatni
