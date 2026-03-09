@@ -455,7 +455,7 @@ MESS_MENU = {
         * Masala Papad
         * Ice Cream
         """,
-
+    },
     date(2026, 3, 9): {
         "Breakfast": """
         * Indori Poha (With Lemon, Onion, Sev)
