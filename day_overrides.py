@@ -264,7 +264,7 @@ DAY_SPECIFIC_OVERRIDES = {
         "SNA":    {'Venue': '216'}
     },
 
-    date(2026, 3, 11): {
+    date(2026, 3, 10): {
         "IGR&MC": {"Venue": "T3"}
     },
 
