@@ -264,7 +264,9 @@ DAY_SPECIFIC_OVERRIDES = {
         "SNA":    {'Venue': '216'}
     },
 
-    
+    date(2026, 3, 6): {
+        "RUR.MKT(B)": {"Venue": "T7"}
+    },
 
     # PPC Preponement (20 Mar)
     date(2026, 3, 20): {
