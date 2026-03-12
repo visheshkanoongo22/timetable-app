@@ -270,6 +270,12 @@ DAY_SPECIFIC_OVERRIDES = {
         "MS(D)": {"Venue": "T7"}
     },
 
+   date(2026, 3, 13): {
+       "FT(A)": {"Venue": "CANCELLED"},
+       "FT(B)": {"Venue": "CANCELLED"}
+    },
+
+
     # PPC Preponement (20 Mar)
     date(2026, 3, 20): {
         "PPC(B)": {"Venue": "CANCELLED"}
