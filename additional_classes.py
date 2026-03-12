@@ -223,6 +223,35 @@ ADDITIONAL_CLASSES = [
         "Faculty": "Guest Session"
     },
 
+    {
+        "Subject": "FT(A)",
+        "Date": date(2026, 3, 12),
+        "Time": "07:20-08:20PM",
+        "Venue": "Online", 
+        "Faculty": "Guest"
+    },
+    {
+        "Subject": "FT(A)",
+        "Date": date(2026, 3, 8),
+        "Time": "08:30-09:30PM",
+        "Venue": "Online", 
+        "Faculty": "Guest"
+    },
+
+   {
+        "Subject": "FT(B)",
+        "Date": date(2026, 3, 12),
+        "Time": "07:20-08:20PM",
+        "Venue": "Online", 
+        "Faculty": "Guest"
+    },
+    {
+        "Subject": "FT(B)",
+        "Date": date(2026, 3, 8),
+        "Time": "08:30-09:30PM",
+        "Venue": "Online", 
+        "Faculty": "Guest"
+    },
     # 18th March Session
     {
         "Subject": "PPC(B)",
