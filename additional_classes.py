@@ -226,7 +226,7 @@ ADDITIONAL_CLASSES = [
     {
         "Subject": "FT(A)",
         "Date": date(2026, 3, 12),
-        "Time": "07:20-08:20PM",
+        "Time": "07:20-09:30PM",
         "Venue": "Online", 
         "Faculty": "Guest"
     },
@@ -241,7 +241,7 @@ ADDITIONAL_CLASSES = [
    {
         "Subject": "FT(B)",
         "Date": date(2026, 3, 12),
-        "Time": "07:20-08:20PM",
+        "Time": "07:20-09:30PM",
         "Venue": "Online", 
         "Faculty": "Guest"
     },
