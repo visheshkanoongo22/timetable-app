@@ -265,7 +265,9 @@ DAY_SPECIFIC_OVERRIDES = {
     },
 
     date(2026, 3, 12): {
-        "RUR.MKT(B)": {"Venue": "T7"}
+        "RUR.MKT(B)": {"Venue": "T7"},
+        "IGR&MC": {"Venue": "T3"},
+        "MS(D)": {"Venue": "T7"}
     },
 
     # PPC Preponement (20 Mar)
