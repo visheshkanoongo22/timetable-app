@@ -251,14 +251,8 @@ ADDITIONAL_CLASSES = [
         "Time": "08:30-09:30PM",
         "Venue": "Online", 
         "Faculty": "Guest"
-    },
-    # 18th March Session
-    {
-        "Subject": "PPC(B)",
-        "Date": date(2026, 3, 18),
-        "Time": "05:00-06:00PM",
-        "Venue": "T3", 
-        "Faculty": "Ritesh Patel"
     }
+    # 18th March Session
+    
 
 ]
