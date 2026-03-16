@@ -668,6 +668,96 @@ MESS_MENU = {
         * Onion & Lemon
         * Ice Cream
         """
+    },
+    date(2026, 3, 17): {
+        "Breakfast": """
+        * Methi Thepla with Curd & Pickle
+        * Fruit
+        * Dabeli with Chutni
+        * Cornflakes
+        """,
+        "Lunch": """
+        * Palak Paneer Masala
+        * Rajma Masala
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion & Lemon
+        * Lemon Water
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Aam Ras
+        * Cheese Butter Masala
+        * Aloo Chips Masala
+        * Dal Makhani
+        * Jeera Rice
+        * Roti
+        * Onion & Lemon
+        * Frymes
+        """
+    },
+    date(2026, 3, 18): {
+        "Breakfast": """
+        * Masala Idli
+        * Toast
+        * Fruit
+        * Mix Uttapam Sambhar Chutni
+        """,
+        "Lunch": """
+        * Kadi Pakoda
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Mix Sprout Salad
+        * Onion & Lemon
+        * Jal Jeera
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Aloo Paneer Paratha
+        * Plain Curd & Pickle
+        * Pani Puri
+        * Papdi Chaat
+        * Sweet Dahi Vada
+        * Chana Jor Garam
+        * Dum Biryani
+        """
+    },
+    date(2026, 3, 19): {
+        "Breakfast": """
+        * Suji ka Upma with Coconut Chutni
+        * Fruit
+        * Veg Cheese Sandwich
+        * Khakhra
+        """,
+        "Lunch": """
+        * Paneer Pasanda Masala
+        * Loki Chana Dal
+        * Dal Fry
+        * Plain Rice
+        * Roti
+        * Green Salad
+        * Onion & Lemon
+        * Plain Curd
+        """,
+        "Hi-Tea": """
+        * Tea / Coffee
+        """,
+        "Dinner": """
+        * Aloo Ghiloda Masala
+        * Veg Kofta
+        * Dal Fry
+        * Jeera Rice
+        * Roti
+        * Onion & Lemon
+        * Masala Papad
+        """
     }
 
 }
