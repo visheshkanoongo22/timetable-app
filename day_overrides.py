@@ -276,6 +276,10 @@ DAY_SPECIFIC_OVERRIDES = {
     },
 
    date(2026, 3, 16): {
+        "MS(A)":  {"Venue": "CANCELLED"}
+    },
+
+  date(2026, 3, 16): {
         "PS&PS":  {"Venue": "E4"}
     },
 
