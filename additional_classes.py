@@ -251,7 +251,32 @@ ADDITIONAL_CLASSES = [
         "Time": "08:30-09:30PM",
         "Venue": "Online", 
         "Faculty": "Guest"
-    }
+    },
+    # --- MAR 19: Additional IGR&MC Session ---
+    {
+        "Subject": "IGR&MC",
+        "Date": date(2026, 3, 19),
+        "Time": "07:20-08:20PM",
+        "Venue": "T6", 
+        "Faculty": "Somayya Madakkam"
+    },
+
+    # --- MAR 25: MS(C) Double Sessions ---
+    {
+        "Subject": "MS(C)",
+        "Date": date(2026, 3, 25),
+        "Time": "05:00-06:00PM",
+        "Venue": "-", 
+        "Faculty": "-"
+    },
+    {
+        "Subject": "MS(C)",
+        "Date": date(2026, 3, 25),
+        "Time": "06:10-07:10PM",
+        "Venue": "-", 
+        "Faculty": "-"
+    },
+
     # 18th March Session
     
 
