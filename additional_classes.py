@@ -265,19 +265,24 @@ ADDITIONAL_CLASSES = [
     {
         "Subject": "MS(C)",
         "Date": date(2026, 3, 25),
-        "Time": "05:00-06:00PM",
+        "Time": "10:20-11:20AM",
         "Venue": "T5", 
         "Faculty": "Jayesh Aagja"
     },
     {
         "Subject": "MS(C)",
         "Date": date(2026, 3, 25),
-        "Time": "06:10-07:10PM",
+        "Time": "11:30AM-12:30PM",
         "Venue": "T5", 
         "Faculty": "Jayesh Aagja"
     },
-
-    # 18th March Session
-    
+    # --- MAR 25: GBL Additional Session ---
+    {
+        "Subject": "GBL",
+        "Date": date(2026, 3, 25),
+        "Time": "08:00-09:00AM",
+        "Venue": "T5", 
+        "Faculty": "Sadhna Sargam"
+    }
 
 ]
